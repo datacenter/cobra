@@ -1,6 +1,6 @@
 ## Contributing
 
-Ravi Chamarthy (@rchamarthy) is the creator and current maintainer of the Cobra API. Pull requests are always welcome.
+ACI datacenter team is the current maintainer of the Cobra API. Pull requests are always welcome.
 
 Before submitting a pull request, please ensure you have added or updated tests as appropriate, and that all existing tests still pass with your changes on both Python 2 and Python 3. Please also ensure that your coding style follows PEP 8 and doesn't cause pyflakes to complain. 
 
