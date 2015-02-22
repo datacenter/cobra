@@ -25,10 +25,10 @@ $ tox -e py27,py33,pep8
         * Params
         * Attributes
 * Format non-trivial comments using your GitHub nick and one of these prefixes:
-    * TODO(riker): Damage report!
-    * NOTE(riker): Well, that's certainly good to know.
-    * PERF(riker): Travel time to the nearest starbase?
-    * APPSEC(riker): In all trust, there is the possibility for betrayal.
+    * TODO(rc): Damage report!
+    * NOTE(rc): Well, that's certainly good to know.
+    * PERF(rc): Travel time to the nearest starbase?
+    * APPSEC(rc): In all trust, there is the possibility for betrayal.
 * When catching exceptions, name the variable `ex`.
 * Use whitespace to separate logical blocks of code and to improve readability.
 * No single-character variable names except for trivial indexes when looping,
@@ -84,3 +84,5 @@ The footer should contain any information about **Breaking Changes** and is also
 [docstrings]: http://sphinxcontrib-napoleon.readthedocs.org/en/latest/example_google.html#example-google-style-python-docstrings
 [goog-style]: http://google-styleguide.googlecode.com/svn/trunk/pyguide.html#Comments
 [rtd]: http://cobra.readthedocs.org
+
+Source: https://github.com/racker/falcon/blob/master/CONTRIBUTING.md
