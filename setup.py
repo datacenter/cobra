@@ -52,14 +52,14 @@ setup(
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
-        "Topic :: Data Center",
-        'Topic :: Software Development :: Libraries",
+        'Topic :: Data Center',
+        'Topic :: Software Development :: Libraries',
         'Programming Language :: Python',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: 2.7',
     ],
     keywords='data center networking configuration management',
-    license="http://www.apache.org/licenses/LICENSE-2.0"
+    license='http://www.apache.org/licenses/LICENSE-2.0',
     install_requires=[
         'setuptools',
         'requests',
