@@ -14,8 +14,8 @@ namespace.  Those installable packages are:
 1. **acicobra** - This is the SDK and includes the following namespaces:
 
    - **cobra**
-   - **cobra.internal**
    - **cobra.mit**
+   - **cobra.internal**
 
 2. **acimodel** - This includes the Python packages that model the Cisco ACI
    Management Information Tree and includes the following namespaces:

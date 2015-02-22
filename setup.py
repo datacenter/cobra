@@ -30,33 +30,36 @@ class PyTest(TestCommand):
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
-sys.path.append(vmanPath)
-import vman
-vman.VERSION_FILE = os.path.join(gitRoot, 'build/pkg/VERSION.yml')
-version = vman.Version()
-versionStr = version.stringify(openDelim='-', closeDelim='')
-
 setup(
     name='acicobra',
-    version=versionStr,
-    description='Access API for the Management Information Tree',
-    author='Cisco Systems',
-    author_email='gurssing@cisco.com',
-    url='',
-    packages=find_packages(exclude=['model', 'zen', 'zen.formatter*', 'examples']),
+    version='0.1',
+    description='Rest API client for the Cisco ACI',
+    author='Cisco Systems Inc',
+    author_email='ravchama@cisco.com',
+    url='https://github.com/datacenter/cobra',
+    packages=find_packages(exclude=['examples']),
     namespace_packages = ['cobra'],
     long_description="""\
         Access API for the Management Information Tree.
         """,
     classifiers=[
-        "License :: Cisco Systems Inc. (Copyright 2013 - 2014)",
-        "Programming Language :: Python",
-        "Development Status :: 0 - Pre-alpha",
-        "Intended Audience :: Developers",
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Web Environment',
+        'Natural Language :: English',
+        'Intended Audience :: Developers',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX',
         "Topic :: Data Center",
+        'Topic :: Software Development :: Libraries",
+        'Programming Language :: Python',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: 2.7',
     ],
     keywords='data center networking configuration management',
-    license='Cisco Systems Inc. (Copyright 2013 - 2014)',
+    license="http://www.apache.org/licenses/LICENSE-2.0"
     install_requires=[
         'setuptools',
         'requests',
