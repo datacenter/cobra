@@ -25,7 +25,8 @@ import tempfile
 import subprocess
 # This is used for inline signatures only
 import base64
-
+import time
+import math
 
 class AbstractSession(object):
     XML_FORMAT, JSON_FORMAT = 0, 1
@@ -107,6 +108,9 @@ class LoginSession(AbstractSession):
         self._password = password
         self._cookie = None
         self._challenge = None
+        self._version = None
+        self._refreshTime = None
+        self._refreshTimeoutSeconds = None
 
     @property
     def user(self):
@@ -144,6 +148,29 @@ class LoginSession(AbstractSession):
     def challenge(self, challenge):
         self._challenge = challenge
 
+    @property
+    def version(self):
+        """
+        Returns APIC version received from aaaLogin
+        """
+        return self._version
+
+    @property
+    def refreshTime(self):
+        """
+        Returns the relative login refresh time. The session must be
+        refreshed by this time or it times out
+        """
+        return self._refreshTime
+
+    @property
+    def refreshTimeoutSeconds(self):
+        """
+        Returns the number of seconds for which this LoginSession is
+        valid
+        """
+        return self._refreshTimeoutSeconds
+
     def getHeaders(self, uriPathAndOptions, data):
         headers = {'Cookie': 'APIC-cookie=%s' % self.cookie}
         if self._challenge:
@@ -164,7 +191,12 @@ class LoginSession(AbstractSession):
             raise LoginError(errorCode, reasonStr)
         elif 'aaaLogin' in firstRecord:
             cookie = firstRecord['aaaLogin']['attributes']['token']
+            refreshTimeoutSeconds = firstRecord['aaaLogin']['attributes']['refreshTimeoutSeconds']
+            version = firstRecord['aaaLogin']['attributes']['version']
             self._cookie = cookie
+            self._version = version
+            self._refreshTime = int(refreshTimeoutSeconds) + math.trunc(time.time())
+            self._refreshTimeoutSeconds = int(refreshTimeoutSeconds)
         else:
             raise LoginError(0, 'Bad Response: ' + str(rsp.text))
 
