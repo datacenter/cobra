@@ -35,7 +35,7 @@ setup(
     version='0.1',
     description='Rest API client for the Cisco ACI',
     author='Cisco Systems Inc',
-    author_email='ravchama@cisco.com',
+    author_email='acicobra@external.cisco.com',
     url='https://github.com/datacenter/cobra',
     packages=find_packages(exclude=['examples']),
     namespace_packages = ['cobra'],
