@@ -96,7 +96,7 @@ class Test_internal_base_moimpl_MoStatus:
         (MoStatus.MODIFIED | MoStatus.DELETED, "deleted", True),
     ])
     def test_MoStatus_props(self, init, prop, expected):
-        #status = MoStatus(init)
+        status = MoStatus(init)
         assert eval("status." + prop) == expected
 
     def test_MoStatus_clear(self):
@@ -120,4 +120,4 @@ class Test_internal_base_moimpl_MoBase:
     # NotImplementedError
     def test_baseMo_init_raises(self):
         with pytest.raises(NotImplementedError):
-            BaseMo('uni')
+            BaseMo('uni', True)
