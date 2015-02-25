@@ -1,4 +1,4 @@
-Cobra [![Build Status](https://api.shippable.com/projects/54ea96315ab6cc13528d52b3/badge?branchName=master)](https://app.shippable.com/projects/54ea96315ab6cc13528d52b3/builds/latest)
+Cobra [![Build Status](https://api.shippable.com/projects/54ea96315ab6cc13528d52b3/badge?branchName=master)](https://app.shippable.com/projects/54ea96315ab6cc13528d52b3/builds/latest) [![Documentation Status](https://readthedocs.org/projects/cobra/badge/?version=latest)](https://readthedocs.org/projects/cobra/?badge=latest)
 =====
 
 Cobra is the officially supported python bindings for [Cisco APIC REST API][apihome].
