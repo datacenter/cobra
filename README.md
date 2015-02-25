@@ -78,7 +78,7 @@ We have started documenting the library at http://cobra.readthedocs.org and we w
 
 The docstrings in the Cobra code base are quite extensive, and we recommend keeping a REPL running while learning the library so that you can query the various modules and classes as you have questions.
 
-Please file issues [here][issues]. Finally, you can always mail your questions to the cobra support team acicobra@external.cisco.com.
+Please file issues [here][issues]. Please mail your questions to the cobra support team at cicobra@external.cisco.com.
 
 
 ### Contributing ###
