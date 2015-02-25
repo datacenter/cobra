@@ -19,7 +19,7 @@ import inspect
 import pkgutil
 import httplib
 
-import cobra.model
+cobra.model = pytest.importorskip("cobra.model")
 import cobra.mit.access
 import cobra.mit.session
 
