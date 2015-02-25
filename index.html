@@ -1,0 +1,152 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Cobra by datacenter</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Cobra</h1>
+        <p>Cobra - Python bindings for the ACI REST API</p>
+        <p class="view"><a href="https://github.com/datacenter/cobra">View the Project on GitHub <small>datacenter/cobra</small></a></p>
+        <ul>
+          <li><a href="https://github.com/datacenter/cobra/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/datacenter/cobra/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/datacenter/cobra">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="cobra-" class="anchor" href="#cobra-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cobra <a href="https://app.shippable.com/projects/54ea96315ab6cc13528d52b3/builds/latest"><img src="https://api.shippable.com/projects/54ea96315ab6cc13528d52b3/badge?branchName=master" alt="Build Status"></a>
+</h1>
+
+<p>Cobra is the officially supported python bindings for <a href="http://www.cisco.com/c/en/us/td/docs/switches/datacenter/aci/apic/sw/1-x/api/rest/b_APIC_RESTful_API_User_Guide.html">Cisco APIC REST API</a>.
+It provides a pythonic library that allows developers to quickly develop and test applications to program the Cisco ACI through the APIC.</p>
+
+<blockquote>
+<p>Life is really simple, but we insist on making it complicated.</p>
+
+<p><em>- Confucius</em></p>
+</blockquote>
+
+<h3>
+<a id="design-goals" class="anchor" href="#design-goals" aria-hidden="true"><span class="octicon octicon-link"></span></a>Design Goals</h3>
+
+<p><strong>Simple.</strong> Pythonic, well documented and easy to develop and test applications.</p>
+
+<p><strong>Complete.</strong> Covers the entire APIC REST API.</p>
+
+<p><strong>Robust.</strong> Integrate with <a href="https://github.com/datacenter/acimodel">ACI Model</a> for client side validation and testing.</p>
+
+<p><strong>Light.</strong> Keep the code lean, making it easier to test, optimize and use.</p>
+
+<h3>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span class="octicon octicon-link"></span></a>Features</h3>
+
+<ul>
+<li>Programattic interface to ACI model through simple python classes</li>
+<li>Works with multiple versions of ACI model</li>
+<li>Provides unit testing capability against a mock APIC Server</li>
+<li>Python 2.7, Python 3.3/3.4 and PyPy support</li>
+<li>20% speed boost when Cython is available</li>
+</ul>
+
+<h3>
+<a id="benefits" class="anchor" href="#benefits" aria-hidden="true"><span class="octicon octicon-link"></span></a>Benefits</h3>
+
+<ul>
+<li>Stable production ready code supported by the ACI team</li>
+<li>Full feature coverage with examples</li>
+<li>Tools for unit testing and debugging</li>
+</ul>
+
+<h3>
+<a id="install" class="anchor" href="#install" aria-hidden="true"><span class="octicon octicon-link"></span></a>Install</h3>
+
+<div class="highlight highlight-bash"><pre>$ pip install --upgrade cython acicobra</pre></div>
+
+<p><strong>Installing on OS X Mavericks with Xcode 5.1</strong></p>
+
+<p>Xcode Command Line Tools are required to compile Cython. Install them with
+this command:</p>
+
+<div class="highlight highlight-bash"><pre>$ xcode-<span class="pl-k">select</span> <span class="pl-vo">--install</span></pre></div>
+
+<p>The Xcode 5.1 CLang compiler treats unrecognized command-line options as
+errors; this can cause problems under Python 2.6, for example:</p>
+
+<div class="highlight highlight-bash"><pre>clang: error: unknown argument: <span class="pl-s1"><span class="pl-pds">'</span>-mno-fused-madd<span class="pl-pds">'</span></span> [-Wunused-command-line-argument-hard-error-<span class="pl-k">in</span>-future]</pre></div>
+
+<p>You can work around errors caused by unused arguments by setting some
+environment variables:</p>
+
+<div class="highlight highlight-bash"><pre>$ <span class="pl-s">export</span> CFLAGS=-Qunused-arguments
+$ <span class="pl-s">export</span> CPPFLAGS=-Qunused-arguments
+$ pip install cython acicobra</pre></div>
+
+<h3>
+<a id="documentation" class="anchor" href="#documentation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Documentation</h3>
+
+<p>We have started documenting the library at <a href="http://cobra.readthedocs.org">http://cobra.readthedocs.org</a> and we would of course greatly appreciate pull requests to help imporve the documentation.</p>
+
+<p>The docstrings in the Cobra code base are quite extensive, and we recommend keeping a REPL running while learning the library so that you can query the various modules and classes as you have questions.</p>
+
+<p>Please file issues <a href="https://github.com/datacenter/cobra/issues">here</a>. Please mail your questions to the cobra support team at <a href="mailto:acicobra@external.cisco.com">acicobra@external.cisco.com</a>.</p>
+
+<h3>
+<a id="contributing" class="anchor" href="#contributing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Contributing</h3>
+
+<p>ACI datacenter team officially supports and maintains the cobra API. Pull requests are always welcome.</p>
+
+<p>Before submitting a pull request, please ensure you have added/updated the appropriate tests (and that all existing tests still pass with your changes), and that your coding style follows PEP 8 and doesn't cause pyflakes to complain.</p>
+
+<p>Commit messages should be formatted using <a href="http://goo.gl/QpbS7">AngularJS conventions</a> (one-liners are OK for now but body and footer may be required as the project matures).</p>
+
+<p>Comments follow <a href="http://google-styleguide.googlecode.com/svn/trunk/pyguide.html#Comments">Google's style guide</a>.</p>
+
+<h3>
+<a id="authors-and-contributors" class="anchor" href="#authors-and-contributors" aria-hidden="true"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+
+<p>Ravi Chamarthy (<a href="https://github.com/rchamarthy" class="user-mention">@rchamarthy</a>) initially developed the cobra API as a common library for ACI developers. It is heavily used for testing, CLI and scripting. 
+Mike Timm (<a href="https://github.com/mtimm" class="user-mention">@mtimm</a>) and Paul Lesiak (<a href="https://github.com/paullesiak" class="user-mention">@paullesiak</a>) are the primary contributors who spent numerous hours writing tests, documentation, examples and developed key features to help cobra shape up!</p>
+
+<p>Sai Ram Goli (@srgoli) and Praveen Kumar (<a href="https://github.com/kprav33n" class="user-mention">@kprav33n</a>) provided valuble design insights during the inception of cobra.</p>
+
+<h3>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h3>
+
+<p>Copyright 2014 Cisco Systems, Inc.</p>
+
+<p>Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+
+<pre><code>http://www.apache.org/licenses/LICENSE-2.0
+</code></pre>
+
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/datacenter">datacenter</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
