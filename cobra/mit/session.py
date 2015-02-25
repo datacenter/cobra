@@ -33,13 +33,17 @@ class AbstractSession(object):
     
     Other sessions classes should derive from this class.
     
-    Parameters:
+    Attributes:
       secure (bool): Only used for https. If True the remote server will be
         verified for authenticity.  If False the remote server will not be
         verified for authenticity - readonly
+
       timeout (int): Request timeout - readonly
+
       url (str): The APIC or fabric node URL - readonly
+
       formattype (str): The format type for the request - readonly
+
       formatStr (str): The format string for the request, either xml or json
         - readonly
     """
@@ -119,7 +123,7 @@ class AbstractSession(object):
 class LoginError(Exception):
     """Represents exceptions that occur during logging in
     
-    These exceptions usually involve a timeout orinvalid authentication
+    These exceptions usually involve a timeout or invalid authentication
     parameters
     """
     def __init__(self, errorCode, reasonStr):
@@ -142,26 +146,35 @@ class LoginSession(AbstractSession):
     Note:
       The username and password are stored in memory.
       
-    Parameters:
+    Attributes:
       user (str): The username to use for this session - readonly
+
       password (str): The password to use for this session - readonly
+
       cookie (str or None): The authentication cookie string for this session
+
       challenge (str or None): The authentication challenge string for this
         session
+
       version (str or None): The APIC software version returned once
         successfully logged in - readonly
+
       refreshTime (str or None): The relative login refresh time. The session
         must be refreshed by this time or it times out - readonly
+
       refreshTimeoutSeconds (str or None): The number of seconds for which this
         session is valid - readonly
         
-    Other Parameters:
       secure (bool): Only used for https. If True the remote server will be
         verified for authenticity.  If False the remote server will not be
         verified for authenticity - readonly
+
       timeout (int): Request timeout - readonly
+
       url (str): The APIC or fabric node URL - readonly
+
       formattype (str): The format type for the request - readonly
+
       formatStr (str): The format string for the request, either xml or json
         - readonly
     """
@@ -271,27 +284,37 @@ class CertSession(AbstractSession):
 
     """A session using a certificate dn and private key to generate signatures
     
-    Parameters:
+    Attributes:
       certificateDn (str): The distingushed name (Dn) for the users X.509
         certificate - readonly
+
       privateKey (str): The private key to use when calculating signatures.
         Must be paired with the private key in the X.509 certificate - readonly
-    Other Parameters:
+
       cookie (str or None): The authentication cookie string for this session
+
       challenge (str or None): The authentication challenge string for this
         session
+
       version (str or None): The APIC software version returned once
         successfully logged in - readonly
+
       refreshTime (str or None): The relative login refresh time. The session
         must be refreshed by this time or it times out - readonly
+
       refreshTimeoutSeconds (str or None): The number of seconds for which this
         session is valid - readonly
+
       secure (bool): Only used for https. If True the remote server will be
         verified for authenticity.  If False the remote server will not be
         verified for authenticity - readonly
+
       timeout (int): Request timeout - readonly
+
       url (str): The APIC or fabric node URL - readonly
+
       formattype (str): The format type for the request - readonly
+
       formatStr (str): The format string for the request, either xml or json
         - readonly
     """
@@ -430,7 +453,8 @@ class CertSession(AbstractSession):
             if data is None:
                 self.writeFile(payloadFile, mode="wt", fileData='GET' + uri)
             else:
-                self.writeFile(payloadFile, mode="wt", fileData='POST' + uri + data)
+                self.writeFile(payloadFile, mode="wt", fileData='POST' + uri +
+                               data)
             tmpFiles.append(payloadFile)
 
             self.writeFile(fileName=keyFile, mode="w", fileData=privateKeyStr)
