@@ -12,6 +12,7 @@ Class that represents an object category.
 .. autoclass:: cobra.mit.meta.Category
    :members:
    :special-members:
+   :exclude-members: __weakref__
 
 ClassLoader
 ------------------
@@ -20,6 +21,7 @@ Class that loads a specified class.
 .. autoclass:: cobra.mit.meta.ClassLoader
    :members:
    :special-members:
+   :exclude-members: __weakref__
 
 ClassMeta
 ------------------
@@ -28,6 +30,7 @@ Class that provides information about an object class.
 .. autoclass:: cobra.mit.meta.ClassMeta
    :members:
    :special-members:
+   :exclude-members: __weakref__
 
 Constant
 ------------------
@@ -35,7 +38,8 @@ Constant
 .. autoclass:: cobra.mit.meta.Constant
    :members:
    :special-members:
-   
+   :exclude-members: __weakref__
+
 NamedSourceRelationMeta
 -------------------------
 
@@ -49,13 +53,14 @@ PropMeta
 .. autoclass:: cobra.mit.meta.PropMeta
    :members:
    :special-members:
+   :exclude-members: __weakref__
 
 SourceRelationMeta
 ------------------
 
 .. autoclass:: cobra.mit.meta.SourceRelationMeta
    :members:
-   :special-members:   
+   :special-members:
 
 TargetRelationMeta
 ------------------

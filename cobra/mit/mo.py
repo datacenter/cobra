@@ -16,14 +16,63 @@ from cobra.internal.base.moimpl import BaseMo
 
 
 class Mo(BaseMo):
-    """
-    A class to create managed objects (MOs), which represent a physical or 
-    logical entity with a set of configurations and properties.
+    """Represents managed objects (MOs)
+
+    Managed objects (MOs) represent a physical or logical entity with a set of
+    configurations and properties.
+
+    Attributes:
+      dn (cobra.mit.naming.Dn): The distinguished name (Dn) of the managed
+        object (MO) - readonly
+
+      rn (cobra.mit.naming.Rn): The relative name (Rn) of the managed object
+        (MO) - readonly
+
+      status (cobra.internal.base.moimpl.MoStatus): The status of the MO -
+        readonly
+
+      parentDn (cobra.mit.naming.Dn): The parent managed object (MO)
+        distinguished name (Dn) - readonly
+
+      parent (cobra.mit.mo.Mo): The parent managed object (MO) - readonly
+
+      dirtyProps (set): modified properties that have not been committed -
+        readonly
+
+      children (cobra.internal.base.moimpl.BaseMo._ChildContainer): A container
+        for the children of this managed object - readonly
+
+      numChildren (int): The number of direct decendents for this managed
+        object - readonly
+
+      contextRoot (None or cobra.mit.mo.Mo): The managed object that is the
+        context root for this managed object
     """
     def __init__(self, parentMoOrDn, markDirty, *namingVals, **creationProps):
+        """Initialize a managed object (MO)
+        
+        This should not be called directly.  Instead initialize the Mo from
+        the model that you need.
+        
+        Args:
+          parentMoOrDn (str or cobra.mit.naming.Dn or cobra.mit.mo.Mo): The
+            parent managed object (MO) or distinguished name (Dn).
+          markDirty (bool): If True, the MO is marked has having changes that
+            need to be committed.  If False the Mo is not marked as having
+            changes that need to be committed.
+          *namingVals: Required values that are used to name the Mo, i.e. they
+            become part of the MOs distinguished name.
+          **creationProps: Properties to be set at the time the MO is created,
+            these properties can also be set after the property is created if
+            needed.
+        
+        Raises:
+          NotImplementedError: If this class is called directly
+        """
         if self.__class__ == Mo:
             raise NotImplementedError('Mo cannot be instantiated.')
-        BaseMo.__init__(self, parentMoOrDn, markDirty, *namingVals, **creationProps)
+        BaseMo.__init__(self, parentMoOrDn, markDirty, *namingVals,
+                        **creationProps)
 
     def delete(self):
         """
@@ -33,59 +82,35 @@ class Mo(BaseMo):
         BaseMo._delete(self)
 
     @property
-    def dn(self):
-        """
-        Returns the distinguished name (Dn) of the managed object (MO).
-        """    
+    def dn(self): 
         return BaseMo._dn(self)
 
     @property
     def rn(self):
-        """
-        Returns the relative name (Rn) of the managed object (MO).
-        """    
         return BaseMo._rn(self)
 
     @property
     def status(self):
-        """
-        Returns the managed object (MO) status.
-        """    
         return BaseMo._status(self)
 
     @property
     def parentDn(self):
-        """
-         Returns the distinguished name (Dn) of the parent managed object (MO).
-        """    
         return BaseMo._parentDn(self)
 
     @property
     def parent(self):
-        """
-        Returns the parent managed object (MO).
-        """    
         return BaseMo._parent(self)
 
     @property
     def dirtyProps(self):
-        """
-        Returns modified properties that have not been committed.
-        """    
         return BaseMo._dirtyProps(self)
 
     @property
     def children(self):
-        """
-        Returns the names of child managed objects (MOs).
-        """    
         return BaseMo._children(self)
 
     @property
     def numChildren(self):
-        """
-        Returns the number of child managed objects (MOs).
-        """    
         return BaseMo._numChildren(self)
 
     @property
@@ -93,26 +118,27 @@ class Mo(BaseMo):
         return self.dn.contextRoot
 
     def isPropDirty(self, propName):
-        """
-        Returns a value indicating whether a given property has a new value that has not been committed.
+        """Check if a property has been modified on this managed object
+        
+        Args:
+          propName (str): The property name as a string
+
+        Returns:
+          bool: True if the property has been modified and not commited, False
+            otherwise
         """    
         return BaseMo._isPropDirty(self, propName)
 
     def resetProps(self):
-        """
-        Resets managed object (MO) properties, discarding uncommitted changes.
+        """Resets managed object (MO) properties
+        
+        This will discard uncommitted changes.
         """    
         BaseMo._resetProps(self)
 
     def __getattr__(self, propName):
-        """
-        Returns a managed object (MO) attribute.
-        """    
         return BaseMo.__getattr__(self, propName)
 
     def __setattr__(self, propName, propValue):
-        """
-        Sets a managed object (MO) attribute.
-        """    
         BaseMo.__setattr__(self, propName, propValue)
 
