@@ -30,6 +30,19 @@ class PyTest(TestCommand):
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
+install_requires = ['requests']
+
+# Doc build instructions:
+# Clone the repo
+# cd into the main repo directory
+# install with the [docs] extra as an editable install:  pip install -e .[docs]
+# cd into the docs directory
+# do a make html
+# Built docs are in docs/build/html
+docs_requires = install_requires + ['sphinx<1.3', 'sphinxcontrib-napoleon']
+
+tests_requires = install_requires + ['pytest', 'responses']
+
 setup(
     name='acicobra',
     version='0.1',
@@ -60,13 +73,11 @@ setup(
     ],
     keywords='data center networking configuration management',
     license='http://www.apache.org/licenses/LICENSE-2.0',
-    install_requires=[
-        'setuptools',
-        'requests',
-    ],
+    install_requires=install_requires,
     extras_require={
         'ssl': ['pyOpenSSL',],
+        'docs': docs_requires,
     },
-    tests_require = ['pytest', 'responses'],
+    tests_require=tests_requires,
     cmdclass = {'test': PyTest},
 )

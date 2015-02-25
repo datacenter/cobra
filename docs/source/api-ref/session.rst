@@ -21,8 +21,9 @@ AbstractSession
 Class that abstracts sessions
 
 .. autoclass:: cobra.mit.session.AbstractSession
-    :members:
-    :special-members:
+   :members:
+   :special-members:
+   :exclude-members: __weakref__
 
 LoginSession
 ------------
@@ -43,5 +44,5 @@ fallback to openssl using subprocess and temporary files that should work for
 most platforms.
 
 .. autoclass:: cobra.mit.session.CertSession
-    :members:
-    :special-members:
+   :members:
+   :special-members:

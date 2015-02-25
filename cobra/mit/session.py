@@ -29,9 +29,37 @@ import time
 import math
 
 class AbstractSession(object):
+    """Abstract session class
+    
+    Other sessions classes should derive from this class.
+    
+    Parameters:
+      secure (bool): Only used for https. If True the remote server will be
+        verified for authenticity.  If False the remote server will not be
+        verified for authenticity - readonly
+      timeout (int): Request timeout - readonly
+      url (str): The APIC or fabric node URL - readonly
+      formattype (str): The format type for the request - readonly
+      formatStr (str): The format string for the request, either xml or json
+        - readonly
+    """
     XML_FORMAT, JSON_FORMAT = 0, 1
 
     def __init__(self, controllerUrl, secure, timeout, requestFormat):
+        """Initialize an AbstractSession instance
+        
+        Args:
+          controllerURL (str): The URL to reach the controller or fabric node
+          secure (bool): Only used for https. If True the remote server will be
+            verified for authenticity.  If False the remote server will not be
+            verified for authenticity.
+          timeout (int): Request timeout
+          requestFormat (str): The format to send the request in.
+            Valid values are xml or json.
+
+        Raises:
+          NotImplementedError: If the requestFormat is not valid
+        """
         if requestFormat not in {'xml', 'json'}:
             raise NotImplementedError("requestFormat should be one of: %s" %
                                                              {'xml', 'json'})
@@ -45,16 +73,10 @@ class AbstractSession(object):
 
     @property
     def secure(self):
-        """
-        verifies server authenticity
-        """
         return self.__secure
 
     @property
     def timeout(self):
-        """
-        communication timeout for the connection
-        """
         return self.__timeout
 
     @property
@@ -70,18 +92,43 @@ class AbstractSession(object):
         return 'xml' if self.__format == AbstractSession.XML_FORMAT else 'json'
 
     def login(self):
+        """Login to the remote server.
+        
+        A generic login method that should be overridden by classes that derive
+        from this class
+        """
         pass
 
     def logout(self):
+        """Logout from the remote server.
+        
+        A generic logout method that should be overridden by classes that
+        derive from this class
+        """
         pass
 
     def refresh(self):
+        """Refresh the session to the remote server.
+        
+        A generic refresh method that should be overridden by classes that
+        derive from this class
+        """ 
         pass
 
 
 class LoginError(Exception):
-
+    """Represents exceptions that occur during logging in
+    
+    These exceptions usually involve a timeout orinvalid authentication
+    parameters
+    """
     def __init__(self, errorCode, reasonStr):
+        """Initialize a LoginError instance
+        
+        Args:
+        errorCode (int): The error code for the exception
+        reasonStr (str): A string indicating why the exception occurred
+        """
         self.error = errorCode
         self.reason = reasonStr
 
@@ -90,17 +137,49 @@ class LoginError(Exception):
 
 
 class LoginSession(AbstractSession):
-
-    """
-    The LoginSession class creates a login session with a username and password
+    """A login session with a username and password
+    
+    Note:
+      The username and password are stored in memory.
+      
+    Parameters:
+      user (str): The username to use for this session - readonly
+      password (str): The password to use for this session - readonly
+      cookie (str or None): The authentication cookie string for this session
+      challenge (str or None): The authentication challenge string for this
+        session
+      version (str or None): The APIC software version returned once
+        successfully logged in - readonly
+      refreshTime (str or None): The relative login refresh time. The session
+        must be refreshed by this time or it times out - readonly
+      refreshTimeoutSeconds (str or None): The number of seconds for which this
+        session is valid - readonly
+        
+    Other Parameters:
+      secure (bool): Only used for https. If True the remote server will be
+        verified for authenticity.  If False the remote server will not be
+        verified for authenticity - readonly
+      timeout (int): Request timeout - readonly
+      url (str): The APIC or fabric node URL - readonly
+      formattype (str): The format type for the request - readonly
+      formatStr (str): The format string for the request, either xml or json
+        - readonly
     """
 
     def __init__(self, controllerUrl, user, password, secure=False, timeout=90,
                  requestFormat='xml'):
-        """
+        """Initialize a LoginSession instance
+        
         Args:
-            user (str): Username
-            password (str): Password
+          controllerURL (str): The URL to reach the controller or fabric node
+          user (str): The username to use to authenticate
+          password (str): The password to use to authenticate
+          secure (bool): Only used for https. If True the remote server will be
+            verified for authenticity.  If False the remote server will not be
+            verified for authenticity.
+          timeout (int): Request timeout
+          requestFormat (str): The format to send the request in.
+            Valid values are xml or json.
         """
         super(LoginSession, self).__init__(controllerUrl, secure, timeout,
                                            requestFormat)
@@ -114,23 +193,14 @@ class LoginSession(AbstractSession):
 
     @property
     def user(self):
-        """
-        Returns the username.
-        """
         return self._user
 
     @property
     def password(self):
-        """
-        Returns the password.
-        """
         return self._password
 
     @property
     def cookie(self):
-        """
-        Authentication cookie for this session
-        """
         return self._cookie
 
     @cookie.setter
@@ -139,9 +209,6 @@ class LoginSession(AbstractSession):
 
     @property
     def challenge(self):
-        """
-        Authentication challenge for this session
-        """
         return self._challenge
 
     @challenge.setter
@@ -150,28 +217,27 @@ class LoginSession(AbstractSession):
 
     @property
     def version(self):
-        """
-        Returns APIC version received from aaaLogin
-        """
         return self._version
 
     @property
     def refreshTime(self):
-        """
-        Returns the relative login refresh time. The session must be
-        refreshed by this time or it times out
-        """
         return self._refreshTime
 
     @property
     def refreshTimeoutSeconds(self):
-        """
-        Returns the number of seconds for which this LoginSession is
-        valid
-        """
         return self._refreshTimeoutSeconds
 
     def getHeaders(self, uriPathAndOptions, data):
+        """Get the HTTP headers for a given URI path and options string
+        
+        Args:
+          uriPathAndOptions (str): The full URI path including the
+            options string
+          data (str): The payload
+
+        Returns:
+          dict: The headers for this session class
+        """
         headers = {'Cookie': 'APIC-cookie=%s' % self.cookie}
         if self._challenge:
             headers['APIC-challenge'] = self._challenge
@@ -203,16 +269,47 @@ class LoginSession(AbstractSession):
 
 class CertSession(AbstractSession):
 
-    """
-    The CertSession class creates a login session using a certificate dn and
-    private key
+    """A session using a certificate dn and private key to generate signatures
+    
+    Parameters:
+      certificateDn (str): The distingushed name (Dn) for the users X.509
+        certificate - readonly
+      privateKey (str): The private key to use when calculating signatures.
+        Must be paired with the private key in the X.509 certificate - readonly
+    Other Parameters:
+      cookie (str or None): The authentication cookie string for this session
+      challenge (str or None): The authentication challenge string for this
+        session
+      version (str or None): The APIC software version returned once
+        successfully logged in - readonly
+      refreshTime (str or None): The relative login refresh time. The session
+        must be refreshed by this time or it times out - readonly
+      refreshTimeoutSeconds (str or None): The number of seconds for which this
+        session is valid - readonly
+      secure (bool): Only used for https. If True the remote server will be
+        verified for authenticity.  If False the remote server will not be
+        verified for authenticity - readonly
+      timeout (int): Request timeout - readonly
+      url (str): The APIC or fabric node URL - readonly
+      formattype (str): The format type for the request - readonly
+      formatStr (str): The format string for the request, either xml or json
+        - readonly
     """
 
     def __init__(self, controllerUrl, certificateDn, privateKey, secure=False,
                  timeout=90, requestFormat='xml'):
-        """
+        """Initialize a CertSession instance
+        
         Args:
-            cert (str): Certificate String
+          controllerURL (str): The URL to reach the controller or fabric node
+          certificateDn (str): The distinguished name of the users certificate
+          privateKey (str): The private key to be used to calculate a signature
+          secure (bool): Only used for https. If True the remote server will be
+            verified for authenticity.  If False the remote server will not be
+            verified for authenticity.
+          timeout (int): Request timeout
+          requestFormat (str): The format to send the request in.
+            Valid values are xml or json.
         """
         super(CertSession, self).__init__(controllerUrl, secure, timeout,
                                           requestFormat)
@@ -221,24 +318,41 @@ class CertSession(AbstractSession):
 
     @property
     def certificateDn(self):
-        """
-        Returns the certificate dn.
-        """
         return self.__certificateDn
 
     @property
     def privateKey(self):
-        """
-        Returns the private key.
-        """
         return self.__privateKey
 
     def getHeaders(self, uriPathAndOptions, data):
+        """Get the HTTP headers for a given URI path and options string
+        
+        Args:
+          uriPathAndOptions (str): The full URI path including the
+            options string
+          data (str): The payload
+
+        Returns:
+          dict: The headers for this session class
+        """
         cookie = self._generateSignature(uriPathAndOptions, data)
         return {'Cookie': cookie}
 
     @staticmethod
     def runCmd(cmd):
+        """Convenience method to run a command using subprocess
+
+        Args:
+          cmd (str): The command to run
+
+        Returns:
+          str: The output from the command
+
+        Raises:
+          subprocess.CalledProcessError: If an non-zero return code is sent by
+            the process
+
+        """
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
@@ -251,6 +365,13 @@ class CertSession(AbstractSession):
 
     @staticmethod
     def writeFile(fileName=None, mode="w", fileData=None):
+        """Convenience method to write data to a file
+
+        Args:
+          fileName (str): The file to write to, default = None
+          mode (str): The write mode, default = "w"
+          fileData (varies): The data to write to the file
+        """
         if fileName is None:
             return
         if fileData is None:
@@ -260,6 +381,15 @@ class CertSession(AbstractSession):
 
     @staticmethod
     def readFile(fileName=None, mode="r"):
+        """Convenience method to read some data from a file
+
+        Args:
+          fileName (str): The file to read from, default = None
+          mode (str): The read mode, default = "r", Windows may require "rb"
+
+        Returns:
+          str: The data read from the file
+        """
         if fileName is None:
             return ""
         with open(fileName, mode) as aFile:

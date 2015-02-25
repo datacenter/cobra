@@ -19,4 +19,4 @@ MoDirectory requires an existing session and endpoint.
 .. autoclass:: cobra.mit.access.MoDirectory
    :members:
    :special-members:
-
+   :exclude-members: __weakref__
