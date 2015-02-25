@@ -27,7 +27,7 @@ from cobra.internal.codec.xmlcodec import toXMLStr
 import cobra.mit.access
 import cobra.mit.request
 import cobra.mit.session
-import cobra.model.fv
+cobra.model.fv = pytest.importorskip("cobra.model.fv")
 import cobra.model.pol
 import cobra.model.infra
 import cobra.services
