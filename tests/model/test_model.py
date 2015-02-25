@@ -26,6 +26,7 @@ import cobra.mit.session
 pytestmark = pytest.mark.skipif(pytest.config.getvalue('apic') == [],
                                 reason="You must specify at least one --apic " +
                                        "option on the CLI")
+slow = pytest.mark.slow
 
 httplib.HTTPConnection.debuglevel = 1
 logging.basicConfig(level=logging.DEBUG)
@@ -63,5 +64,6 @@ def pytest_generate_tests(metafunc):
 
 class Test_cobra_model:
 
+    @slow
     def test_class_loader(self, moDir, cobraclass):
         moDir.lookupByClass(cobraclass)
