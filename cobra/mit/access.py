@@ -17,34 +17,32 @@ from cobra.internal.rest.accessimpl import RestAccess
 
 
 class MoDirectory(object):
+    """Creates a connection to the APIC and the MIT.
 
-    """
-    The MoDirectory class creates a connection to the APIC and the MIT.
-    MoDirectory requires an existing session and endpoint.
+    MoDirectory requires an existing session.
+
     """
 
     def __init__(self, session):
-        """
-        Arguments:
-            session: Specifies a session
+        """Initialize a MoDirectory instance
+
+        Args:
+          session (cobra.mit.session.AbstractSession): The session
+
         """
         self._accessImpl = RestAccess(session)
 
     def login(self):
-        """
-        Creates a session to an APIC.
-        """
+        """Creates a session to an APIC."""
         self._accessImpl.login()
 
     def logout(self):
-        """
-        Ends a session to an APIC.
-        """
+        """Ends a session to an APIC."""
         self._accessImpl.logout()
 
     def reauth(self):
-        """
-        Re-authenticate this session with the current authentication cookie.
+        """Re-authenticate the session with the current authentication cookie.
+
         This method can be used to extend the validity of a successful login
         credentials. This method may fail if the current session expired on
         the server side. If this method fails, the user must login again to
@@ -53,32 +51,75 @@ class MoDirectory(object):
         self._accessImpl.refreshSession()
 
     def query(self, queryObject):
-        """
-        Queries the MIT for a specified object. The queryObject provides a
-        variety of search options.
+        """Queries the Model Information Tree.
+
+        The various types of potential queryObjects provide a variety of
+        search options
+
+        Args:
+          queryObject (cobra.mit.request.AbstractRequest): A query object
+
+        Returns:
+          list: A list of Managed Objects (MOs) returned from the query
         """
         return self._accessImpl.get(queryObject)
 
     def commit(self, configObject):
-        """
-        Short-form commit operation for a configRequest
+        """Commit operation for a request object.
+
+        Commit a change on the APIC or fabric node.
+
+        Args:
+          configObject (cobra.mit.request.AbstractRequest): The configuration
+            request to commit
+
+        Returns:
+          requests.response:  The response.
+          
+            .. note::
+               This is different behavior than the query method.
+
+        Raises:
+          CommitError: If no MOs have been added to the config request
         """
         if configObject.getRootMo() is None:
             raise CommitError(0, "No mos in config request")
         return self._accessImpl.post(configObject)
 
     def lookupByDn(self, dnStrOrDn):
-        """
-        A short-form managed object (MO) query using the distinguished name(Dn)
+        """Query the APIC or fabric node by distinguished name (Dn)
+        
+        A short-form managed object (MO) query using the Dn of the MO
         of the MO.
+
+        Args:
+          dnStrOrDn (str or cobra.mit.naming.Dn): A distinguished name as a
+            :class:`cobra.mit.naming.Dn` or string
+
+        Returns:
+          None or cobra.mit.mo.Mo: None if no MO was returned otherwise
+            :class:`cobra.mit.mo.Mo`
         """
         dnQuery = DnQuery(dnStrOrDn)
         mos = self.query(dnQuery)
         return mos[0] if mos else None
 
     def lookupByClass(self, classNames, parentDn=None, propFilter=None):
-        """
+        """Lookup MO's by class
+
         A short-form managed object (MO) query by class.
+
+        Args:
+          classNames (str or list): The class name list of class names.
+            If parentDn is set, the classNames are used as a filter in a
+            subtree query for the parentDn
+          parentDn (cobra.mit.naming.Dn or str): The distinguished
+            name of the parent object as a :class:`cobra.mit.naming.Dn` or
+            string.
+          propFilter (str): A property filter expression
+
+        Returns:
+          list: A list of the managed objects found in the query.
         """
         if parentDn:
             dnQuery = DnQuery(parentDn)

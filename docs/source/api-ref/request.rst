@@ -2,7 +2,7 @@ Request Module
 ==============
 .. module:: request
 
-The request module handles configuration and queries to the APIC.  
+The request module handles configuration and queries to the APIC.
 
 You can use the request module to:
 
@@ -10,48 +10,6 @@ You can use the request module to:
 * Call a method within an MO
 * Delete an MO
 * Run a query to read the properties and status of an MO or discover objects
-
-The following sections describe the classes in the request module.
-
-AbstractQuery
--------------
-
-Class that represents an abstract query. ClassQuery and DnQuery use this class.
-
-.. autoclass:: cobra.mit.request.AbstractQuery
-   :members:
-   :special-members:
-
-DnQuery
--------
-
-Class that creates a query object based on distinguished name (DN).
-
-.. autoclass:: cobra.mit.request.DnQuery
-   :members:
-   :special-members:
-
-ClassQuery
-----------
-
-Class that creates a query based on object class.
-
-.. autoclass:: cobra.mit.request.ClassQuery
-   :members:
-   :special-members:
-
-ConfigRequest
--------------
-
-Class that handles configuration requests. The commit function uses this class.
-
-    # Import the config request
-    from cobra.mit.request import ConfigRequest
-    configReq = ConfigRequest()
-
-.. autoclass:: cobra.mit.request.ConfigRequest
-   :members:
-   :special-members:	
 
 Using Queries
 -------------
@@ -108,6 +66,59 @@ module.  The ConfigRequest class enables you to:
 * Remove an MO
 * Verify if an MO is present in an uncommitted configuration
 * Return the root MO for a given object
+
+AbstractRequest
+---------------
+
+Class that represents an abstract request.  AbstractQuery and ConfigRequest
+derive from this class.
+
+.. autoclass:: cobra.mit.request.AbstractRequest
+   :members:
+   :special-members:
+   :exclude-members: __weakref__
+
+AbstractQuery
+-------------
+
+Class that represents an abstract query. ClassQuery and DnQuery derive from
+this class.
+
+.. autoclass:: cobra.mit.request.AbstractQuery
+   :members:
+   :special-members:
+
+DnQuery
+-------
+
+Class that creates a query object based on distinguished name (DN).
+
+.. autoclass:: cobra.mit.request.DnQuery
+   :members:
+   :special-members:
+
+ClassQuery
+----------
+
+Class that creates a query object based on object class.
+
+.. autoclass:: cobra.mit.request.ClassQuery
+   :members:
+   :special-members:
+
+ConfigRequest
+-------------
+
+Class that handles configuration requests. The
+:func:`cobra.mit.access.MoDirectory.commit` function uses this class.::
+
+    # Import the config request
+    from cobra.mit.request import ConfigRequest
+    configReq = ConfigRequest()
+
+.. autoclass:: cobra.mit.request.ConfigRequest
+   :members:
+   :special-members:
 
 Tag Request
 -----------
@@ -166,3 +177,13 @@ Example Usage:
 .. autoclass:: cobra.mit.request.TagsRequest
    :members:
    :special-members:
+
+TraceQuery
+----------
+
+A class that creates a trace query
+
+.. autoclass:: cobra.mit.request.TraceQuery
+   :members:
+   :special-members:
+
