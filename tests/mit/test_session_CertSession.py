@@ -24,6 +24,7 @@ import tempfile
 from cobra.mit.session import CertSession, LoginSession
 from cobra.mit.request import ConfigRequest, DnQuery, CommitError
 from cobra.mit.access import MoDirectory
+pytest.importorskip("cobra.model")
 from cobra.model.pol import Uni
 from cobra.model.aaa import User, UserEp, UserCert, UserDomain, UserRole
 from cobra.model.fv import Tenant, BD, Ap
