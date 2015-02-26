@@ -21,17 +21,26 @@ class UploadPackage(AbstractRequest):
 
     """Upload L4-L7 device packages to APIC
     
-    Parameters:
+    Attributes:
       data (str): A string containing the payload for this request in JSON
         format - readonly
+
       devicePackagePath (str): Path to the device package on the local
         file system. No Path verification is performed, so any errors
         accessing the specified file will be raised directly to the calling
         function.
         
-        .. note::
+        Note:
            If validation is requested, the device package contents are verified
            to contain a device specification XML/JSON document
+
+      options (str): The HTTP request query string for this object - readonly
+
+      id (None or int): An internal troubleshooting value useful for tracing
+        the processing of a request within the cluster
+
+      uriBase (str): The base URI used to build the URL for queries and
+        requests
     """
 
     def __init__(self, devicePackagePath, validate=False):

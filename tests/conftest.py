@@ -18,54 +18,56 @@ import sys
 
 
 def pytest_addoption(parser):
-    parser.addoption("--apic", nargs=4, action="append", metavar=('url',
+    parser.addoption('--apic', nargs=4, action='append', metavar=('url',
                      'user', 'passwd', 'secure'),
-                     help="The URL to the APIC or switch, username, " +
-                     "password, secure (True/False)",
-                     default=[['http://mock', 'admin', 'password', False]])
-    parser.addoption("--tenantname", nargs=1, action="append",
-                     metavar=('tenantname'), help="The name of a tenant",
+                     help='The URL to the APIC or switch, username, ' +
+                     'password, secure (True/False)')
+    parser.addoption('--tenantname', nargs=1, action='append',
+                     metavar=('tenantname'), help='The name of a tenant',
                      type=str, default=[])
-    parser.addoption("--dn", nargs=1, action="append", metavar=('Dn'),
-                     help="A dn to query, default is uni/tn-common",
+    parser.addoption('--dn', nargs=1, action='append', metavar=('Dn'),
+                     help='A dn to query, default is uni/tn-common',
                      type=str, default=[])
-#    parser.addoption("--fakepackage", nargs=1, action="append",
-#                     metavar=('fpack'), help="A fake device package to test" +
-#                         " with", type=str, default=[])
-#    parser.addoption("--realpackage", nargs=1, action="append",
-#                      metavar=('rpack'), help="A real device package to test" +
-#                          " with", type=str, default=[])
+    parser.addoption('--runslow', action='store_true', 
+                    help='run slow tests')
+
+#    parser.addoption('--fakepackage', nargs=1, action='append',
+#                     metavar=('fpack'), help='A fake device package to test' +
+#                         ' with', type=str, default=[])
+#    parser.addoption('--realpackage', nargs=1, action='append',
+#                      metavar=('rpack'), help='A real device package to test' +
+#                          ' with', type=str, default=[])
 
 def pytest_generate_tests(metafunc):
 
     if 'apic' in metafunc.fixturenames:
-        if metafunc.config.getvalue("apic") != []:
-            apics = [x for x in metafunc.config.getvalue("apic")]
-            metafunc.parametrize("apic", apics)
+        if metafunc.config.getvalue('apic') != []:
+            apics = [x for x in metafunc.config.getvalue('apic')]
+            metafunc.parametrize('apic', apics)
     if 'tenantname' in metafunc.fixturenames:
-        if metafunc.config.getvalue("tenantname") != []:
-            tenantnames = metafunc.config.getvalue("tenantname")
-            metafunc.parametrize("tenantname", [x for x in tenantnames])
+        if metafunc.config.getvalue('tenantname') != []:
+            tenantnames = metafunc.config.getvalue('tenantname')
+            metafunc.parametrize('tenantname', [x for x in tenantnames])
         else:
-            metafunc.parametrize("tenantname", ["test"])
+            metafunc.parametrize('tenantname', ['test'])
     if 'dn' in metafunc.fixturenames:
-        if metafunc.config.getvalue("dn") != []:
-            dns = metafunc.config.getvalue("dn")
-            metafunc.parametrize("dn", [x for x in dns])
+        if metafunc.config.getvalue('dn') != []:
+            dns = metafunc.config.getvalue('dn')
+            metafunc.parametrize('dn', [x for x in dns])
         else:
-            metafunc.parametrize("dn", ["uni/tn-common"])
+            metafunc.parametrize('dn', ['uni/tn-common'])
 #    if 'fakepackage' in metafunc.fixturenames:
-#        if metafunc.config.getvalue("fakepackage") != []:
-#            fpacks = metafunc.config.getvalue("fakepackage")
-#            metafunc.parametrize("fakepackage", [x for x in fpacks])
+#        if metafunc.config.getvalue('fakepackage') != []:
+#            fpacks = metafunc.config.getvalue('fakepackage')
+#            metafunc.parametrize('fakepackage', [x for x in fpacks])
 #        else:
-#            metafunc.parametrize("fakepackage", ["Archive.zip"])
+#            metafunc.parametrize('fakepackage', ['Archive.zip'])
 #    if 'realpackage' in metafunc.fixturenames:
-#        if metafunc.config.getvalue("realpackage") != []:
-#            rpacks = metafunc.config.getvalue("realpackage")
-#            metafunc.parametrize("realpackage", [x for x in rpacks])
+#        if metafunc.config.getvalue('realpackage') != []:
+#            rpacks = metafunc.config.getvalue('realpackage')
+#            metafunc.parametrize('realpackage', [x for x in rpacks])
 #        else:
-#            metafunc.parametrize("realpackage", ["asa-device-pkg.zip"])
+#            metafunc.parametrize('realpackage', ['asa-device-pkg.zip'])
 
 # Incremental is useful for functional tests that have to be done in a certain
 # order.
@@ -74,11 +76,11 @@ def pytest_generate_tests(metafunc):
 # not both.  The way it is currently designed is to run the initial test but
 # if the initial test is skipped run the second test.
 def pytest_runtest_makereport(item, call):
-    if "incremental" in item.keywords:
+    if 'incremental' in item.keywords:
         if call.excinfo is not None:
             parent = item.parent
             parent._previousfailed = item
-    elif "implicit" in item.keywords:
+    elif 'implicit' in item.keywords:
         if not call.excinfo and item.name == 'test_cert_create_pyopenssl':
             parent = item.parent
             parent._previouspassed = item
@@ -93,15 +95,16 @@ def pytest_runtest_makereport(item, call):
 
 
 def pytest_runtest_setup(item):
-    if "incremental" in item.keywords:
-        previousfailed = getattr(item.parent, "_previousfailed", None)
+    if 'incremental' in item.keywords:
+        previousfailed = getattr(item.parent, '_previousfailed', None)
         if previousfailed is not None:
-            pytest.xfail("previous test failed (%s)" %previousfailed.name)
-    elif "implicit" in item.keywords:
-        previouspassed = getattr(item.parent, "_previouspassed", None)
-        previousskipped = getattr(item.parent, "_previousskipped", None)
+            pytest.xfail('previous test failed (%s)' %previousfailed.name)
+    elif 'implicit' in item.keywords:
+        previouspassed = getattr(item.parent, '_previouspassed', None)
+        previousskipped = getattr(item.parent, '_previousskipped', None)
         if previousskipped is not None:
             return
         elif previouspassed is not None:
-            pytest.skip("Previous test passed, skipping")
-
+            pytest.skip('Previous test passed, skipping')
+    if 'slow' in item.keywords and not item.config.getoption('--runslow'):
+        pytest.skip('need --runslow option to run') 
