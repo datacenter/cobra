@@ -56,8 +56,8 @@ class UserObject(object):
 
 
 # Do tests for a read only user as well as a read/write (admin level) user.
-#@pytest.fixture(scope="module", params=["rouser"])
-@pytest.fixture(scope="module", params=["rouser", "rwuser"])
+#@pytest.fixture(scope="session", params=["rouser"])
+@pytest.fixture(scope="session", params=["rouser", "rwuser"])
 def userobject(request):
     param = request.param
     userobj = UserObject(user=param)
@@ -250,7 +250,7 @@ class TestCertSession:
 
     def test_get_tn(self, apics, certobject, userobject):
         apic = apics[0]
-        secure = apics[1]
+        secure = False if apics[1] == 'False' else True
         userobject.pkey = certobject.readFile(
             fileName=certobject.pkeyfile)
         session = CertSession(apic, userobject.certDn, userobject.pkey,
@@ -266,7 +266,7 @@ class TestCertSession:
 
     def test_post_tn(self, apics, certobject, userobject):
         apic = apics[0]
-        secure = apics[1]
+        secure = False if apics[1] == 'False' else True
         userobject.pkey = certobject.readFile(
             fileName=certobject.pkeyfile)
         session = CertSession(apic, userobject.certDn, userobject.pkey,
