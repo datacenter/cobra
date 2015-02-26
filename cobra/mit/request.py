@@ -22,8 +22,10 @@ class AbstractRequest(object):
     
     Attributes:
       options (str): The HTTP request query string for this object - readonly
+
       id (None or int): An internal troubleshooting value useful for tracing
         the processing of a request within the cluster
+
       uriBase (str): The base URI used to build the URL for queries and
         requests
     """
@@ -289,6 +291,77 @@ class DnQuery(AbstractQuery):
         object - readonly
 
       dnStr (str): The base dn string for this DnQuery object - readonly
+
+      propInclude (str): the current response property include filter.
+        This filter can be used to specify the properties that should be
+        included in the response.  Valid values are:
+
+        * _all_
+        * naming-only
+        * config-explicit
+        * config-all
+        * config-only
+        * oper
+
+      subtreePropFilter (str): The response subtree filter can be used to limit
+        what is returned in a subtree response by property values
+
+      subtreeClassFilter (str): The response subtree class filter can be used
+        to filter a subtree response down to one or more classes.  Setting this
+        can be done with either a list or a string, the value is always stored
+        as a comma separated string.
+
+      subtreeInclude (str): The response subtree include filter can be used to
+        limit the response to a specific type of information from the subtree,
+        these include:
+
+        * audit-logs
+        * event-logs
+        * faults
+        * fault-records
+        * health
+        * health-records
+        * relations
+        * stats
+        * tasks
+        * count
+        * no-scoped
+        * required
+
+      queryTarget (str): The query target filter can be used to specify what
+        part of the MIT to query.  You can query:
+
+        * self - The object itself
+        * children - The children of the object
+        * subtree - All the objects lower in the heirarchy
+
+      classFilter (str): The target subtree class filter can be used to specify
+        which subtree class to filter by.  You can set this using a list or
+        a string.  The value is always stored as a comma separated string.
+
+      propFilter (str): The query target property filter can be used to limit
+        which objects are returned based on the value that is set in the
+        specific property within those objects.
+
+      subtree (str): The response subtree filter can be used to define what
+        objects you want in the response.  The possible values are:
+
+        * no - No subtree requested
+        * children - Only the children objects
+        * full - A full subtree
+
+      replica (int): The replica option can direct a query to a specific replica.
+        The possible values are:
+
+        * 1
+        * 2
+        * 3
+        
+      id (None or int): An internal troubleshooting value useful for tracing
+        the processing of a request within the cluster
+
+      uriBase (str): The base URI used to build the URL for queries and
+        requests
     """
 
     def __init__(self, dn):
@@ -332,6 +405,77 @@ class ClassQuery(AbstractQuery):
         object - readonly
 
       className (str): The className to query for - readonly
+
+      propInclude (str): the current response property include filter.
+        This filter can be used to specify the properties that should be
+        included in the response.  Valid values are:
+
+        * _all_
+        * naming-only
+        * config-explicit
+        * config-all
+        * config-only
+        * oper
+
+      subtreePropFilter (str): The response subtree filter can be used to limit
+        what is returned in a subtree response by property values
+
+      subtreeClassFilter (str): The response subtree class filter can be used
+        to filter a subtree response down to one or more classes.  Setting this
+        can be done with either a list or a string, the value is always stored
+        as a comma separated string.
+
+      subtreeInclude (str): The response subtree include filter can be used to
+        limit the response to a specific type of information from the subtree,
+        these include:
+
+        * audit-logs
+        * event-logs
+        * faults
+        * fault-records
+        * health
+        * health-records
+        * relations
+        * stats
+        * tasks
+        * count
+        * no-scoped
+        * required
+
+      queryTarget (str): The query target filter can be used to specify what
+        part of the MIT to query.  You can query:
+
+        * self - The object itself
+        * children - The children of the object
+        * subtree - All the objects lower in the heirarchy
+
+      classFilter (str): The target subtree class filter can be used to specify
+        which subtree class to filter by.  You can set this using a list or
+        a string.  The value is always stored as a comma separated string.
+
+      propFilter (str): The query target property filter can be used to limit
+        which objects are returned based on the value that is set in the
+        specific property within those objects.
+
+      subtree (str): The response subtree filter can be used to define what
+        objects you want in the response.  The possible values are:
+
+        * no - No subtree requested
+        * children - Only the children objects
+        * full - A full subtree
+
+      replica (int): The replica option can direct a query to a specific replica.
+        The possible values are:
+
+        * 1
+        * 2
+        * 3
+        
+      id (None or int): An internal troubleshooting value useful for tracing
+        the processing of a request within the cluster
+
+      uriBase (str): The base URI used to build the URL for queries and
+        requests
     """
 
     def __init__(self, className):
@@ -378,6 +522,76 @@ class TraceQuery(AbstractQuery):
       
       dnStr (str): The base Dn string for this trace query
 
+      propInclude (str): the current response property include filter.
+        This filter can be used to specify the properties that should be
+        included in the response.  Valid values are:
+
+        * _all_
+        * naming-only
+        * config-explicit
+        * config-all
+        * config-only
+        * oper
+
+      subtreePropFilter (str): The response subtree filter can be used to limit
+        what is returned in a subtree response by property values
+
+      subtreeClassFilter (str): The response subtree class filter can be used
+        to filter a subtree response down to one or more classes.  Setting this
+        can be done with either a list or a string, the value is always stored
+        as a comma separated string.
+
+      subtreeInclude (str): The response subtree include filter can be used to
+        limit the response to a specific type of information from the subtree,
+        these include:
+
+        * audit-logs
+        * event-logs
+        * faults
+        * fault-records
+        * health
+        * health-records
+        * relations
+        * stats
+        * tasks
+        * count
+        * no-scoped
+        * required
+
+      queryTarget (str): The query target filter can be used to specify what
+        part of the MIT to query.  You can query:
+
+        * self - The object itself
+        * children - The children of the object
+        * subtree - All the objects lower in the heirarchy
+
+      classFilter (str): The target subtree class filter can be used to specify
+        which subtree class to filter by.  You can set this using a list or
+        a string.  The value is always stored as a comma separated string.
+
+      propFilter (str): The query target property filter can be used to limit
+        which objects are returned based on the value that is set in the
+        specific property within those objects.
+
+      subtree (str): The response subtree filter can be used to define what
+        objects you want in the response.  The possible values are:
+
+        * no - No subtree requested
+        * children - Only the children objects
+        * full - A full subtree
+
+      replica (int): The replica option can direct a query to a specific replica.
+        The possible values are:
+
+        * 1
+        * 2
+        * 3
+        
+      id (None or int): An internal troubleshooting value useful for tracing
+        the processing of a request within the cluster
+
+      uriBase (str): The base URI used to build the URL for queries and
+        requests
     """
 
     def __init__(self, dn, targetClass):
@@ -442,6 +656,11 @@ class TagsRequest(AbstractRequest):
 
       remove (None or str or list): The tag(s) to remove, default is None
 
+      id (None or int): An internal troubleshooting value useful for tracing
+        the processing of a request within the cluster
+
+      uriBase (str): The base URI used to build the URL for queries and
+        requests
     """
 
     def __init__(self, dn, add=None, remove=None):
@@ -549,6 +768,12 @@ class AliasRequest(AbstractRequest):
 
       alias (None or str): The alias to be set, if set to None, the alias is
         cleared
+
+      id (None or int): An internal troubleshooting value useful for tracing
+        the processing of a request within the cluster
+
+      uriBase (str): The base URI used to build the URL for queries and
+        requests
     """
     def __init__(self, dn, alias=None):
         self.__options = {}
@@ -639,6 +864,11 @@ class ConfigRequest(AbstractRequest):
         * children - Only the children objects
         * full - A full subtree
 
+      id (None or int): An internal troubleshooting value useful for tracing
+        the processing of a request within the cluster
+
+      uriBase (str): The base URI used to build the URL for queries and
+        requests
     """
 
     def __init__(self):
@@ -847,7 +1077,77 @@ class MultiQuery(AbstractQuery):
         object - readonly
 
       target (str): The target for this MultiQuery - readonly
-      
+
+      propInclude (str): the current response property include filter.
+        This filter can be used to specify the properties that should be
+        included in the response.  Valid values are:
+
+        * _all_
+        * naming-only
+        * config-explicit
+        * config-all
+        * config-only
+        * oper
+
+      subtreePropFilter (str): The response subtree filter can be used to limit
+        what is returned in a subtree response by property values
+
+      subtreeClassFilter (str): The response subtree class filter can be used
+        to filter a subtree response down to one or more classes.  Setting this
+        can be done with either a list or a string, the value is always stored
+        as a comma separated string.
+
+      subtreeInclude (str): The response subtree include filter can be used to
+        limit the response to a specific type of information from the subtree,
+        these include:
+
+        * audit-logs
+        * event-logs
+        * faults
+        * fault-records
+        * health
+        * health-records
+        * relations
+        * stats
+        * tasks
+        * count
+        * no-scoped
+        * required
+
+      queryTarget (str): The query target filter can be used to specify what
+        part of the MIT to query.  You can query:
+
+        * self - The object itself
+        * children - The children of the object
+        * subtree - All the objects lower in the heirarchy
+
+      classFilter (str): The target subtree class filter can be used to specify
+        which subtree class to filter by.  You can set this using a list or
+        a string.  The value is always stored as a comma separated string.
+
+      propFilter (str): The query target property filter can be used to limit
+        which objects are returned based on the value that is set in the
+        specific property within those objects.
+
+      subtree (str): The response subtree filter can be used to define what
+        objects you want in the response.  The possible values are:
+
+        * no - No subtree requested
+        * children - Only the children objects
+        * full - A full subtree
+
+      replica (int): The replica option can direct a query to a specific replica.
+        The possible values are:
+
+        * 1
+        * 2
+        * 3
+        
+      id (None or int): An internal troubleshooting value useful for tracing
+        the processing of a request within the cluster
+
+      uriBase (str): The base URI used to build the URL for queries and
+        requests
     """
 
     def __init__(self, target):
