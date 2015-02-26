@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import object
 # Copyright 2015 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +18,7 @@ import pytest
 from cobra.internal.base.moimpl import MoStatus, BaseMo
 
 @pytest.mark.internal_base_moimpl_MoStatus
-class Test_internal_base_moimpl_MoStatus:
+class Test_internal_base_moimpl_MoStatus(object):
     # Test the expected MoStatus flags
     @pytest.mark.parametrize("status,value", [
         (MoStatus.CLEAR, 1),
@@ -114,7 +116,7 @@ class Test_internal_base_moimpl_MoStatus:
         assert status1 == status2
 
 @pytest.mark.internal_base_moimpl_MoBase
-class Test_internal_base_moimpl_MoBase:
+class Test_internal_base_moimpl_MoBase(object):
 
     # Must be called with some other class, otherwise it raises a
     # NotImplementedError

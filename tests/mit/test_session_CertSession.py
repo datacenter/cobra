@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import object
 # Copyright 2015 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -229,7 +231,7 @@ def apics(request):
 
 # Only do the tests that pass, once one fails, skip the rest
 @pytest.mark.incremental
-class TestCertSession:
+class TestCertSession(object):
 
     def test_cert_setup(self, certobject):
         # Ensure that the setup fixture does its job

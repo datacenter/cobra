@@ -1,3 +1,7 @@
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 # Copyright 2015 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +23,7 @@ import time
 import logging
 import logging.handlers
 import responses
-import httplib
+import http.client
 import json
 
 from cobra.internal.codec.jsoncodec import fromJSONStr, toJSONStr
@@ -38,7 +42,7 @@ import cobra.model.fv
 import cobra.model.pol
 import cobra.model.infra
 
-httplib.HTTPConnection.debuglevel = 1
+http.client.HTTPConnection.debuglevel = 1
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -191,7 +195,7 @@ def moDir(getResponseMock, apic):
     return md
 
 
-class Test_rest_login:
+class Test_rest_login(object):
 
     def test_login_positive(self, apic, getResponseMock):
         """
@@ -215,7 +219,7 @@ class Test_rest_login:
             getResponseMock.stop()
 
 
-class Test_rest_configrequest:
+class Test_rest_configrequest(object):
 
     def test_createtenant(self, moDir, apic, tenantname, getResponseMock):
         """
@@ -312,7 +316,7 @@ class Test_rest_configrequest:
             getResponseMock.stop()
 
 
-class Test_rest_classquery:
+class Test_rest_classquery(object):
 
     def test_classquery_normal(self, moDir, apic, getResponseMock):
         """
