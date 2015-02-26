@@ -132,7 +132,7 @@ class BaseMo(object):
                 namingValsIter = iter(namingVals)
                 for propMeta in meta.namingProps:
                     moVal = getattr(mo, propMeta.name)
-                    keyVal = namingValsIter.next()
+                    keyVal = next(namingValsIter)
                     if moVal != keyVal:
                         raise ValueError("'%s' must be '%s' for mo '%s'" %
                                          (keyVal, moVal, str(mo.rn)))
@@ -147,13 +147,13 @@ class BaseMo(object):
                     # If no more containers this statement will throw an
                     # StopIteration exception and we exit else we move on
                     # to the next container
-                    self._currentContainer = iter(self._containers.next())
+                    self._currentContainer = iter(next(self._containers))
                 try:
-                    return self._currentContainer.next()
+                    return next(self._currentContainer)
                 except StopIteration:
                     # Current container is done, see if we have anything else
                     self._currentContainer = None
-                    return self.next()
+                    return next(self)
 
             def __iter__(self):
                 return self
@@ -226,7 +226,7 @@ class BaseMo(object):
         namingValsIter = iter(namingVals)
         for namingPropMeta in self.__meta.namingProps:
             propName = namingPropMeta.name
-            value = namingValsIter.next()
+            value = next(namingValsIter)
             value = namingPropMeta.makeValue(value)
             self.__dict__[propName] = value
             self.__dirtyProps.add(propName)

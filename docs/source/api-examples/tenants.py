@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright 2015 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,7 +65,7 @@ def main(host, port, user, password):
 
     # Create Vlan Namespace
     nsInfo = VMM_DOMAIN_INFO['namespace']
-    print "Creating namespace %s.." % (nsInfo['name'])
+    print("Creating namespace %s.." % (nsInfo['name']))
     fvnsVlanInstPMo = VlanInstP(uniInfraMo, nsInfo['name'], 'dynamic')
     #fvnsArgs = {'from': nsInfo['from'], 'to': nsInfo['to']}
     EncapBlk(fvnsVlanInstPMo, nsInfo['from'], nsInfo['to'], name=nsInfo['name'])
@@ -98,11 +99,11 @@ def main(host, port, user, password):
     vmmCfg = ConfigRequest()
     vmmCfg.addMo(vmmDomPMo)
     moDir.commit(vmmCfg)
-    print "VMM Domain Creation Completed."
+    print("VMM Domain Creation Completed.")
 
-    print "Starting Tenant Creation.."
+    print("Starting Tenant Creation..")
     for tenant in TENANT_INFO:
-        print "Creating tenant %s.." % (tenant['name'])
+        print("Creating tenant %s.." % (tenant['name']))
         fvTenantMo = Tenant(uniMo, tenant['name'])
         
         # Create Private Network
@@ -116,13 +117,13 @@ def main(host, port, user, password):
         
         # Create Application Profile
         for app in tenant['ap']:
-            print 'Creating Application Profile: %s' % app['name']
+            print('Creating Application Profile: %s' % app['name'])
             fvApMo = Ap(fvTenantMo, app['name'])
             
             # Create EPGs 
             for epg in app['epgs']:
                 
-                print "Creating EPG: %s..." % (epg['name']) 
+                print("Creating EPG: %s..." % (epg['name'])) 
                 fvAEPgMo = AEPg(fvApMo, epg['name'])
                 
                 # Associate EPG to Bridge Domain 

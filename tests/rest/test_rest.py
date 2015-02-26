@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright 2015 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -308,10 +309,10 @@ class Test_rest_tracequery:
 
         for node in nodes:
             a = cobra.mit.request.TraceQuery(node.dn, cls)
-            print a.getUrl(moDir._accessImpl._session)
+            print(a.getUrl(moDir._accessImpl._session))
             mos = moDir.query(a)
             for mo in mos:
-                print mo.dn
+                print(mo.dn)
             traceResponse += len(mos)
         assert traceResponse > 0
 

@@ -112,7 +112,7 @@ class Rn(object):
                     raise ValueError('rn "%s" must be %s' % (rn, rnFormat))
 
                 if hasProp:
-                    nPropMeta = propMetaIter.next()
+                    nPropMeta = next(propMetaIter)
                     needPropDelimiter = nPropMeta.needDelimiter
 
                 start += len(rnPrefix)
@@ -190,7 +190,7 @@ class Rn(object):
             namingProps = {}
             namingValsIter = iter(self.__namingVals)
             for propMeta in self.__meta.namingProps:
-                namingProps[propMeta.name] = namingValsIter.next()
+                namingProps[propMeta.name] = next(namingValsIter)
             return self.__meta.rnFormat % namingProps
         else:
             return self.__meta.rnFormat

@@ -156,8 +156,8 @@ class ClassMeta(object):
         self.isExplicit = False
         self.isNamed = False
 
-        self.writeAccessMask = 0L
-        self.readAccessMask = 0L
+        self.writeAccessMask = 0
+        self.readAccessMask = 0
         self.isDomainable = False
         self.isReadOnly = False
         self.isConfigurable = False
@@ -229,7 +229,7 @@ class ClassMeta(object):
                 self._classNames = iter(container.names)
 
             def next(self):
-                nextClassName = self._classNames.next()
+                nextClassName = next(self._classNames)
                 return self._container[nextClassName]
 
             def __iter__(self):
