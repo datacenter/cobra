@@ -40,7 +40,7 @@ class LoginRequest(AbstractRequest):
                 }
             }
         }
-        return json.dumps(userJson)
+        return json.dumps(userJson, sort_keys=True)
 
     def requestargs(self, session):
         uriPathandOptions = self.getUriPathAndOptions(session)

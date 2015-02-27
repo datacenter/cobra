@@ -91,7 +91,7 @@ class Test_rest_configrequest(object):
 
         mo = mos[0]
         assert len(mos) > 0
-        assert mo.dn == tenant.dn
+        assert str(mo.dn) == str(tenant.dn)
         assert len(list(mo.children)) >= 1
 
     def test_lookupcreatedtenant(self, moDir, tenantname):
@@ -124,7 +124,7 @@ class Test_rest_classquery(object):
             'fvTenant', propFilter='eq(fvTenant.name, "common")')
         assert len(commonTn) == 1
         commonTn = commonTn[0]
-        assert commonTn.dn == 'uni/tn-common'
+        assert str(commonTn.dn) == 'uni/tn-common'
 
     def test_classquery_normal(self, moDir):
         """
@@ -152,7 +152,7 @@ class Test_rest_classquery(object):
         classQuery.propFilter = 'eq(fvTenant.name, "common")'
         commonTn = moDir.query(classQuery)
         commonTn = commonTn[0]
-        assert commonTn.dn == 'uni/tn-common'
+        assert str(commonTn.dn) == 'uni/tn-common'
 
     def test_classquery_subtree(self, moDir):
         """
@@ -163,10 +163,10 @@ class Test_rest_classquery(object):
         classQuery.propFilter = 'eq(fvTenant.name, "common")'
         commonTn = moDir.query(classQuery)
         commonTn = commonTn[0]
-        assert commonTn.dn == 'uni/tn-common'
+        assert str(commonTn.dn) == 'uni/tn-common'
         # expect at least 3 child objects
         assert len(list(commonTn.children)) >= 3
-        assert commonTn.BD['default'].dn == 'uni/tn-common/BD-default'
+        assert str(commonTn.BD['default'].dn) == 'uni/tn-common/BD-default'
 
     @pytest.mark.parametrize("cls,subtree", [
         pytest.mark.skipif(pytest.config.getvalue('apic') == [],
@@ -203,7 +203,7 @@ class Test_rest_classquery(object):
         """
         generate a random tenant name and ensure that we dont find a match for it
         """
-        tenantName = ''.join(random.choice(string.lowercase)
+        tenantName = ''.join(random.choice(string.ascii_lowercase)
                              for i in range(64))
         tenant = moDir.lookupByClass(
             'fvTenant', propFilter='eq(fvTenant.name, "{0}")'.format(tenantName))
@@ -220,14 +220,14 @@ class Test_rest_dnquery(object):
         commonTn = moDir.query(dnQuery)
         assert len(commonTn) == 1
         commonTn = commonTn[0]
-        assert commonTn.dn == dn
+        assert str(commonTn.dn) == str(dn)
         # expect at least 3 child objects
         assert len(list(commonTn.children)) >= 3
-        assert commonTn.BD['default'].dn == 'uni/tn-common/BD-default'
+        assert str(commonTn.BD['default'].dn) == 'uni/tn-common/BD-default'
 
     def test_dnquery_shorthand(self, moDir, dn):
         commonTn = moDir.lookupByDn(dn)
-        assert commonTn.dn == dn
+        assert str(commonTn.dn) == str(dn)
 
 
 class Test_rest_login(object):

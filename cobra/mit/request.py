@@ -927,7 +927,7 @@ class ConfigRequest(AbstractRequest):
             'headers': headers,
             'verify': session.secure,
             'timeout': session.timeout,
-            'data': data
+            'data': str(data)
         }
         return kwargs
 
@@ -1004,7 +1004,7 @@ class ConfigRequest(AbstractRequest):
 
         # This dict stores all entries added to the tree. Fast lookups
         flatTreeDict = {}
-        dns = self.__configMos.keys()
+        dns = list(self.__configMos.keys())
         rootDn = Dn.findCommonParent(dns)
         configMos = dict(self.__configMos)
 

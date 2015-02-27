@@ -245,7 +245,7 @@ class Test_rest_configrequest(object):
         logger.debug('commit response {0}'.format(r.content))
         assert r.status_code == 200
 
-        mos = fromJSONStr(r.content)
+        mos = fromJSONStr(str(r.text))
         mo = mos[0]
         logger.debug('r.content: {0}'.format(r.content))
         assert len(mos) > 0
@@ -279,7 +279,7 @@ class Test_rest_configrequest(object):
             'fvTenant', propFilter='eq(fvTenant.name, "{0}")'.format(tenantname))
         assert len(Tn) == 1
         Tn = Tn[0]
-        assert Tn.dn == 'uni/tn-{0}'.format(tenantname)
+        assert str(Tn.dn) == 'uni/tn-{0}'.format(tenantname)
 
         if apic[0] == 'http://mock':
             getResponseMock.stop()

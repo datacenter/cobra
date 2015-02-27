@@ -1,5 +1,3 @@
-from builtins import str
-from builtins import object
 # Copyright 2015 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,23 +11,33 @@ from builtins import object
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from future import standard_library
+standard_library.install_aliases()
 
 import pytest
+from builtins import str
+from builtins import object
 
 pytestmark = pytest.mark.skipif(pytest.config.getvalue('apic') == [],
                                 reason="You must specify at least one --apic " +
                                        "option on the CLI")
 
+import http.client
+import logging
 from os.path import join, exists
 from os import remove, rmdir
 import tempfile
 from cobra.mit.session import CertSession, LoginSession
-from cobra.mit.request import ConfigRequest, DnQuery, CommitError
+from cobra.mit.request import ConfigRequest, DnQuery, CommitError, RestError
 from cobra.mit.access import MoDirectory
 pytest.importorskip("cobra.model")
 from cobra.model.pol import Uni
 from cobra.model.aaa import User, UserEp, UserCert, UserDomain, UserRole
 from cobra.model.fv import Tenant, BD, Ap
+from cobra.internal.codec.jsoncodec import toJSONStr
+
+http.client.HTTPConnection.debuglevel = 1
+logging.basicConfig(level=logging.DEBUG)
 
 class UserObject(object):
     def __init__(self, user="rouser"):
@@ -203,13 +211,10 @@ class CertSessionObject(object):
 @pytest.fixture(scope="module")
 def certobject(request):
     certobject = CertSessionObject()
-    #def cleanup():
-    #    certobject.cleanup()
-    #request.addfinalizer(cleanup)
+    def cleanup():
+        certobject.cleanup()
+    request.addfinalizer(cleanup)
     return certobject
-
-
-
 
 # For each apic setup a moDir object
 @pytest.fixture(scope="module", params=pytest.config.getvalue('apic'))
@@ -227,7 +232,7 @@ def moDir(request):
 @pytest.fixture(scope="module", params=pytest.config.getvalue('apic'))
 def apics(request):
     url, user, password, secure = request.param
-    return [url, secure]
+    return [url, secure, user, password]
 
 # Only do the tests that pass, once one fails, skip the rest
 @pytest.mark.incremental
@@ -256,14 +261,14 @@ class TestCertSession(object):
         userobject.pkey = certobject.readFile(
             fileName=certobject.pkeyfile)
         session = CertSession(apic, userobject.certDn, userobject.pkey,
-                              secure=secure)
+                              secure=secure, requestFormat='xml')
         moDir = MoDirectory(session)
         dnQuery = DnQuery('uni/tn-common')
         #dnQuery.subtree = "full"
         tq = moDir.query(dnQuery)
         assert len(tq) == 1
         tq = tq[0]
-        assert tq.parentDn == 'uni'
+        assert str(tq.parentDn) == 'uni'
         assert str(tq.dn) == 'uni/tn-common'
 
     def test_post_tn(self, apics, certobject, userobject):
@@ -272,17 +277,17 @@ class TestCertSession(object):
         userobject.pkey = certobject.readFile(
             fileName=certobject.pkeyfile)
         session = CertSession(apic, userobject.certDn, userobject.pkey,
-                              secure=secure)
+                              secure=secure, requestFormat='xml')
         moDir = MoDirectory(session)
         uni = Uni('')
         fvTenant = Tenant(uni, name='t')
         fvBD = BD(fvTenant, 't-bd')
         fvAp = Ap(fvTenant, 't-app')
         cr = ConfigRequest()
-        cr.subtree = 'full'
+        #cr.subtree = 'full'
         cr.addMo(fvTenant)
         if userobject.user == 'rouser':
-            with pytest.raises(CommitError) as excinfo:
+            with pytest.raises(RestError) as excinfo:
                 r = moDir.commit(cr)
             assert excinfo.value.reason == ('user rouser does not have ' +
                                             'domain access to config Mo, ' +
@@ -292,4 +297,39 @@ class TestCertSession(object):
         else:
             raise NotImplementedError
 
-# leaving the users and the tenant for now
+    def test_cleanup_user(self, apics, certobject, userobject):
+        apic = apics[0]
+        user = apics[2]
+        password = apics[3]
+        secure = False if apics[1] == 'False' else True
+        userobject.aaaUser.delete()
+        session = LoginSession(apic, user, password, secure=secure)
+        moDir = MoDirectory(session)
+        moDir.login()
+        cr = ConfigRequest()
+        cr.addMo(userobject.aaaUser)
+        r = moDir.commit(cr)
+        assert r.status_code == 200
+
+    def test_tn_cleanup(self, apics, certobject, userobject):
+        if userobject.user == 'rouser':
+            return
+        apic = apics[0]
+        user = apics[2]
+        password = apics[3]
+        secure = False if apics[1] == 'False' else True
+        uni = Uni('')
+        fvTenant = Tenant(uni, name='t')
+        fvTenant.delete()
+        fvBD = BD(fvTenant, 't-bd')
+        fvBD.delete()
+        fvAp = Ap(fvTenant, 't-app')
+        fvAp.delete()
+        session = LoginSession(apic, user, password, secure=secure)
+        moDir = MoDirectory(session)
+        moDir.login()
+        cr = ConfigRequest()
+        cr.addMo(fvTenant)
+        r = moDir.commit(cr)
+        assert r.status_code == 200
+

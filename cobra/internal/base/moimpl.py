@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import unicode_literals
+from builtins import next
+from builtins import str
+from builtins import object
+
 from cobra.mit.naming import Dn
 from cobra.mit.naming import Rn
 
@@ -108,7 +113,7 @@ class BaseMo(object):
                 return len(self._childObjects)
 
             def __iter__(self):
-                return iter(self._childObjects.values())
+                return iter(list(self._childObjects.values()))
 
             def _checkKey(self, key, mo):
                 meta = self._childClass.meta
@@ -139,10 +144,10 @@ class BaseMo(object):
 
         class _ChildIter(object):
             def __init__(self, classContainers):
-                self._containers = iter(classContainers.values())
+                self._containers = iter(list(classContainers.values()))
                 self._currentContainer = None
 
-            def next(self):
+            def __next__(self):
                 if self._currentContainer is None:
                     # If no more containers this statement will throw an
                     # StopIteration exception and we exit else we move on
@@ -204,22 +209,20 @@ class BaseMo(object):
         self.__dict__['_BaseMo__rn'] = Rn(self.__meta, *namingVals)
         self.__dict__['_BaseMo__dn'] = None
 
-        if isinstance(parentMoOrDn, str):
-            self.__dict__['_BaseMo__parentDnStr'] = parentMoOrDn
-            self.__dict__['_BaseMo__parentDn'] = None
-            self.__dict__['_BaseMo__parentMo'] = None
-        elif isinstance(parentMoOrDn, unicode):
-            self.__dict__['_BaseMo__parentDnStr'] = str(parentMoOrDn)
-            self.__dict__['_BaseMo__parentDn'] = None
-            self.__dict__['_BaseMo__parentMo'] = None
-        elif isinstance(parentMoOrDn, Dn):
+        if isinstance(parentMoOrDn, Dn):
             self.__dict__['_BaseMo__parentDn'] = parentMoOrDn.clone()
             self.__dict__['_BaseMo__parentMo'] = None
         elif isinstance(parentMoOrDn, BaseMo):
             self.__dict__['_BaseMo__parentMo'] = parentMoOrDn
             self.__dict__['_BaseMo__parentDn'] = parentMoOrDn.dn.clone()
         else:
-            raise ValueError('parent mo or dn must be specified')
+            parentMoOrDn = str(parentMoOrDn)
+            if isinstance(parentMoOrDn, str):
+                self.__dict__['_BaseMo__parentDnStr'] = parentMoOrDn
+                self.__dict__['_BaseMo__parentDn'] = None
+                self.__dict__['_BaseMo__parentMo'] = None
+            else:
+                raise ValueError('parent mo or dn must be specified')
 
         # Set the naming props
         self.__dirtyProps.add('status')
@@ -233,7 +236,7 @@ class BaseMo(object):
 
         # Set the creation props
         props = self.__meta.props
-        for name, value in creationProps.items():
+        for name, value in list(creationProps.items()):
             propMeta = props[name]
             value = propMeta.makeValue(value)
             self.__dict__[name] = value

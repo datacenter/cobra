@@ -1,3 +1,7 @@
+from past.builtins import cmp
+from builtins import next
+from builtins import str
+from builtins import object
 # Copyright 2015 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

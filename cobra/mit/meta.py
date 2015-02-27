@@ -1,3 +1,7 @@
+from past.builtins import cmp
+from builtins import str
+from builtins import next
+from builtins import object
 # Copyright 2015 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -228,7 +232,7 @@ class ClassMeta(object):
                 self._container = container
                 self._classNames = iter(container.names)
 
-            def next(self):
+            def __next__(self):
                 nextClassName = next(self._classNames)
                 return self._container[nextClassName]
 
@@ -237,7 +241,7 @@ class ClassMeta(object):
 
         @property
         def names(self):
-            return self._classes.keys()
+            return list(self._classes.keys())
 
         def add(self, className):
             self._classes[className] = None
@@ -270,7 +274,7 @@ class ClassMeta(object):
 
         @property
         def names(self):
-            return self._props.keys()
+            return list(self._props.keys())
 
         def __getitem__(self, propName):
             return self._props[propName]
@@ -282,7 +286,7 @@ class ClassMeta(object):
             return len(self._props)
 
         def __iter__(self):
-            return iter(self._props.values())
+            return iter(list(self._props.values()))
 
         def __getattr__(self, propName):
             if propName not in self._props:
