@@ -102,7 +102,7 @@ Mike Timm (@mtimm) and Paul Lesiak (@paullesiak) are the primary contributors wh
 
 Mike Shields (@mbshields) owns the documentation efforts.
 
-Sai Ram Goli (@srgoli) and Praveen Kumar (@kprav33n) provided valuble design insights during the inception of cobra.
+Sai Ram Goli (@ilog) and Praveen Kumar (@kprav33n) provided valuble design insights during the inception of cobra.
 
 
 ### License ###
