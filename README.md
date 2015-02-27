@@ -16,7 +16,7 @@ It provides a pythonic library that allows developers to quickly develop and tes
 
 ### Design Goals ###
 
-**Simple.** Pythonic, well documented and easy to develop and test applications.
+**Simple.** Pythonic, well documented, easy to develop and test applications.
 
 **Complete.** Covers the entire APIC REST API.
 
@@ -97,10 +97,12 @@ Comments follow [Google's style guide][goog-style-comments].
 
 ### Authors and Contributors ###
 
-Ravi Chamarthy (@rchamarthy) initially developed the cobra API as a common library for ACI developers. It is heavily used for testing, CLI and scripting. 
+Ravi Chamarthy (@rchamarthy) initially developed the cobra API as a common library for ACI developers. It is heavily used for testing, CLI and scripting of APIC. 
 Mike Timm (@mtimm) and Paul Lesiak (@paullesiak) are the primary contributors who spent numerous hours writing tests, documentation, examples and developed key features to help cobra shape up!
 
-Sai Ram Goli (@srgoli) and Praveen Kumar (@kprav33n) provided valuble design insights during the inception of cobra.
+Mike Shields (@mbshields) owns the documentation efforts.
+
+Sai Ram Goli (@ilog) and Praveen Kumar (@kprav33n) provided valuble design insights during the inception of cobra.
 
 
 ### License ###
