@@ -489,4 +489,4 @@ class CertSession(AbstractSession):
                      " APIC-Certificate-Algorithm=v1.0;" +
                      " APIC-Certificate-Fingerprint=fingerprint;" +
                      " APIC-Certificate-DN=%s")
-        return cookieFmt % (str(signature), certDn)
+        return cookieFmt % (signature.decode(), certDn)
