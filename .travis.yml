@@ -12,4 +12,4 @@ install:
   - "python setup.py -q install"
 
 script:
-  - python -m pytest
+  - python -m pytest -vv
