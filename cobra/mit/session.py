@@ -442,8 +442,9 @@ class CertSession(AbstractSession):
                 payLoad = 'POST' + uri + data
 
             pkey = load_privatekey(FILETYPE_PEM, privateKeyStr)
+
             signedDigest = sign(pkey, payLoad.encode(), 'sha256')
-            signature = base64.b64encode(signedDigest)
+            signature = base64.b64encode(signedDigest).decode()
         else:
             tmpFiles = []
             tempDir = tempfile.mkdtemp()
@@ -489,4 +490,4 @@ class CertSession(AbstractSession):
                      " APIC-Certificate-Algorithm=v1.0;" +
                      " APIC-Certificate-Fingerprint=fingerprint;" +
                      " APIC-Certificate-DN=%s")
-        return cookieFmt % (signature.decode(), certDn)
+        return cookieFmt % (signature, certDn)
