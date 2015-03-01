@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from builtins import object
+
 from cobra.mit.request import DnQuery, ClassQuery, CommitError
 from cobra.internal.rest.accessimpl import RestAccess
 

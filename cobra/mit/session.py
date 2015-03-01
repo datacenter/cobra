@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from builtins import str
+from builtins import object
 
 try:
     from OpenSSL.crypto import FILETYPE_PEM, load_privatekey, sign
