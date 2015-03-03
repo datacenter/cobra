@@ -1,7 +1,4 @@
-from past.builtins import cmp
-from builtins import str
-from builtins import next
-from builtins import object
+
 # Copyright 2015 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +12,11 @@ from builtins import object
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from past.builtins import cmp
+from builtins import str
+from builtins import next
+from builtins import object
 
 import importlib
 
