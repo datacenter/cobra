@@ -179,8 +179,8 @@ class BaseMo(object):
                     # Accessing a child like an attribute will lead to the
                     # childPrefix being passed in without a hyphen, add it
                     # here for this circumstance
-                    if childPrefix[-1] != '-':
-                        if len(childMeta.namingProps) > 0:
+                    if (childPrefix[-1] != '-' and
+                        len(childMeta.namingProps) > 0):
                             newPrefix = childPrefix + '-'
                     if newPrefix == prefix:
                         # Do not overwrite the classContainer for a lookup
