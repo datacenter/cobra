@@ -1,5 +1,3 @@
-from builtins import str
-from builtins import object
 # Copyright 2015 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +12,12 @@ from builtins import object
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from builtins import str
+from builtins import object
+
 import pytest
 from cobra.internal.base.moimpl import MoStatus, BaseMo
+
 
 @pytest.mark.internal_base_moimpl_MoStatus
 class Test_internal_base_moimpl_MoStatus(object):

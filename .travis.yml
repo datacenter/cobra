@@ -8,8 +8,8 @@ install:
   - "pip install pyOpenSSL"
   - "pip install responses"
   - "pip install future"
-  - "pip install sphinxcontrib-napoleon"
   - "python setup.py -q install"
+  - "pip install sphinxcontrib-napoleon"
 
 script:
   - python -m pytest -vv

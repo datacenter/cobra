@@ -1,7 +1,3 @@
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-from builtins import object
 # Copyright 2015 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +12,11 @@ from builtins import object
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/env python
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+
 import os
 import pytest
 import time
