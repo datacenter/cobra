@@ -166,20 +166,32 @@ class BaseMo(object):
         def __init__(self, classMeta):
             self._classMeta = classMeta
 
-            # Key is the first rn prefix without the leading '-' if any
+            # Key is the first rn prefix with the leading '-' if any
             self._classContainers = {}
 
-        def _getChildContainer(self, childPrefix):
-            childPrefix = childPrefix.rstrip('-')
+        def _getChildContainer(self, childPrefix, lookup=False):
             classContainer = self._classContainers.get(childPrefix, None)
             if classContainer is None:
                 for childClass in self._classMeta.childClasses:
                     childMeta = childClass.meta
-                    prefix = childMeta.rnPrefixes[0][0].rstrip('-')
-                    if childPrefix == prefix:
-                        classContainer = \
-                        BaseMo._ChildContainer._ClassContainer(childClass)
-                        self._classContainers[childPrefix] = classContainer
+                    prefix = childMeta.rnPrefixes[0][0]
+                    newPrefix = childPrefix
+                    # Accessing a child like an attribute will lead to the
+                    # childPrefix being passed in without a hyphen, add it
+                    # here for this circumstance
+                    if childPrefix[-1] != '-':
+                        if len(childMeta.namingProps) > 0:
+                            newPrefix = childPrefix + '-'
+                    if newPrefix == prefix:
+                        # Do not overwrite the classContainer for a lookup
+                        # operation
+                        if not lookup:
+                            classContainer = \
+                            BaseMo._ChildContainer._ClassContainer(childClass)
+                            self._classContainers[newPrefix] = classContainer
+                        else:
+                            classContainer = self._classContainers.get(
+                                newPrefix, None)
                         break
                 if classContainer is None:
                     # Could not find a child class with this prefix
@@ -257,7 +269,7 @@ class BaseMo(object):
 
         # We got this call because properties did not match, so look for
         # child class containers
-        return self.__children._getChildContainer(attrName)
+        return self.__children._getChildContainer(attrName, True)
 
     def __setattr__(self, attrName, attrValue):
         if attrName in self.meta.props:
