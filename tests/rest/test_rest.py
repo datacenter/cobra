@@ -21,9 +21,11 @@ import string
 import time
 import xml.etree.ElementTree as ET
 import logging
+import requests
 
-from cobra.internal.codec.jsoncodec import fromJSONStr
-from cobra.internal.codec.xmlcodec import toXMLStr
+from cobra.internal.codec.jsoncodec import toJSONStr, fromJSONStr
+from cobra.internal.codec.xmlcodec import toXMLStr, fromXMLStr
+
 import cobra.mit.access
 import cobra.mit.request
 import cobra.mit.session
@@ -35,6 +37,7 @@ import cobra.services
 pytestmark = pytest.mark.skipif(pytest.config.getvalue('apic') == [],
                                 reason="You must specify at least one --apic " +
                                        "option on the CLI")
+slow = pytest.mark.slow
 
 httplib.HTTPConnection.debuglevel = 1
 logging.basicConfig(level=logging.DEBUG)
@@ -64,29 +67,24 @@ class Test_rest_configrequest:
 
         polUni = cobra.model.pol.Uni('')
         tenant = cobra.model.fv.Tenant(polUni, tenantname[0])
-        #bd = cobra.model.fv.BD(tenant, 'bd')
-        #ap = cobra.model.fv.Ap(tenant, 'app')
 
         configRequest = cobra.mit.request.ConfigRequest()
         configRequest.addMo(tenant)
         configRequest.subtree = 'full'
         configRequest.id = dcid
 
-        # configurl = configRequest.getUrl(moDir._accessImpl._session)
-        # expectedurl = 'http://{0}/api/mo/uni/tn-{1}.json?rsp-subtree=full&_dc={2}'.format(
-        #     moDir.controllerUrl, tenantname, dcid)
-        # assert configurl == expectedurl
-
         r = moDir.commit(configRequest)
-        assert r.status_code == 200
+        assert r.status_code == requests.codes.ok
 
-        mos = fromJSONStr(r.content)
+        if moDir._accessImpl._session.formatType == cobra.mit.session.AbstractSession.XML_FORMAT:
+            mos = fromXMLStr(r.content)
+        else:
+            mos = fromJSONStr(r.content)
+
         mo = mos[0]
         assert len(mos) > 0
         assert mo.dn == tenant.dn
-        assert len(list(mo.children)) >= 2  # expect at least fvBD and fvAp
-        assert mo.BD['bd'].dn == 'uni/tn-{0}/BD-bd'.format(tenantname[0])
-        assert mo.ap['app'].dn == 'uni/tn-{0}/ap-app'.format(tenantname[0])
+        assert len(list(mo.children)) >= 1
 
     def test_lookupcreatedtenant(self, moDir, tenantname):
 
@@ -197,7 +195,8 @@ class Test_rest_classquery:
         """
         generate a random tenant name and ensure that we dont find a match for it
         """
-        tenantName = ''.join(random.choice(string.lowercase) for i in range(64))
+        tenantName = ''.join(random.choice(string.lowercase)
+                             for i in range(64))
         tenant = moDir.lookupByClass(
             'fvTenant', propFilter='eq(fvTenant.name, "{0}")'.format(tenantName))
         assert len(tenant) == 0
@@ -246,12 +245,13 @@ class Test_rest_login:
         session = cobra.mit.session.LoginSession(url, user, 'wrongpassword',
                                                  secure=secure)
         moDir = cobra.mit.access.MoDirectory(session)
-        with pytest.raises(cobra.mit.request.CommitError):
+        with pytest.raises(cobra.mit.session.LoginError):
             moDir.login()
 
+    @slow
     def test_login_timeout(self, apic):
         """
-        verify that the session times out property
+        verify that the session times out properly
         """
         url, user, password, secure = apic
         secure = False if secure == 'False' else True
@@ -260,16 +260,30 @@ class Test_rest_login:
         moDir = cobra.mit.access.MoDirectory(session)
         moDir.login()
         start = time.time()
-        # http://172.23.3.215/api/node/mo/uni/userext/pkiext.json?query-target=children&target-subtree-class=pkiWebTokenData&subscription=yes&_dc=1406254621879
+
         pki = moDir.lookupByDn('uni/userext/pkiext/webtokendata')
         refreshTime = pki.webtokenTimeoutSeconds
         sleepTime = float(refreshTime) - (time.time() - start)
         sleepTime += 1.0  # one second buffer, for good measure
-        print 'Refresh time is {0}. Sleeping for {1} seconds (accounting for time between login request and this lookup)'.format(refreshTime, sleepTime)
+
         time.sleep(sleepTime)
-        print 'It has been {0} seconds since our login. Sending a lookup to check if our session timed out'.format(time.time() - start)
+
         with pytest.raises(cobra.mit.request.QueryError):
             moDir.lookupByClass('pkiWebTokenData')
+
+    def test_login_get_timeout(self, apic):
+        """
+        verify that the session times out properly
+        """
+        url, user, password, secure = apic
+        secure = False if secure == 'False' else True
+        session = cobra.mit.session.LoginSession(url, user, password,
+                                                 secure=secure)
+        moDir = cobra.mit.access.MoDirectory(session)
+        moDir.login()
+
+        assert moDir._accessImpl._session.refreshTime > int(time.time())
+        assert moDir._accessImpl._session.refreshTimeoutSeconds > 0
 
 
 class Test_rest_tracequery:
@@ -305,9 +319,9 @@ class Test_rest_tracequery:
 class Test_services_devicepackage:
 
     fakePackage = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-        fakeDevicePackageZip)
+                               fakeDevicePackageZip)
     realPackage = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-        realDevicePackageZip)
+                               realDevicePackageZip)
 
     def test_packagevalidate(self):
         """
