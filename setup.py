@@ -30,7 +30,7 @@ class PyTest(TestCommand):
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
-install_requires = ['requests']
+install_requires = ['requests', 'future']
 
 # Doc build instructions:
 # Clone the repo

@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from past.builtins import cmp
+from builtins import next
+from builtins import str
+from builtins import object
+
 from cobra.mit.meta import ClassLoader
 from collections import deque
 
@@ -112,7 +117,7 @@ class Rn(object):
                     raise ValueError('rn "%s" must be %s' % (rn, rnFormat))
 
                 if hasProp:
-                    nPropMeta = propMetaIter.next()
+                    nPropMeta = next(propMetaIter)
                     needPropDelimiter = nPropMeta.needDelimiter
 
                 start += len(rnPrefix)
@@ -190,7 +195,7 @@ class Rn(object):
             namingProps = {}
             namingValsIter = iter(self.__namingVals)
             for propMeta in self.__meta.namingProps:
-                namingProps[propMeta.name] = namingValsIter.next()
+                namingProps[propMeta.name] = next(namingValsIter)
             return self.__meta.rnFormat % namingProps
         else:
             return self.__meta.rnFormat

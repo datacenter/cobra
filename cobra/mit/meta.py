@@ -1,3 +1,4 @@
+
 # Copyright 2015 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,6 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from past.builtins import cmp
+from builtins import str
+from builtins import next
+from builtins import object
 
 import importlib
 
@@ -156,8 +162,8 @@ class ClassMeta(object):
         self.isExplicit = False
         self.isNamed = False
 
-        self.writeAccessMask = 0L
-        self.readAccessMask = 0L
+        self.writeAccessMask = 0
+        self.readAccessMask = 0
         self.isDomainable = False
         self.isReadOnly = False
         self.isConfigurable = False
@@ -228,8 +234,8 @@ class ClassMeta(object):
                 self._container = container
                 self._classNames = iter(container.names)
 
-            def next(self):
-                nextClassName = self._classNames.next()
+            def __next__(self):
+                nextClassName = next(self._classNames)
                 return self._container[nextClassName]
 
             def __iter__(self):
@@ -237,7 +243,7 @@ class ClassMeta(object):
 
         @property
         def names(self):
-            return self._classes.keys()
+            return list(self._classes.keys())
 
         def add(self, className):
             self._classes[className] = None
@@ -270,7 +276,7 @@ class ClassMeta(object):
 
         @property
         def names(self):
-            return self._props.keys()
+            return list(self._props.keys())
 
         def __getitem__(self, propName):
             return self._props[propName]
@@ -282,7 +288,7 @@ class ClassMeta(object):
             return len(self._props)
 
         def __iter__(self):
-            return iter(self._props.values())
+            return iter(list(self._props.values()))
 
         def __getattr__(self, propName):
             if propName not in self._props:
