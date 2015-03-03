@@ -246,7 +246,7 @@ class AbstractQuery(AbstractRequest):
 
     @classFilter.setter
     def classFilter(self, value):
-        if isinstance(value, str):
+        if not isinstance(value, list):
             value = value.split(',')
 
         value = [name.replace('.', '') for name in value]
