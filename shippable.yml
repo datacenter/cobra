@@ -5,6 +5,7 @@ cache: true
 
 before_install:
    - mkdir -p shippable/testresults
+   - mkdir -p shippable/codecoverage
 
 install: 
   - "pip install requests"
@@ -15,3 +16,5 @@ install:
 
 script:
   - py.test -vv --junitxml=shippable/testresults/test.xml
+  - which python && coverage run --branch -m py.test
+  - which python && coverage xml -o shippable/codecoverage/coverage.xml
