@@ -1,0 +1,25 @@
+language: python
+python:
+  - "2.7"
+cache: true
+
+before_install:
+   - mkdir -p shippable/testresults
+   - mkdir -p shippable/codecoverage
+
+install: 
+  - "pip install requests"
+  - "pip install pyOpenSSL"
+  - "pip install responses"
+  - "pip install pytest-cov"
+  - "python setup.py -q install"
+  - "pip install sphinxcontrib-napoleon"
+
+script:
+  - coverage run --source cobra --branch setup.py test
+
+after_success:
+  - coverage report
+  - coverage xml
+  - mv coverage.xml shippable/codecoverage/
+  - mv unittests.xml shippable/testresults/
