@@ -17,6 +17,4 @@ install:
 
 script:
   - py.test --cov cobra -vv  --junitxml=shippable/testresults/test.xml
-
-after_success:
-  - cp coverage.xml shippable/codecoverage/coverage.xml
+  - coverage xml -o shippable/codecoverage/coverage.xml
