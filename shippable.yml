@@ -11,7 +11,6 @@ install:
   - "pip install requests"
   - "pip install pyOpenSSL"
   - "pip install responses"
-  - "pip install pytest-cov"
   - "python setup.py -q install"
   - "pip install sphinxcontrib-napoleon"
 
