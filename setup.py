@@ -21,7 +21,7 @@ from setuptools.command.test import test as TestCommand
 class PyTest(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)
-        self.test_args = []
+        self.test_args = ['--junitxml=unittests.xml']
         self.test_suite = True
 
     def run_tests(self):
@@ -70,6 +70,7 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
     ],
     keywords='data center networking configuration management',
     license='http://www.apache.org/licenses/LICENSE-2.0',
