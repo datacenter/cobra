@@ -11,9 +11,12 @@ install:
   - "pip install requests"
   - "pip install pyOpenSSL"
   - "pip install responses"
+  - "pip install pytest-cov"
   - "python setup.py -q install"
   - "pip install sphinxcontrib-napoleon"
 
 script:
-  - which python && coverage run --source cobra --branch -m py.test -vv --junitxml=shippable/testresults/test.xml
-  - which python && coverage xml -o shippable/codecoverage/coverage.xml
+  - py.test --cov cobra -vv --cov-report=xml --junitxml=shippable/testresults/test.xml
+
+after_success:
+  - cp coverage.xml shippable/codecoverage/coverage.xml
