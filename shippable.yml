@@ -2,7 +2,10 @@ language: python
 python:
   - "2.7"
 cache: true
-# command to install dependencies
+
+before_install:
+   - mkdir -p shippable/testresults
+
 install: 
   - "pip install requests"
   - "pip install pyOpenSSL"
@@ -11,4 +14,4 @@ install:
   - "pip install sphinxcontrib-napoleon"
 
 script:
-  - python -m pytest
+  - py.test -vv --junitxml=shippable/testresults/test.xml
