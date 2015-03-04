@@ -16,5 +16,10 @@ install:
   - "pip install sphinxcontrib-napoleon"
 
 script:
-  - py.test --cov cobra -vv  --junitxml=shippable/testresults/test.xml
-  - coverage xml -o shippable/codecoverage/coverage.xml
+  - coverage run setup.py test
+
+after_success:
+  - coverage report
+  - coverage xml
+  - mv coverage.xml shippable/codecoverage/
+  - mv unittests.xml shippable/testresults/
