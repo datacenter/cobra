@@ -22,6 +22,7 @@ from cobra.mit.request import (AbstractRequest, AbstractQuery, DnQuery,
                                AliasRequest, ConfigRequest, MultiQuery,
                                TroubleshootingQuery, CommitError)
 from cobra.mit.session import LoginSession
+cobra.model = pytest.importorskip('cobra.model')
 from cobra.model.pol import Uni
 from cobra.model.fv import Tenant, BD
 from cobra.model.fvns import VlanInstP
