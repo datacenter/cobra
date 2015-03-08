@@ -644,7 +644,7 @@ class TraceQuery(AbstractQuery):
 class TagsRequest(AbstractRequest):
     """Hybrid query and request for tags
 
-    This class does both setting of tags (request) and retriving of tags
+    This class does both setting of tags (request) and retrieving of tags
     (query).
     
     Attributes:
@@ -757,7 +757,7 @@ class TagsRequest(AbstractRequest):
 class AliasRequest(AbstractRequest):
     """Hybrid query and request for alias support
 
-    This class does both setting of aliases (request) and retriving of aliases
+    This class does both setting of aliases (request) and retrieving of aliases
     (query).
     
     Attributes:
@@ -940,7 +940,7 @@ class ConfigRequest(AbstractRequest):
           mo (cobra.mit.mo.Mo): The managed object to add
 
         Raises:
-          ValueError: If the context root of the MO is not alowed. This can
+          ValueError: If the context root of the MO is not allowed. This can
             happen if the MO being added does not have a common context root
             with the MOs that are already added to the configuration request
         """
