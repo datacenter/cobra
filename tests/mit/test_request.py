@@ -354,10 +354,13 @@ class Test_mit_request_TagsRequest(object):
         tid = '1234567890'
         dnStr = 'system'
         tr = TagsRequest(dnStr, add=u'tag1', remove=u'tag2')
-        expectedOptions = 'add=tag1&remove=tag2'
+        expectedOptions1 = 'add=tag1&remove=tag2'
+        expectedOptions2 = 'remove=tag2&add=tag1'
         tr.id = tid
-        expectedOptions += '&_dc=' + tid
-        assert tr.options == expectedOptions
+        expectedOptions1 += '&_dc=' + tid
+        expectedOptions2 += '&_dc=' + tid
+        assert (tr.options == expectedOptions1 or
+                tr.options == expectedOptions2)
 
     def test_TagsRequest_requestargs(self):
         expected = {
@@ -392,8 +395,10 @@ class Test_mit_request_TagsRequest(object):
         tr.add = [u'tag1', u'tag2']
         tr.remove = u'tag3'
         tr.id = dc
-        expectedUrl += '?add=tag1,tag2&remove=tag3&_dc=' + dc
-        assert tr.getUrl(session) == expectedUrl
+        expectedUrl1 = expectedUrl + '?add=tag1,tag2&remove=tag3&_dc=' + dc
+        expectedUrl2 = expectedUrl + '?remove=tag3&add=tag1,tag2&_dc=' + dc
+        assert (tr.getUrl(session) == expectedUrl1 or
+                tr.getUrl(session) == expectedUrl2)
 
 @pytest.mark.mit_request_AliasRequest
 class Test_mit_request_AliasRequest(object):
@@ -498,14 +503,17 @@ class Test_mit_request_ConfigRequest(object):
             abc = cr.data
 
     def test_ConfigRequest_xmldata(self):
-        expected = ('<?xml version="1.0" encoding="UTF-8"?>\n' +
+        expected1 = ('<?xml version="1.0" encoding="UTF-8"?>\n' +
                     '<fvTenant name=\'test\' status=\'created,modified\'>' +
+                    '</fvTenant>')
+        expected2 = ('<?xml version="1.0" encoding="UTF-8"?>\n' +
+                    '<fvTenant status=\'created,modified\' name=\'test\'>' +
                     '</fvTenant>')
         polUni = Uni('')
         fvTenant = Tenant(polUni, 'test')
         cr = ConfigRequest()
         cr.addMo(fvTenant)
-        assert cr.xmldata == expected
+        assert (cr.xmldata == expected1 or cr.xmldata == expected2)
 
     def test_ConfigRequest_xmldata_raises(self):
         cr = ConfigRequest()
@@ -529,10 +537,20 @@ class Test_mit_request_ConfigRequest(object):
             cr.subtree = 'children'
 
     def test_ConfigRequest_requestargs(self):
-        expected = {
+        expected1 = {
                        'data': '<?xml version="1.0" encoding="UTF-8"?>\n' +
                                '<fvTenant name=\'testing\' ' +
                                'status=\'created,modified\'></fvTenant>',
+                       'headers': {
+                           'Cookie': 'APIC-cookie=None'
+                       },
+                       'timeout': 90,
+                       'verify': False
+                   }
+        expected2 = {
+                       'data': '<?xml version="1.0" encoding="UTF-8"?>\n' +
+                               '<fvTenant status=\'created,modified\' ' +
+                               'name=\'testing\'></fvTenant>',
                        'headers': {
                            'Cookie': 'APIC-cookie=None'
                        },
@@ -544,7 +562,8 @@ class Test_mit_request_ConfigRequest(object):
         session = LoginSession('http://1.1.1.1', 'admin', 'password')
         cr = ConfigRequest()
         cr.addMo(fvTenant)
-        assert cr.requestargs(session) == expected
+        assert (cr.requestargs(session) == expected1 or
+                cr.requestargs(session) == expected2)
 
     # addMo is tested in test_ConfigRequest_requestargs but we still need
     # branch testing.  See test_ConfigRequest_addMo_raises_* methods
@@ -598,8 +617,8 @@ class Test_mit_request_ConfigRequest(object):
 
     @pytest.mark.parametrize("mos, expected", [
         ([None], None),
-        ([], LooseNode('topology', "101")),
-        ([BD('uni/tn-testing', 'test')], Tenant('uni', 'testing')),
+        ([], LooseNode(u'topology', u"101")),
+        ([BD(u'uni/tn-testing', u'test')], Tenant(u'uni', u'testing')),
     ])
     def test_ConfigRequest_getRootMo(self, mos, expected):
         cr = ConfigRequest()

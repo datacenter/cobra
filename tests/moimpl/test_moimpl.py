@@ -23,7 +23,7 @@ from cobra.internal.base.moimpl import MoStatus, BaseMo
 class Test_internal_base_moimpl_MoStatus(object):
     # Test the expected MoStatus flags
     @pytest.mark.parametrize("status,value", [
-        (MoStatus.CLEAR, 1),
+        (MoStatus.DEFAULT, 0),
         (MoStatus.CREATED, 2),
         (MoStatus.MODIFIED, 4),
         (MoStatus.DELETED, 8),
@@ -32,8 +32,6 @@ class Test_internal_base_moimpl_MoStatus(object):
         assert status == value
 
     # Test MoStatus.fromString() method, seems to be broken though
-    @pytest.mark.xfail(reason='MoStatus.fromString is broken and not used, ' +
-                              'should it be removed?')
     @pytest.mark.parametrize("statusStr,obj,created,modified,deleted", [
         ("",                 MoStatus, False, False, False),
         ("created",          MoStatus, True,  False, False),
@@ -110,8 +108,6 @@ class Test_internal_base_moimpl_MoStatus(object):
         assert status.deleted == False
         assert status.modified == False
 
-    @pytest.mark.xfail(reason="__cmp__ is not implemented properly on " +
-                              "MoStatus, skip it")
     def test_MoStatus_cmp(self):
         status1 = MoStatus(MoStatus.CREATED)
         status2 = MoStatus(MoStatus.CREATED)

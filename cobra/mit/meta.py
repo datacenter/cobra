@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from past.builtins import cmp
 from builtins import str
 from builtins import next
 from builtins import object
@@ -40,13 +39,53 @@ class Category(object):
     def __str__(self):
         return self.name
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         if isinstance(other, Category):
-            return self.id - other.id
+            return self.id < other.id
         elif isinstance(other, int):
-            return self.id - other
+            return self.id < other
         elif isinstance(other, str):
-            return cmp(self.name, other)
+            return str(self.name) < other
+
+    def __le__(self, other):
+        if isinstance(other, Category):
+            return self.id <= other.id
+        elif isinstance(other, int):
+            return self.id <= other
+        elif isinstance(other, str):
+            return str(self.name) <= other
+
+    def __eq__(self, other):
+        if isinstance(other, Category):
+            return self.id == other.id
+        elif isinstance(other, int):
+            return self.id == other
+        elif isinstance(other, str):
+            return str(self.name) == other
+
+    def __ne__(self, other):
+        if isinstance(other, Category):
+            return self.id != other.id
+        elif isinstance(other, int):
+            return self.id != other
+        elif isinstance(other, str):
+            return str(self.name) != other
+
+    def __gt__(self, other):
+        if isinstance(other, Category):
+            return self.id > other.id
+        elif isinstance(other, int):
+            return self.id > other
+        elif isinstance(other, str):
+            return str(self.name) > other
+
+    def __ge__(self, other):
+        if isinstance(other, Category):
+            return self.id >= other.id
+        elif isinstance(other, int):
+            return self.id >= other
+        elif isinstance(other, str):
+            return str(self.name) >= other
 
 
 class ClassLoader(object):
@@ -386,8 +425,23 @@ class Constant(object):
     def __str__(self):
         return self.const
 
-    def __cmp__(self, other):
-        return cmp(self.const, other.const)
+    def __lt__(self, other):
+        return self.const < other.const
+
+    def __le__(self, other):
+        return self.const <= other.const
+
+    def __eq__(self, other):
+        return self.const == other.const
+
+    def __ne__(self, other):
+        return self.const != other.const
+
+    def __gt__(self, other):
+        return self.const > other.const
+
+    def __ge__(self, other):
+        return self.const >= other.const
 
 
 class PropMeta(object):
@@ -528,8 +582,23 @@ class PropMeta(object):
     def __str__(self):
         return self.name
 
-    def __cmp__(self, other):
-        return cmp(self.name, other.name)
+    def __lt__(self, other):
+        return self.name < other.name
+
+    def __le__(self, other):
+        return self.name <= other.name
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __ne__(self, other):
+        return self.name != other.name
+
+    def __gt__(self, other):
+        return self.name > other.name
+
+    def __ge__(self, other):
+        return self.name >= other.name
 
     def __hash__(self):
         return hash(self.name)

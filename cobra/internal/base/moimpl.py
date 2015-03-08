@@ -23,14 +23,14 @@ from cobra.mit.naming import Rn
 
 class MoStatus(object):
     # Status Constants
-    CLEAR = 1
+    DEFAULT = 0
     CREATED = 2
     MODIFIED = 4
     DELETED = 8
 
     @classmethod
     def fromString(cls, statusStr):
-        status = MoStatus(0)
+        status = MoStatus(1)
         if statusStr:
             codes = statusStr.split(',')
             for code in codes:
@@ -41,10 +41,14 @@ class MoStatus(object):
                     status.onBit(MoStatus.MODIFIED)
                 elif strippedCode == 'deleted':
                     status.onBit(MoStatus.DELETED)
-                    return
+        return status
 
     def __init__(self, status):
         self.__status = status
+
+    @property
+    def status(self):
+        return self.__status
 
     @property
     def created(self):
@@ -80,10 +84,35 @@ class MoStatus(object):
                 status += 'modified'
         return status
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         if other is None:
             return -1
-        return (self.__status, other.status)
+        return self.status < other.status
+
+    def __le__(self, other):
+        if other is None:
+            return -1
+        return self.status <= other.status
+
+    def __eq__(self, other):
+        if other is None:
+            return -1
+        return self.status == other.status
+
+    def __ne__(self, other):
+        if other is None:
+            return -1
+        return self.status != other.status
+
+    def __gt__(self, other):
+        if other is None:
+            return -1
+        return self.status > other.status
+
+    def __ge__(self, other):
+        if other is None:
+            return -1
+        return self.status >= other.status
 
 
 class BaseMo(object):
