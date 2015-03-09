@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from builtins import object
+
 from cobra.mit.request import DnQuery, ClassQuery, CommitError
 from cobra.internal.rest.accessimpl import RestAccess
 
@@ -82,8 +84,6 @@ class MoDirectory(object):
         Raises:
           CommitError: If no MOs have been added to the config request
         """
-        if configObject.getRootMo() is None:
-            raise CommitError(0, "No mos in config request")
         return self._accessImpl.post(configObject)
 
     def lookupByDn(self, dnStrOrDn):

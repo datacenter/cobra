@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from builtins import str
+
 import xml.etree.cElementTree as ET
 import xml.dom.minidom
 from cobra.mit.meta import ClassLoader
@@ -53,7 +55,7 @@ def _createMo(node, parentMo):
     pyClass = ClassLoader.loadClass(fqClassName)
     parentDnStr = None
     moProps = {}
-    for attr, val in node.attrib.items():
+    for attr, val in list(node.attrib.items()):
         if (attr != 'dn' and attr != 'rn' and attr != 'instanceId' and
                 attr != 'status'):
             moProps[attr] = str(val)

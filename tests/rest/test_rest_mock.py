@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/env python
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+
 import os
 import pytest
 import time
 import logging
 import logging.handlers
 import responses
-import httplib
+import http.client
 import json
 
 from cobra.internal.codec.jsoncodec import fromJSONStr, toJSONStr
@@ -38,7 +42,7 @@ import cobra.model.fv
 import cobra.model.pol
 import cobra.model.infra
 
-httplib.HTTPConnection.debuglevel = 1
+http.client.HTTPConnection.debuglevel = 1
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -191,7 +195,7 @@ def moDir(getResponseMock, apic):
     return md
 
 
-class Test_rest_login:
+class Test_rest_login(object):
 
     def test_login_positive(self, apic, getResponseMock):
         """
@@ -215,7 +219,7 @@ class Test_rest_login:
             getResponseMock.stop()
 
 
-class Test_rest_configrequest:
+class Test_rest_configrequest(object):
 
     def test_createtenant(self, moDir, apic, tenantname, getResponseMock):
         """
@@ -241,7 +245,7 @@ class Test_rest_configrequest:
         logger.debug('commit response {0}'.format(r.content))
         assert r.status_code == 200
 
-        mos = fromJSONStr(r.content)
+        mos = fromJSONStr(str(r.text))
         mo = mos[0]
         logger.debug('r.content: {0}'.format(r.content))
         assert len(mos) > 0
@@ -275,7 +279,7 @@ class Test_rest_configrequest:
             'fvTenant', propFilter='eq(fvTenant.name, "{0}")'.format(tenantname))
         assert len(Tn) == 1
         Tn = Tn[0]
-        assert Tn.dn == 'uni/tn-{0}'.format(tenantname)
+        assert str(Tn.dn) == 'uni/tn-{0}'.format(tenantname)
 
         if apic[0] == 'http://mock':
             getResponseMock.stop()
@@ -312,7 +316,7 @@ class Test_rest_configrequest:
             getResponseMock.stop()
 
 
-class Test_rest_classquery:
+class Test_rest_classquery(object):
 
     def test_classquery_normal(self, moDir, apic, getResponseMock):
         """

@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from builtins import str
+from builtins import object
+
 from cobra.mit.naming import Dn
 from cobra.internal.codec.jsoncodec import toJSONStr
 from cobra.internal.codec.xmlcodec import toXMLStr
@@ -49,8 +52,8 @@ class AbstractRequest(object):
         optionStr = ''
         if options:
             options = ['%s=%s' % (n, str(v)) if v else None
-                       for n, v in options.items()]
-            optionStr += '&'.join(filter(None, options))
+                       for n, v in list(options.items())]
+            optionStr += '&'.join([_f for _f in options if _f])
         return optionStr
 
     def getUriPathAndOptions(self, session):
@@ -174,8 +177,8 @@ class AbstractQuery(AbstractRequest):
 
     @property
     def options(self):
-        return '&'.join(filter(None, [AbstractRequest.makeOptions(
-            self.__options), super(AbstractQuery, self).options]))
+        return '&'.join([_f for _f in [AbstractRequest.makeOptions(
+            self.__options), super(AbstractQuery, self).options] if _f])
 
     @property
     def propInclude(self):
@@ -243,7 +246,7 @@ class AbstractQuery(AbstractRequest):
 
     @classFilter.setter
     def classFilter(self, value):
-        if isinstance(value, str):
+        if not isinstance(value, list):
             value = value.split(',')
 
         value = [name.replace('.', '') for name in value]
@@ -377,8 +380,8 @@ class DnQuery(AbstractQuery):
 
     @property
     def options(self):
-        return '&'.join(filter(None, [AbstractRequest.makeOptions(
-            self.__options), super(DnQuery, self).options]))
+        return '&'.join([_f for _f in [AbstractRequest.makeOptions(
+            self.__options), super(DnQuery, self).options] if _f])
 
     @property
     def dnStr(self):
@@ -491,8 +494,8 @@ class ClassQuery(AbstractQuery):
 
     @property
     def options(self):
-        return '&'.join(filter(None, [AbstractRequest.makeOptions(
-            self.__options), super(ClassQuery, self).options]))
+        return '&'.join([_f for _f in [AbstractRequest.makeOptions(
+            self.__options), super(ClassQuery, self).options] if _f])
 
     @property
     def className(self):
@@ -610,8 +613,8 @@ class TraceQuery(AbstractQuery):
 
     @property
     def options(self):
-        return '&'.join(filter(None, [AbstractRequest.makeOptions(
-            self.__options), super(TraceQuery, self).options]))
+        return '&'.join([_f for _f in [AbstractRequest.makeOptions(
+            self.__options), super(TraceQuery, self).options] if _f])
 
     @property
     def targetClass(self):
@@ -641,7 +644,7 @@ class TraceQuery(AbstractQuery):
 class TagsRequest(AbstractRequest):
     """Hybrid query and request for tags
 
-    This class does both setting of tags (request) and retriving of tags
+    This class does both setting of tags (request) and retrieving of tags
     (query).
     
     Attributes:
@@ -685,8 +688,8 @@ class TagsRequest(AbstractRequest):
 
     @property
     def options(self):
-        return '&'.join(filter(None, [AbstractRequest.makeOptions(
-            self.__options), super(TagsRequest, self).options]))
+        return '&'.join([_f for _f in [AbstractRequest.makeOptions(
+            self.__options), super(TagsRequest, self).options] if _f])
 
     @property
     def dnStr(self):
@@ -745,8 +748,7 @@ class TagsRequest(AbstractRequest):
     def _get_tags_string(value):
         if isinstance(value, list):
             value = ','.join(value)
-        elif not isinstance(value, basestring):
-            # # TODO: PYTHON 3 TIMEBOMB basestring ##
+        elif not isinstance(value, str):
             raise ValueError("add or remove should be a list or a string " +
                              "{0}".format(type(value)))
         return value
@@ -755,7 +757,7 @@ class TagsRequest(AbstractRequest):
 class AliasRequest(AbstractRequest):
     """Hybrid query and request for alias support
 
-    This class does both setting of aliases (request) and retriving of aliases
+    This class does both setting of aliases (request) and retrieving of aliases
     (query).
     
     Attributes:
@@ -788,8 +790,8 @@ class AliasRequest(AbstractRequest):
 
     @property
     def options(self):
-        return '&'.join(filter(None, [AbstractRequest.makeOptions(
-            self.__options), super(AliasRequest, self).options]))
+        return '&'.join([_f for _f in [AbstractRequest.makeOptions(
+            self.__options), super(AliasRequest, self).options] if _f])
 
     @property
     def dnStr(self):
@@ -882,8 +884,8 @@ class ConfigRequest(AbstractRequest):
 
     @property
     def options(self):
-        return '&'.join(filter(None, [AbstractRequest.makeOptions(
-            self.__options), super(ConfigRequest, self).options]))
+        return '&'.join([_f for _f in [AbstractRequest.makeOptions(
+            self.__options), super(ConfigRequest, self).options] if _f])
 
     @property
     def data(self):
@@ -927,7 +929,7 @@ class ConfigRequest(AbstractRequest):
             'headers': headers,
             'verify': session.secure,
             'timeout': session.timeout,
-            'data': data
+            'data': str(data)
         }
         return kwargs
 
@@ -938,7 +940,7 @@ class ConfigRequest(AbstractRequest):
           mo (cobra.mit.mo.Mo): The managed object to add
 
         Raises:
-          ValueError: If the context root of the MO is not alowed. This can
+          ValueError: If the context root of the MO is not allowed. This can
             happen if the MO being added does not have a common context root
             with the MOs that are already added to the configuration request
         """
@@ -1004,7 +1006,7 @@ class ConfigRequest(AbstractRequest):
 
         # This dict stores all entries added to the tree. Fast lookups
         flatTreeDict = {}
-        dns = self.__configMos.keys()
+        dns = list(self.__configMos.keys())
         rootDn = Dn.findCommonParent(dns)
         configMos = dict(self.__configMos)
 
@@ -1016,7 +1018,7 @@ class ConfigRequest(AbstractRequest):
                                                       rootMo)
 
         # Add the rest of the mos to the root.
-        childMos = sorted(configMos.values(), key=lambda x: x.dn)
+        childMos = sorted(list(configMos.values()), key=lambda x: x.dn)
         for childMo in childMos:
             addDescendantMo(rootMo, childMo)
 
@@ -1163,8 +1165,8 @@ class MultiQuery(AbstractQuery):
 
     @property
     def options(self):
-        return '&'.join(filter(None, [AbstractRequest.makeOptions(
-            self.__options), super(MultiQuery, self).options]))
+        return '&'.join([_f for _f in [AbstractRequest.makeOptions(
+            self.__options), super(MultiQuery, self).options] if _f])
 
     @property
     def target(self):

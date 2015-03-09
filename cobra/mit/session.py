@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from builtins import str
+from builtins import object
 
 try:
     from OpenSSL.crypto import FILETYPE_PEM, load_privatekey, sign
@@ -440,8 +442,9 @@ class CertSession(AbstractSession):
                 payLoad = 'POST' + uri + data
 
             pkey = load_privatekey(FILETYPE_PEM, privateKeyStr)
-            signedDigest = sign(pkey, payLoad, 'sha256')
-            signature = base64.b64encode(signedDigest)
+
+            signedDigest = sign(pkey, payLoad.encode(), 'sha256')
+            signature = base64.b64encode(signedDigest).decode()
         else:
             tmpFiles = []
             tempDir = tempfile.mkdtemp()
