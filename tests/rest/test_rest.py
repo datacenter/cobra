@@ -12,8 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/env python
-import httplib
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
+
+import http.client
 import os
 import pytest
 import random
@@ -29,6 +35,8 @@ from cobra.internal.codec.xmlcodec import toXMLStr, fromXMLStr
 import cobra.mit.access
 import cobra.mit.request
 import cobra.mit.session
+cobra = pytest.importorskip("cobra")
+cobra.model = pytest.importorskip("cobra.model")
 cobra.model.fv = pytest.importorskip("cobra.model.fv")
 import cobra.model.pol
 import cobra.model.infra
@@ -39,7 +47,7 @@ pytestmark = pytest.mark.skipif(pytest.config.getvalue('apic') == [],
                                        "option on the CLI")
 slow = pytest.mark.slow
 
-httplib.HTTPConnection.debuglevel = 1
+http.client.HTTPConnection.debuglevel = 1
 logging.basicConfig(level=logging.DEBUG)
 
 fakeDevicePackageZip = 'Archive.zip'
@@ -57,7 +65,7 @@ def moDir(request):
     return md
 
 
-class Test_rest_configrequest:
+class Test_rest_configrequest(object):
 
     def test_createtenant(self, moDir, tenantname):
         """
@@ -83,7 +91,7 @@ class Test_rest_configrequest:
 
         mo = mos[0]
         assert len(mos) > 0
-        assert mo.dn == tenant.dn
+        assert str(mo.dn) == str(tenant.dn)
         assert len(list(mo.children)) >= 1
 
     def test_lookupcreatedtenant(self, moDir, tenantname):
@@ -105,7 +113,7 @@ class Test_rest_configrequest:
         assert not tenant
 
 
-class Test_rest_classquery:
+class Test_rest_classquery(object):
 
     def test_classquery_shorthand_filter(self, moDir):
         """
@@ -116,7 +124,7 @@ class Test_rest_classquery:
             'fvTenant', propFilter='eq(fvTenant.name, "common")')
         assert len(commonTn) == 1
         commonTn = commonTn[0]
-        assert commonTn.dn == 'uni/tn-common'
+        assert str(commonTn.dn) == 'uni/tn-common'
 
     def test_classquery_normal(self, moDir):
         """
@@ -144,7 +152,7 @@ class Test_rest_classquery:
         classQuery.propFilter = 'eq(fvTenant.name, "common")'
         commonTn = moDir.query(classQuery)
         commonTn = commonTn[0]
-        assert commonTn.dn == 'uni/tn-common'
+        assert str(commonTn.dn) == 'uni/tn-common'
 
     def test_classquery_subtree(self, moDir):
         """
@@ -155,10 +163,10 @@ class Test_rest_classquery:
         classQuery.propFilter = 'eq(fvTenant.name, "common")'
         commonTn = moDir.query(classQuery)
         commonTn = commonTn[0]
-        assert commonTn.dn == 'uni/tn-common'
+        assert str(commonTn.dn) == 'uni/tn-common'
         # expect at least 3 child objects
         assert len(list(commonTn.children)) >= 3
-        assert commonTn.BD['default'].dn == 'uni/tn-common/BD-default'
+        assert str(commonTn.BD['default'].dn) == 'uni/tn-common/BD-default'
 
     @pytest.mark.parametrize("cls,subtree", [
         pytest.mark.skipif(pytest.config.getvalue('apic') == [],
@@ -195,14 +203,14 @@ class Test_rest_classquery:
         """
         generate a random tenant name and ensure that we dont find a match for it
         """
-        tenantName = ''.join(random.choice(string.lowercase)
+        tenantName = ''.join(random.choice(string.ascii_lowercase)
                              for i in range(64))
         tenant = moDir.lookupByClass(
             'fvTenant', propFilter='eq(fvTenant.name, "{0}")'.format(tenantName))
         assert len(tenant) == 0
 
 
-class Test_rest_dnquery:
+class Test_rest_dnquery(object):
 
     def test_dnquery_normal(self, moDir, dn):
 
@@ -212,17 +220,17 @@ class Test_rest_dnquery:
         commonTn = moDir.query(dnQuery)
         assert len(commonTn) == 1
         commonTn = commonTn[0]
-        assert commonTn.dn == dn
+        assert str(commonTn.dn) == str(dn)
         # expect at least 3 child objects
         assert len(list(commonTn.children)) >= 3
-        assert commonTn.BD['default'].dn == 'uni/tn-common/BD-default'
+        assert str(commonTn.BD['default'].dn) == 'uni/tn-common/BD-default'
 
     def test_dnquery_shorthand(self, moDir, dn):
         commonTn = moDir.lookupByDn(dn)
-        assert commonTn.dn == dn
+        assert str(commonTn.dn) == str(dn)
 
 
-class Test_rest_login:
+class Test_rest_login(object):
 
     def test_login_positive(self, apic):
         """
@@ -286,7 +294,7 @@ class Test_rest_login:
         assert moDir._accessImpl._session.refreshTimeoutSeconds > 0
 
 
-class Test_rest_tracequery:
+class Test_rest_tracequery(object):
 
     @pytest.mark.parametrize("cls", [
         pytest.mark.skipif(pytest.config.getvalue('apic') == [],
@@ -308,15 +316,15 @@ class Test_rest_tracequery:
 
         for node in nodes:
             a = cobra.mit.request.TraceQuery(node.dn, cls)
-            print a.getUrl(moDir._accessImpl._session)
+            print(a.getUrl(moDir._accessImpl._session))
             mos = moDir.query(a)
             for mo in mos:
-                print mo.dn
+                print(mo.dn)
             traceResponse += len(mos)
         assert traceResponse > 0
 
 
-class Test_services_devicepackage:
+class Test_services_devicepackage(object):
 
     fakePackage = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                fakeDevicePackageZip)

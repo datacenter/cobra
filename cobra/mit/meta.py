@@ -1,3 +1,4 @@
+
 # Copyright 2015 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,6 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from builtins import str
+from builtins import next
+from builtins import object
 
 import importlib
 
@@ -34,13 +39,53 @@ class Category(object):
     def __str__(self):
         return self.name
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         if isinstance(other, Category):
-            return self.id - other.id
+            return self.id < other.id
         elif isinstance(other, int):
-            return self.id - other
+            return self.id < other
         elif isinstance(other, str):
-            return cmp(self.name, other)
+            return str(self.name) < other
+
+    def __le__(self, other):
+        if isinstance(other, Category):
+            return self.id <= other.id
+        elif isinstance(other, int):
+            return self.id <= other
+        elif isinstance(other, str):
+            return str(self.name) <= other
+
+    def __eq__(self, other):
+        if isinstance(other, Category):
+            return self.id == other.id
+        elif isinstance(other, int):
+            return self.id == other
+        elif isinstance(other, str):
+            return str(self.name) == other
+
+    def __ne__(self, other):
+        if isinstance(other, Category):
+            return self.id != other.id
+        elif isinstance(other, int):
+            return self.id != other
+        elif isinstance(other, str):
+            return str(self.name) != other
+
+    def __gt__(self, other):
+        if isinstance(other, Category):
+            return self.id > other.id
+        elif isinstance(other, int):
+            return self.id > other
+        elif isinstance(other, str):
+            return str(self.name) > other
+
+    def __ge__(self, other):
+        if isinstance(other, Category):
+            return self.id >= other.id
+        elif isinstance(other, int):
+            return self.id >= other
+        elif isinstance(other, str):
+            return str(self.name) >= other
 
 
 class ClassLoader(object):
@@ -156,8 +201,8 @@ class ClassMeta(object):
         self.isExplicit = False
         self.isNamed = False
 
-        self.writeAccessMask = 0L
-        self.readAccessMask = 0L
+        self.writeAccessMask = 0
+        self.readAccessMask = 0
         self.isDomainable = False
         self.isReadOnly = False
         self.isConfigurable = False
@@ -228,8 +273,8 @@ class ClassMeta(object):
                 self._container = container
                 self._classNames = iter(container.names)
 
-            def next(self):
-                nextClassName = self._classNames.next()
+            def __next__(self):
+                nextClassName = next(self._classNames)
                 return self._container[nextClassName]
 
             def __iter__(self):
@@ -237,7 +282,7 @@ class ClassMeta(object):
 
         @property
         def names(self):
-            return self._classes.keys()
+            return list(self._classes.keys())
 
         def add(self, className):
             self._classes[className] = None
@@ -270,7 +315,7 @@ class ClassMeta(object):
 
         @property
         def names(self):
-            return self._props.keys()
+            return list(self._props.keys())
 
         def __getitem__(self, propName):
             return self._props[propName]
@@ -282,7 +327,7 @@ class ClassMeta(object):
             return len(self._props)
 
         def __iter__(self):
-            return iter(self._props.values())
+            return iter(list(self._props.values()))
 
         def __getattr__(self, propName):
             if propName not in self._props:
@@ -380,8 +425,23 @@ class Constant(object):
     def __str__(self):
         return self.const
 
-    def __cmp__(self, other):
-        return cmp(self.const, other.const)
+    def __lt__(self, other):
+        return self.const < other.const
+
+    def __le__(self, other):
+        return self.const <= other.const
+
+    def __eq__(self, other):
+        return self.const == other.const
+
+    def __ne__(self, other):
+        return self.const != other.const
+
+    def __gt__(self, other):
+        return self.const > other.const
+
+    def __ge__(self, other):
+        return self.const >= other.const
 
 
 class PropMeta(object):
@@ -522,8 +582,23 @@ class PropMeta(object):
     def __str__(self):
         return self.name
 
-    def __cmp__(self, other):
-        return cmp(self.name, other.name)
+    def __lt__(self, other):
+        return self.name < other.name
+
+    def __le__(self, other):
+        return self.name <= other.name
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __ne__(self, other):
+        return self.name != other.name
+
+    def __gt__(self, other):
+        return self.name > other.name
+
+    def __ge__(self, other):
+        return self.name >= other.name
 
     def __hash__(self):
         return hash(self.name)

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from builtins import str
 import json
 from cobra.mit.meta import ClassLoader
 from cobra.internal.codec import parseMoClassName, getParentDn
@@ -23,7 +24,7 @@ def parseJSONError(rspText, errorClass, httpCode=None):
         data = rspDict.get('imdata', None)
         if data:
             firstRecord = data[0]
-            if 'error' == firstRecord.keys()[0]:
+            if 'error' == list(firstRecord.keys())[0]:
                 errorDict = firstRecord['error']
                 reasonStr = errorDict['attributes']['text']
                 errorCode = errorDict['attributes']['code']
@@ -45,7 +46,7 @@ def fromJSONDict(moDict):
 
     allMos = []
     for moNode in rootNode:
-        className = moNode.keys()[0]
+        className = list(moNode.keys())[0]
         moData = moNode[className]
         mo = _createMo(className, moData, None)
         allMos.append(mo)
@@ -81,7 +82,7 @@ def _createMo(moClassName, moData, parentMo):
 
     children = moData.get('children', [])
     for childNode in children:
-        className = childNode.keys()[0]
+        className = list(childNode.keys())[0]
         moData = childNode[className]
         _createMo(className, moData, mo)
 
@@ -129,6 +130,6 @@ def __toJSONDict(mo, includeAllProps=False, prettyPrint=False, excludeChildren=F
 def toJSONStr(mo, includeAllProps=False, prettyPrint=False, excludeChildren=False):
     jsonDict = __toJSONDict(mo, includeAllProps, prettyPrint, excludeChildren)
     indent = 2 if prettyPrint else None
-    jsonStr = json.dumps(jsonDict, indent=indent)
+    jsonStr = json.dumps(jsonDict, indent=indent, sort_keys=True)
 
     return jsonStr
