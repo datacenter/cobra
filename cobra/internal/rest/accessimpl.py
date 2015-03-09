@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from builtins import str
+from builtins import object
+
 import requests
 from cobra.internal.codec.jsoncodec import fromJSONStr, parseJSONError
 from cobra.internal.codec.xmlcodec import fromXMLStr, parseXMLError
@@ -40,7 +43,7 @@ class LoginRequest(AbstractRequest):
                 }
             }
         }
-        return json.dumps(userJson)
+        return json.dumps(userJson, sort_keys=True)
 
     def requestargs(self, session):
         uriPathandOptions = self.getUriPathAndOptions(session)

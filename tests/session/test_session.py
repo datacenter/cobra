@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from builtins import object
+
 from os.path import join, dirname, realpath
 import pytest
 from cobra.mit.session import LoginSession, CertSession
@@ -27,7 +29,7 @@ with open(join(CERT_DIR, KEY_FILE), "r") as file:
     KeyPEMdata = file.read()
 
 @pytest.mark.mit_session_Success_LoginSession
-class Test_mit_session_Success_LoginSession:
+class Test_mit_session_Success_LoginSession(object):
     # Test the properties get set properly on LoginSession instantiation
     @pytest.mark.parametrize("session, url, user, password, secure, timeout,"
                              "requestFormat", [
@@ -48,7 +50,7 @@ class Test_mit_session_Success_LoginSession:
        assert session.formatStr == requestFormat
 
 @pytest.mark.mit_session_Raises_LoginSession
-class Test_mit_session_Raises_LoginSession:
+class Test_mit_session_Raises_LoginSession(object):
     # Test that LoginSession raises an exception when passed an invalid property
     @pytest.mark.parametrize("url, user, password, secure, timeout,"
                               "requestFormat", [
@@ -61,7 +63,7 @@ class Test_mit_session_Raises_LoginSession:
                          requestFormat=requestFormat)
 
 @pytest.mark.mit_session_CertSession
-class Test_mit_session_CertSession:
+class Test_mit_session_CertSession(object):
     def test_CertSession_init_xml(self):
         # Did not parametrize it  because doing so causes a huge amount of output
         # from the private key
@@ -134,7 +136,7 @@ class Test_mit_session_CertSession:
                              'ert-auserCert')
 
 @pytest.mark.mit_session_Raises_CertSession
-class Test_mit_session_Raises_CertSession:
+class Test_mit_session_Raises_CertSession(object):
     # Test that CertSession raises an exception when passed an invalid property
     def test_CertSession_init_raises(self):
         with pytest.raises(NotImplementedError):

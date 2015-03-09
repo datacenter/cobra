@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright 2015 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,7 +87,7 @@ try:
     apiVersion = vman.Version()
     # The full version, including alpha/beta/rc tags.
     release = apiVersion.stringify(openDelim='-', closeDelim='')
-    print "Building version {0} of the Cobra SDK documentation".format(release)
+    print("Building version {0} of the Cobra SDK documentation".format(release))
     # The short X.Y version.
     version = release.split('-')[0]
 except:

@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from builtins import next
+from builtins import str
+from builtins import object
+
 from cobra.mit.meta import ClassLoader
 from collections import deque
 
@@ -112,7 +116,7 @@ class Rn(object):
                     raise ValueError('rn "%s" must be %s' % (rn, rnFormat))
 
                 if hasProp:
-                    nPropMeta = propMetaIter.next()
+                    nPropMeta = next(propMetaIter)
                     needPropDelimiter = nPropMeta.needDelimiter
 
                 start += len(rnPrefix)
@@ -150,20 +154,23 @@ class Rn(object):
     def moClass(self):
         return self.__meta.getClass()
 
-    def __cmp__(self, other):
-        """
-        compares two rn objects using the natural ordering of their naming
-        values
+    def __lt__(self, other):
+        return str(self) < str(other)
 
-        :param other: other rn being compared
-        :type other: :py:class:`cobra.mit.naming.Rn`
+    def __le__(self, other):
+        return str(self) <= str(other)
 
-        :returns: 0 if equal, > 0 if self is greater and < 0 if self is smaller
-        :rtype: int
-        """
-        selfRnStr = str(self)
-        otherRnStr = str(other)
-        return cmp(selfRnStr, otherRnStr)
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __ne__(self, other):
+        return str(self) != str(other)
+
+    def __gt__(self, other):
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+        return str(self) >= str(other)
 
     def __str__(self):
         """
@@ -190,7 +197,7 @@ class Rn(object):
             namingProps = {}
             namingValsIter = iter(self.__namingVals)
             for propMeta in self.__meta.namingProps:
-                namingProps[propMeta.name] = namingValsIter.next()
+                namingProps[propMeta.name] = next(namingValsIter)
             return self.__meta.rnFormat % namingProps
         else:
             return self.__meta.rnFormat
@@ -444,16 +451,23 @@ class Dn(object):
             self.__dnStr = self.__makeDn()
         return self.__dnStr
 
-    def __cmp__(self, other):
-        """ Compare two Dn objects using the natural ordering of their Rns
+    def __lt__(self, other):
+        return str(self) < str(other)
 
-        Args:
-        other (cobra.mit.naming.Dn): other Dn being compared
+    def __le__(self, other):
+        return str(self) <= str(other)
 
-        Returns:
-          int: 0 if equal, > 0 if self is greater and < 0 if self is smaller
-        """
-        return cmp(str(self), str(other))
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __ne__(self, other):
+        return str(self) != str(other)
+
+    def __gt__(self, other):
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+        return str(self) >= str(other)
 
     def __hash__(self):
         """Get the hash code for the Dn

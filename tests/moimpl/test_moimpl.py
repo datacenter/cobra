@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from builtins import str
+from builtins import object
+
 import pytest
 from cobra.internal.base.moimpl import MoStatus, BaseMo
 
+
 @pytest.mark.internal_base_moimpl_MoStatus
-class Test_internal_base_moimpl_MoStatus:
+class Test_internal_base_moimpl_MoStatus(object):
     # Test the expected MoStatus flags
     @pytest.mark.parametrize("status,value", [
-        (MoStatus.CLEAR, 1),
+        (MoStatus.DEFAULT, 0),
         (MoStatus.CREATED, 2),
         (MoStatus.MODIFIED, 4),
         (MoStatus.DELETED, 8),
@@ -28,8 +32,6 @@ class Test_internal_base_moimpl_MoStatus:
         assert status == value
 
     # Test MoStatus.fromString() method, seems to be broken though
-    @pytest.mark.xfail(reason='MoStatus.fromString is broken and not used, ' +
-                              'should it be removed?')
     @pytest.mark.parametrize("statusStr,obj,created,modified,deleted", [
         ("",                 MoStatus, False, False, False),
         ("created",          MoStatus, True,  False, False),
@@ -106,15 +108,13 @@ class Test_internal_base_moimpl_MoStatus:
         assert status.deleted == False
         assert status.modified == False
 
-    @pytest.mark.xfail(reason="__cmp__ is not implemented properly on " +
-                              "MoStatus, skip it")
     def test_MoStatus_cmp(self):
         status1 = MoStatus(MoStatus.CREATED)
         status2 = MoStatus(MoStatus.CREATED)
         assert status1 == status2
 
 @pytest.mark.internal_base_moimpl_MoBase
-class Test_internal_base_moimpl_MoBase:
+class Test_internal_base_moimpl_MoBase(object):
 
     # Must be called with some other class, otherwise it raises a
     # NotImplementedError
