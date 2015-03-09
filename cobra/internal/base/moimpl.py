@@ -12,20 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import unicode_literals
+from builtins import next
+from builtins import str
+from builtins import object
+
 from cobra.mit.naming import Dn
 from cobra.mit.naming import Rn
 
 
 class MoStatus(object):
     # Status Constants
-    CLEAR = 1
+    DEFAULT = 0
     CREATED = 2
     MODIFIED = 4
     DELETED = 8
 
     @classmethod
     def fromString(cls, statusStr):
-        status = MoStatus(0)
+        status = MoStatus(1)
         if statusStr:
             codes = statusStr.split(',')
             for code in codes:
@@ -36,10 +41,14 @@ class MoStatus(object):
                     status.onBit(MoStatus.MODIFIED)
                 elif strippedCode == 'deleted':
                     status.onBit(MoStatus.DELETED)
-                    return
+        return status
 
     def __init__(self, status):
         self.__status = status
+
+    @property
+    def status(self):
+        return self.__status
 
     @property
     def created(self):
@@ -75,10 +84,35 @@ class MoStatus(object):
                 status += 'modified'
         return status
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         if other is None:
             return -1
-        return (self.__status, other.status)
+        return self.status < other.status
+
+    def __le__(self, other):
+        if other is None:
+            return -1
+        return self.status <= other.status
+
+    def __eq__(self, other):
+        if other is None:
+            return -1
+        return self.status == other.status
+
+    def __ne__(self, other):
+        if other is None:
+            return -1
+        return self.status != other.status
+
+    def __gt__(self, other):
+        if other is None:
+            return -1
+        return self.status > other.status
+
+    def __ge__(self, other):
+        if other is None:
+            return -1
+        return self.status >= other.status
 
 
 class BaseMo(object):
@@ -108,7 +142,7 @@ class BaseMo(object):
                 return len(self._childObjects)
 
             def __iter__(self):
-                return iter(self._childObjects.values())
+                return iter(list(self._childObjects.values()))
 
             def _checkKey(self, key, mo):
                 meta = self._childClass.meta
@@ -132,28 +166,28 @@ class BaseMo(object):
                 namingValsIter = iter(namingVals)
                 for propMeta in meta.namingProps:
                     moVal = getattr(mo, propMeta.name)
-                    keyVal = namingValsIter.next()
+                    keyVal = next(namingValsIter)
                     if moVal != keyVal:
                         raise ValueError("'%s' must be '%s' for mo '%s'" %
                                          (keyVal, moVal, str(mo.rn)))
 
         class _ChildIter(object):
             def __init__(self, classContainers):
-                self._containers = iter(classContainers.values())
+                self._containers = iter(list(classContainers.values()))
                 self._currentContainer = None
 
-            def next(self):
+            def __next__(self):
                 if self._currentContainer is None:
                     # If no more containers this statement will throw an
                     # StopIteration exception and we exit else we move on
                     # to the next container
-                    self._currentContainer = iter(self._containers.next())
+                    self._currentContainer = iter(next(self._containers))
                 try:
-                    return self._currentContainer.next()
+                    return next(self._currentContainer)
                 except StopIteration:
                     # Current container is done, see if we have anything else
                     self._currentContainer = None
-                    return self.next()
+                    return next(self)
 
             def __iter__(self):
                 return self
@@ -161,20 +195,32 @@ class BaseMo(object):
         def __init__(self, classMeta):
             self._classMeta = classMeta
 
-            # Key is the first rn prefix without the leading '-' if any
+            # Key is the first rn prefix with the leading '-' if any
             self._classContainers = {}
 
-        def _getChildContainer(self, childPrefix):
-            childPrefix = childPrefix.rstrip('-')
+        def _getChildContainer(self, childPrefix, lookup=False):
             classContainer = self._classContainers.get(childPrefix, None)
             if classContainer is None:
                 for childClass in self._classMeta.childClasses:
                     childMeta = childClass.meta
-                    prefix = childMeta.rnPrefixes[0][0].rstrip('-')
-                    if childPrefix == prefix:
-                        classContainer = \
-                        BaseMo._ChildContainer._ClassContainer(childClass)
-                        self._classContainers[childPrefix] = classContainer
+                    prefix = childMeta.rnPrefixes[0][0]
+                    newPrefix = childPrefix
+                    # Accessing a child like an attribute will lead to the
+                    # childPrefix being passed in without a hyphen, add it
+                    # here for this circumstance
+                    if (childPrefix[-1] != '-' and
+                        len(childMeta.namingProps) > 0):
+                            newPrefix = childPrefix + '-'
+                    if newPrefix == prefix:
+                        # Do not overwrite the classContainer for a lookup
+                        # operation
+                        if not lookup:
+                            classContainer = \
+                            BaseMo._ChildContainer._ClassContainer(childClass)
+                            self._classContainers[newPrefix] = classContainer
+                        else:
+                            classContainer = self._classContainers.get(
+                                newPrefix, None)
                         break
                 if classContainer is None:
                     # Could not find a child class with this prefix
@@ -204,36 +250,34 @@ class BaseMo(object):
         self.__dict__['_BaseMo__rn'] = Rn(self.__meta, *namingVals)
         self.__dict__['_BaseMo__dn'] = None
 
-        if isinstance(parentMoOrDn, str):
-            self.__dict__['_BaseMo__parentDnStr'] = parentMoOrDn
-            self.__dict__['_BaseMo__parentDn'] = None
-            self.__dict__['_BaseMo__parentMo'] = None
-        elif isinstance(parentMoOrDn, unicode):
-            self.__dict__['_BaseMo__parentDnStr'] = str(parentMoOrDn)
-            self.__dict__['_BaseMo__parentDn'] = None
-            self.__dict__['_BaseMo__parentMo'] = None
-        elif isinstance(parentMoOrDn, Dn):
+        if isinstance(parentMoOrDn, Dn):
             self.__dict__['_BaseMo__parentDn'] = parentMoOrDn.clone()
             self.__dict__['_BaseMo__parentMo'] = None
         elif isinstance(parentMoOrDn, BaseMo):
             self.__dict__['_BaseMo__parentMo'] = parentMoOrDn
             self.__dict__['_BaseMo__parentDn'] = parentMoOrDn.dn.clone()
         else:
-            raise ValueError('parent mo or dn must be specified')
+            parentMoOrDn = str(parentMoOrDn)
+            if isinstance(parentMoOrDn, str):
+                self.__dict__['_BaseMo__parentDnStr'] = parentMoOrDn
+                self.__dict__['_BaseMo__parentDn'] = None
+                self.__dict__['_BaseMo__parentMo'] = None
+            else:
+                raise ValueError('parent mo or dn must be specified')
 
         # Set the naming props
         self.__dirtyProps.add('status')
         namingValsIter = iter(namingVals)
         for namingPropMeta in self.__meta.namingProps:
             propName = namingPropMeta.name
-            value = namingValsIter.next()
+            value = next(namingValsIter)
             value = namingPropMeta.makeValue(value)
             self.__dict__[propName] = value
             self.__dirtyProps.add(propName)
 
         # Set the creation props
         props = self.__meta.props
-        for name, value in creationProps.items():
+        for name, value in list(creationProps.items()):
             propMeta = props[name]
             value = propMeta.makeValue(value)
             self.__dict__[name] = value
@@ -254,7 +298,7 @@ class BaseMo(object):
 
         # We got this call because properties did not match, so look for
         # child class containers
-        return self.__children._getChildContainer(attrName)
+        return self.__children._getChildContainer(attrName, True)
 
     def __setattr__(self, attrName, attrValue):
         if attrName in self.meta.props:

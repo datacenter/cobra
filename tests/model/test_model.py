@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/env python
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+
 import pytest
 import logging
 import inspect
 import pkgutil
-import httplib
+import http.client
 
 cobra.model = pytest.importorskip("cobra.model")
 import cobra.mit.access
@@ -28,7 +31,7 @@ pytestmark = pytest.mark.skipif(pytest.config.getvalue('apic') == [],
                                        "option on the CLI")
 slow = pytest.mark.slow
 
-httplib.HTTPConnection.debuglevel = 1
+http.client.HTTPConnection.debuglevel = 1
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -62,7 +65,7 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize('cobraclass', classlist())
 
 
-class Test_cobra_model:
+class Test_cobra_model(object):
 
     @slow
     def test_class_loader(self, moDir, cobraclass):

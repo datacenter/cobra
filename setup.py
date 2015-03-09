@@ -30,7 +30,7 @@ class PyTest(TestCommand):
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
-install_requires = ['requests']
+install_requires = ['requests', 'future']
 
 # Doc build instructions:
 # Clone the repo
@@ -70,6 +70,7 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
     ],
     keywords='data center networking configuration management',
     license='http://www.apache.org/licenses/LICENSE-2.0',
