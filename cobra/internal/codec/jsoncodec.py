@@ -130,6 +130,8 @@ def __toJSONDict(mo, includeAllProps=False, prettyPrint=False, excludeChildren=F
 def toJSONStr(mo, includeAllProps=False, prettyPrint=False, excludeChildren=False):
     jsonDict = __toJSONDict(mo, includeAllProps, prettyPrint, excludeChildren)
     indent = 2 if prettyPrint else None
+    # Keys are sorted because the APIC REST API requires the attributes to come
+    # first.
     jsonStr = json.dumps(jsonDict, indent=indent, sort_keys=True)
 
     return jsonStr

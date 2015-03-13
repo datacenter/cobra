@@ -43,6 +43,8 @@ class LoginRequest(AbstractRequest):
                 }
             }
         }
+        # Keys are sorted because the APIC REST API requires the attributes
+        # to come first.
         return json.dumps(userJson, sort_keys=True)
 
     def requestargs(self, session):
