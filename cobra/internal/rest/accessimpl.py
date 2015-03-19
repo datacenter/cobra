@@ -54,7 +54,8 @@ class LoginRequest(AbstractRequest):
             'headers': headers,
             'verify': session.secure,
             'data': self.data,
-            'timeout': session.timeout
+            'timeout': session.timeout,
+            'allow_redirects': False
         }
         return kwargs
 
@@ -87,6 +88,11 @@ class LoginHandler(object):
         loginRequest = LoginRequest(session.user, session.password)
         url = loginRequest.getUrl(session)
         rsp = requests.post(url, **loginRequest.requestargs(session))
+        # handle a redirect, for example from http to https
+        while rsp.status_code in (requests.codes.moved, requests.codes.found):
+            session.url = rsp.headers['Location'].rstrip('/api/aaaLogin.json')
+            cls.login(session)
+            return
         session._parseResponse(rsp)
 
     @classmethod
