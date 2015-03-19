@@ -89,6 +89,11 @@ class AbstractSession(object):
     def url(self):
         return self.__controllerUrl
 
+    @url.setter
+    def url(self, value):
+        # Allow setting of the controller URL to be able to handle redirects
+        self.__controllerUrl = value
+
     @property
     def formatType(self):
         return self.__format
