@@ -27,7 +27,6 @@ import string
 import time
 import xml.etree.ElementTree as ET
 import logging
-import requests
 
 from cobra.internal.codec.jsoncodec import toJSONStr, fromJSONStr
 from cobra.internal.codec.xmlcodec import toXMLStr, fromXMLStr
@@ -81,13 +80,8 @@ class Test_rest_configrequest(object):
         configRequest.subtree = 'full'
         configRequest.id = dcid
 
-        r = moDir.commit(configRequest)
-        assert r.status_code == requests.codes.ok
-
-        if moDir._session.formatType == cobra.mit.session.AbstractSession.XML_FORMAT:
-            mos = fromXMLStr(r.content)
-        else:
-            mos = fromJSONStr(r.content)
+        mos = moDir.commit(configRequest)
+        assert mos
 
         mo = mos[0]
         assert len(mos) > 0
@@ -107,7 +101,7 @@ class Test_rest_configrequest(object):
         configRequest.addMo(tenant)
 
         r = moDir.commit(configRequest)
-        assert r.status_code == 200
+        assert r == []
 
         tenant = moDir.lookupByDn('uni/tn-{0}'.format(tenantname[0]))
         assert not tenant
@@ -353,7 +347,7 @@ class Test_services_devicepackage(object):
         packageUpload = cobra.services.UploadPackage(self.realPackage,
                                                      validate=True)
         r = moDir.commit(packageUpload)
-        assert r.status_code == 200
+        assert r == []
 
     def test_validateupload(self, moDir):
         """

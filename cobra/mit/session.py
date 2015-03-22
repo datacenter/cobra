@@ -129,6 +129,14 @@ class AbstractSession(object):
         """ 
         pass
 
+    def responseIsOk(self, response):
+        """Check if the response from the remote server is ok
+
+        Returns:
+          bool: True if the response did not indicate an error, False otherwise
+        """
+        return self._accessimpl.responseIsOk(response)
+
     def get(self, queryObject):
         """Peform a query using the specified queryObject.
 
@@ -298,7 +306,7 @@ class LoginSession(AbstractSession):
             not be parsed.
         """
         loginRequest = LoginRequest(self.user, self.password)
-        rsp = self._accessimpl._post(loginRequest)
+        rsp = self._accessimpl.post(loginRequest)
         self._parseResponse(rsp)
 
     def logout(self):
@@ -316,7 +324,7 @@ class LoginSession(AbstractSession):
             the response could not be parsed.
         """
         refreshRequest = RefreshRequest(self.cookie)
-        rsp = self.accessimpl._get(refreshRequest)
+        rsp = self.accessimpl.get(refreshRequest)
         self._parseResponse(rsp)
 
     def _parseResponse(self, rsp):

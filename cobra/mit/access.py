@@ -14,7 +14,10 @@
 
 from builtins import object
 
-from cobra.mit.request import DnQuery, ClassQuery, CommitError
+from cobra.internal.codec.jsoncodec import fromJSONStr, parseJSONError
+from cobra.internal.codec.xmlcodec import fromXMLStr, parseXMLError
+from cobra.mit.request import (DnQuery, ClassQuery, CommitError, QueryError,
+                               RestError)
 
 
 class MoDirectory(object):
@@ -63,7 +66,10 @@ class MoDirectory(object):
         Returns:
           list: A list of Managed Objects (MOs) returned from the query
         """
-        return self._session.get(queryObject)
+        rsp = self._session.get(queryObject)
+        if not self._session.responseIsOk(rsp.status_code):
+            self.__parseError(rsp, QueryError, rsp.status_code)
+        return self.__parseResponse(rsp)
 
     def commit(self, configObject):
         """Commit operation for a request object.
@@ -83,7 +89,10 @@ class MoDirectory(object):
         Raises:
           CommitError: If no MOs have been added to the config request
         """
-        return self._session.post(configObject)
+        rsp = self._session.post(configObject)
+        if not self._session.responseIsOk(rsp.status_code):
+            self.__parseError(rsp, CommitError, rsp.status_code)
+        return self.__parseResponse(rsp)
 
     def lookupByDn(self, dnStrOrDn):
         """Query the APIC or fabric node by distinguished name (Dn)
@@ -133,3 +142,17 @@ class MoDirectory(object):
                 classQuery.propFilter = propFilter
             mos = self.query(classQuery)
         return mos
+
+    def __parseError(self, rsp, errorClass, httpCode):
+        try:
+            if self._session.formatType == self._session.XML_FORMAT:
+                parseXMLError(rsp.text, errorClass, httpCode)
+            parseJSONError(rsp.text, errorClass, httpCode)
+        except ValueError as ex:
+            raise
+            #raise RestError(None, str(ex), httpCode)
+
+    def __parseResponse(self, rsp):
+        if self._session.formatType == self._session.XML_FORMAT:
+            return fromXMLStr(rsp.text)
+        return fromJSONStr(rsp.text)

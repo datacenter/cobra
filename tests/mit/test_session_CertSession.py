@@ -253,7 +253,7 @@ class TestCertSession(object):
         cr = ConfigRequest()
         cr.addMo(userobject.aaaUser)
         r = moDir.commit(cr)
-        assert r.status_code == 200
+        assert r == []
 
     def test_get_tn(self, apics, certobject, userobject):
         apic = apics[0]
@@ -289,9 +289,12 @@ class TestCertSession(object):
         if userobject.user == 'rouser':
             with pytest.raises(RestError) as excinfo:
                 r = moDir.commit(cr)
-            assert excinfo.value.reason == ('user rouser does not have ' +
-                                            'domain access to config Mo, ' +
-                                            'class fvTenant')
+            assert ((excinfo.value.reason == ('user rouser does not have ' +
+                                              'domain access to config Mo, ' +
+                                              'class fvTenant')) or
+                    (excinfo.value.reason == ('user rouser does not have ' +
+                                              'domain access to config Mo, ' +
+                                              'class fvBD')))
         elif userobject.user == 'rwuser':
             r = moDir.commit(cr)
         else:
@@ -309,7 +312,7 @@ class TestCertSession(object):
         cr = ConfigRequest()
         cr.addMo(userobject.aaaUser)
         r = moDir.commit(cr)
-        assert r.status_code == 200
+        assert r == []
 
     def test_tn_cleanup(self, apics, certobject, userobject):
         if userobject.user == 'rouser':
@@ -331,5 +334,5 @@ class TestCertSession(object):
         cr = ConfigRequest()
         cr.addMo(fvTenant)
         r = moDir.commit(cr)
-        assert r.status_code == 200
+        assert r == []
 
