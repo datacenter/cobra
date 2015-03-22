@@ -11,13 +11,13 @@ pylint:
   disable:
     - redefined-builtin
   options:
-    - function-rgx: [a-z_][a-zA-Z0-9_]{2,30}$
-    - function-name-hint: [a-z_][a-zA-Z0-9_]{2,30}$
-    - variable-rgx: [a-z_][a-zA-Z0-9_]{2,30}$
-    - variable-name-hint: [a-z_][a-zA-Z0-9_]{2,30}$
-    - attr-rgx: [a-z_][a-zA-Z0-9_]{2,30}$
-    - attr-name-hint: [a-z_][a-zA-Z0-9_]{2,30}$
-    - argument-rgx: [a-z_][a-zA-Z0-9_]{2,30}$
-    - argument-name-hint: [a-z_][a-zA-Z0-9_]{2,30}$
-    - method-rgx: [a-z_][a-zA-Z0-9_]{2,30}$
-    - method-name-hint: [a-z_][a-zA-Z0-9_]{2,30}$
+    - function-rgx: "[a-z_][a-zA-Z0-9_]{2,30}$"
+    - function-name-hint: "[a-z_][a-zA-Z0-9_]{2,30}$"
+    - variable-rgx: "[a-z_][a-zA-Z0-9_]{2,30}$"
+    - variable-name-hint: "[a-z_][a-zA-Z0-9_]{2,30}$"
+    - attr-rgx: "[a-z_][a-zA-Z0-9_]{2,30}$"
+    - attr-name-hint: "[a-z_][a-zA-Z0-9_]{2,30}$"
+    - argument-rgx: "[a-z_][a-zA-Z0-9_]{2,30}$"
+    - argument-name-hint: "[a-z_][a-zA-Z0-9_]{2,30}$"
+    - method-rgx: "[a-z_][a-zA-Z0-9_]{2,30}$"
+    - method-name-hint: "[a-z_][a-zA-Z0-9_]{2,30}$"
