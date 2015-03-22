@@ -84,7 +84,7 @@ class Test_rest_configrequest(object):
         r = moDir.commit(configRequest)
         assert r.status_code == requests.codes.ok
 
-        if moDir._accessImpl._session.formatType == cobra.mit.session.AbstractSession.XML_FORMAT:
+        if moDir._session.formatType == cobra.mit.session.AbstractSession.XML_FORMAT:
             mos = fromXMLStr(r.content)
         else:
             mos = fromJSONStr(r.content)
@@ -242,7 +242,7 @@ class Test_rest_login(object):
                                                  secure=secure)
         moDir = cobra.mit.access.MoDirectory(session)
         moDir.login()
-        assert moDir._accessImpl._session
+        assert moDir._session
 
     def test_login_negative(self, apic):
         """
@@ -290,8 +290,8 @@ class Test_rest_login(object):
         moDir = cobra.mit.access.MoDirectory(session)
         moDir.login()
 
-        assert moDir._accessImpl._session.refreshTime > int(time.time())
-        assert moDir._accessImpl._session.refreshTimeoutSeconds > 0
+        assert moDir._session.refreshTime > int(time.time())
+        assert moDir._session.refreshTimeoutSeconds > 0
 
 
 class Test_rest_tracequery(object):
@@ -316,7 +316,7 @@ class Test_rest_tracequery(object):
 
         for node in nodes:
             a = cobra.mit.request.TraceQuery(node.dn, cls)
-            print(a.getUrl(moDir._accessImpl._session))
+            print(a.getUrl(moDir._session))
             mos = moDir.query(a)
             for mo in mos:
                 print(mo.dn)

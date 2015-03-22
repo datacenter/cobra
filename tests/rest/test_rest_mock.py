@@ -189,7 +189,7 @@ def moDir(getResponseMock, apic):
                                              requestFormat='json')
     md = cobra.mit.access.MoDirectory(session)
     md.login()
-    logger.debug('login token {0}'.format(md._accessImpl._session._cookie))
+    logger.debug('login token {0}'.format(md._session._cookie))
     if apic[0] == 'http://mock':
         getResponseMock.stop()
     return md
@@ -213,8 +213,8 @@ class Test_rest_login(object):
         moDir.login()
 
         logger.debug(
-            'login token {0}'.format(moDir._accessImpl._session._cookie))
-        assert moDir._accessImpl._session._cookie
+            'login token {0}'.format(moDir._session._cookie))
+        assert moDir._session._cookie
         if apic[0] == 'http://mock':
             getResponseMock.stop()
 

@@ -18,144 +18,15 @@ from builtins import object
 import requests
 from cobra.internal.codec.jsoncodec import fromJSONStr, parseJSONError
 from cobra.internal.codec.xmlcodec import fromXMLStr, parseXMLError
-from cobra.mit.request import QueryError, CommitError, RestError, AbstractRequest
-from cobra.mit.session import LoginSession, CertSession, AbstractSession
+from cobra.mit.request import QueryError, CommitError, RestError
 import json
 
 
-class LoginRequest(AbstractRequest):
-    """
-    LoginRequest for standard user/password based authentication
-    """
-
-    def __init__(self, user, password):
-        super(LoginRequest, self).__init__()
-        self.user = user
-        self.password = password
-
-    @property
-    def data(self):
-        userJson = {
-            'aaaUser': {
-                'attributes': {
-                    'name': self.user,
-                    'pwd': self.password
-                }
-            }
-        }
-        # Keys are sorted because the APIC REST API requires the attributes
-        # to come first.
-        return json.dumps(userJson, sort_keys=True)
-
-    def requestargs(self, session):
-        uriPathandOptions = self.getUriPathAndOptions(session)
-        headers = session.getHeaders(uriPathandOptions, self.data)
-        kwargs = {
-            'headers': headers,
-            'verify': session.secure,
-            'data': self.data,
-            'timeout': session.timeout,
-            'allow_redirects': False
-        }
-        return kwargs
-
-    @staticmethod
-    def getUrl(session):
-        url = session.url
-        url += '/api/aaaLogin.json'
-        return url
-
-
-class RefreshRequest(AbstractRequest):
-    """
-    Session refresh request for standard user/password based authentication
-    """
-
-    def __init__(self, cookie):
-        super(RefreshRequest, self).__init__()
-        self.cookie = cookie
-
-    @staticmethod
-    def getUrl(session):
-        url = session.url
-        url += '/api/aaaRefresh.json'
-        return url
-
-
-class LoginHandler(object):
-    @classmethod
-    def login(cls, session):
-        loginRequest = LoginRequest(session.user, session.password)
-        url = loginRequest.getUrl(session)
-        rsp = requests.post(url, **loginRequest.requestargs(session))
-        # handle a redirect, for example from http to https
-        while rsp.status_code in (requests.codes.moved, requests.codes.found):
-            session.url = rsp.headers['Location'].rstrip('/api/aaaLogin.json')
-            cls.login(session)
-            return
-        session._parseResponse(rsp)
-
-    @classmethod
-    def logout(cls, session, accessimpl):
-        pass
-
-    @classmethod
-    def refresh(cls, session, accessimpl):
-        refreshRequest = RefreshRequest(session.cookie)
-        session._parseResponse(accessimpl._get(refreshRequest))
-
-
-class CertHandler(object):
-    @classmethod
-    def login(cls, session):
-        pass
-
-    @classmethod
-    def logout(cls, session, accessimpl):
-        pass
-
-    @classmethod
-    def refresh(cls, session, accessimpl):
-        pass
-
-
 class RestAccess(object):
-    loginHandlers = {
-        LoginSession: LoginHandler,
-        CertSession: CertHandler,
-    }
 
     def __init__(self, session):
         self._session = session
         self._requests = requests.Session()
-
-    def login(self):
-        """
-        Authenticate the user/certification provided by the session
-        object.
-        Args:
-            session (LoginSession/CertSession): Session object
-        """
-        sessionClass = self._session.__class__
-        loginHandler = RestAccess.loginHandlers.get(sessionClass, None)
-        if loginHandler is not None:
-            loginHandler.login(self._session)
-
-    def logout(self):
-        sessionClass = self._session.__class__
-        loginHandler = RestAccess.loginHandlers.get(sessionClass, None)
-        if loginHandler is not None:
-            loginHandler.logout(self._session, self)
-
-    def refreshSession(self):
-        """Refresh the _cookie for the given session object
-        Args:
-            session (LoginSession/CertSession)
-        """
-        sessionClass = self._session.__class__
-        loginHandler = RestAccess.loginHandlers.get(sessionClass, None)
-        if loginHandler is not None:
-            loginHandler.refresh(self._session, self)
 
     def _get(self, request):
         """
@@ -164,48 +35,79 @@ class RestAccess(object):
         """
         uriPathAndOptions = request.getUriPathAndOptions(self._session)
         headers = self._session.getHeaders(uriPathAndOptions, None)
-        return self._requests.get(request.getUrl(self._session), headers=headers,
-                            verify=self._session.secure,
-                            timeout=self._session.timeout)
+        return self._requests.get(request.getUrl(self._session),
+                                  headers=headers, verify=self._session.secure,
+                                  timeout=self._session.timeout)
 
     def get(self, request):
         """Return data from the server for the given request on the
         given session
+
         Args:
-            request (DnQuery/ClassQuery/TraceQuery/AbstractQuery child): Query
-                object
-        Return:
-            requests.response
+          request (cobra.mit.request.AbstractQuery): The query object
+
+        Raises:
+          cobra.mit.request.QueryError: If the response indicates an error
+            occurred
+          ValueError: If the response could not be parsed
+
+        Returns:
+          cobra.mit.mo.Mo: The query response parsed into a managed object
         """
         rsp = self._get(request)
         if rsp.status_code != requests.codes.ok:
             return self.__parseError(rsp, QueryError, rsp.status_code)
         return self.__parseResponse(rsp)
 
+    def _post(self, request):
+        """
+        Internal _post method which performs raw request and returns requests
+        response object.
+
+        This method will also handle redirects for POST as needed.
+        """
+        uriPathAndOptions = request.getUriPathAndOptions(self._session)
+        headers = self._session.getHeaders(uriPathAndOptions, None)
+        rsp = self._requests.post(request.getUrl(self._session),
+                                  **request.requestargs(self._session))
+        # handle a redirect, for example from http to https
+        while rsp.status_code in (requests.codes.moved, requests.codes.found):
+            loc = rsp.headers['Location']
+            uriPathAndOptions = request.getUriPathAndOptions(self._session)
+            session.url = loc.rstrip(uriPathAndOptions)
+            return self._post(request)
+        return rsp
+
     def post(self, request):
         """Return data from the server for the given request on the
-        given session by posting the data in the request object
+        given session by posting the data in the request object, the response
+        is parsed for errors.
+
         Args:
-            request (ConfigRequest): ConfigRequest object
-        Return:
-            requests.response
+          request (cobra.mit.request.AbstractRequest): The request object
+
+        Raises:
+          cobra.mit.request.CommitError: If the response indicates  an error
+          ValueError: If the response can not be parsed
+
+        Returns:
+          requests.response: The raw requests response object for a successful
+            request
         """
-        url = request.getUrl(self._session)
-        rsp = self._requests.post(url, **request.requestargs(self._session))
+        rsp = self._post(request)
         if rsp.status_code != requests.codes.ok:
             return self.__parseError(rsp, CommitError, rsp.status_code)
         return rsp
 
     def __parseError(self, rsp, errorClass, httpCode):
         try:
-            if self._session.formatType == AbstractSession.XML_FORMAT:
+            if self._session.formatType == self._session.XML_FORMAT:
                 parseXMLError(rsp.text, errorClass, httpCode)
             parseJSONError(rsp.text, errorClass, httpCode)
         except ValueError as ex:
             raise RestError(None, str(ex), httpCode)
 
     def __parseResponse(self, rsp):
-        if self._session.formatType == AbstractSession.XML_FORMAT:
+        if self._session.formatType == self._session.XML_FORMAT:
             return fromXMLStr(rsp.text)
         return fromJSONStr(rsp.text)
-

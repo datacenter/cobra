@@ -15,7 +15,6 @@
 from builtins import object
 
 from cobra.mit.request import DnQuery, ClassQuery, CommitError
-from cobra.internal.rest.accessimpl import RestAccess
 
 
 class MoDirectory(object):
@@ -32,15 +31,15 @@ class MoDirectory(object):
           session (cobra.mit.session.AbstractSession): The session
 
         """
-        self._accessImpl = RestAccess(session)
+        self._session = session
 
     def login(self):
         """Creates a session to an APIC."""
-        self._accessImpl.login()
+        self._session.login()
 
     def logout(self):
         """Ends a session to an APIC."""
-        self._accessImpl.logout()
+        self._session.logout()
 
     def reauth(self):
         """Re-authenticate the session with the current authentication cookie.
@@ -50,7 +49,7 @@ class MoDirectory(object):
         the server side. If this method fails, the user must login again to
         authenticate and effectively create a new session.
         """
-        self._accessImpl.refreshSession()
+        self._session.refreshSession()
 
     def query(self, queryObject):
         """Queries the Model Information Tree.
@@ -64,7 +63,7 @@ class MoDirectory(object):
         Returns:
           list: A list of Managed Objects (MOs) returned from the query
         """
-        return self._accessImpl.get(queryObject)
+        return self._session.get(queryObject)
 
     def commit(self, configObject):
         """Commit operation for a request object.
@@ -84,7 +83,7 @@ class MoDirectory(object):
         Raises:
           CommitError: If no MOs have been added to the config request
         """
-        return self._accessImpl.post(configObject)
+        return self._session.post(configObject)
 
     def lookupByDn(self, dnStrOrDn):
         """Query the APIC or fabric node by distinguished name (Dn)
