@@ -30,10 +30,11 @@ import subprocess
 import base64
 import time
 import math
+import json
 
 from .codec import XMLMoCodec, JSONMoCodec
 from cobra.internal.rest.accessimpl import RestAccess
-from cobra.mit.request import LoginRequest, RefreshRequest
+from cobra.mit.request import LoginRequest, RefreshRequest, RestError
 
 
 class AbstractSession(object):
@@ -309,7 +310,10 @@ class LoginSession(AbstractSession):
             not be parsed.
         """
         loginRequest = LoginRequest(self.user, self.password)
-        rsp = self._accessimpl.post(loginRequest)
+        try:
+            rsp = self._accessimpl.post(loginRequest)
+        except RestError as ex:
+            self._parseResponse(ex.reason)
         self._parseResponse(rsp)
 
     def logout(self):
@@ -331,7 +335,7 @@ class LoginSession(AbstractSession):
         self._parseResponse(rsp)
 
     def _parseResponse(self, rsp):
-        rspDict = rsp.json()
+        rspDict = json.loads(rsp)
         data = rspDict.get('imdata', None)
         if not data:
             raise LoginError(0, 'Bad Response: ' + str(rsp.text))

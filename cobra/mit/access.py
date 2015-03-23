@@ -92,7 +92,7 @@ class MoDirectory(object):
             rsp = self._session.post(configObject)
             return self.__parseResponse(rsp)
         except RestError as ex:
-            self.__parseError(ex.reason, CommitError, ex.status_code)
+            self.__parseError(ex.reason, CommitError, ex.httpCode)
 
     def lookupByDn(self, dnStrOrDn):
         """Query the APIC or fabric node by distinguished name (Dn)
