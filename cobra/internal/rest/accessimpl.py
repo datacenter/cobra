@@ -54,8 +54,8 @@ class RestAccess(object):
                                  headers=headers, verify=self._session.secure,
                                  timeout=self._session.timeout)
         if not self.responseIsOk(rsp):
-            raise RestError(0, rsp.text, rsp.status_code)
-        return rsp.text
+            raise RestError(0, rsp.text.encode('utf-8'), rsp.status_code)
+        return rsp.text.encode('utf-8')
 
     def post(self, request):
         """Return data from the server for the given request on the
@@ -85,5 +85,5 @@ class RestAccess(object):
             return self.post(request)
 
         if not self.responseIsOk(rsp):
-            raise RestError(0, rsp.text, rsp.status_code)
-        return rsp.text
+            raise RestError(0, rsp.text.encode('utf-8'), rsp.status_code)
+        return rsp.text.encode('utf-8')
