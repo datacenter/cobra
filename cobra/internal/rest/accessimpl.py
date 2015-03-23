@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from builtins import str
 from builtins import object
 
 import requests
+from cobra.mit.request import RestError
 
 
 class RestAccess(object):
@@ -25,13 +25,13 @@ class RestAccess(object):
         self._requests = requests.Session()
 
     @staticmethod
-    def responseIsOk(responseCode):
+    def responseIsOk(response):
         """Check if the response from the remote server is ok
 
         Returns:
           bool: True if the response did not indicate an error, False otherwise
         """
-        return responseCode == requests.codes.ok
+        return response.status_code == requests.codes.ok
 
     def get(self, request):
         """Return data from the server for the given request on the
@@ -50,9 +50,12 @@ class RestAccess(object):
         """
         uriPathAndOptions = request.getUriPathAndOptions(self._session)
         headers = self._session.getHeaders(uriPathAndOptions, None)
-        return self._requests.get(request.getUrl(self._session),
-                                  headers=headers, verify=self._session.secure,
-                                  timeout=self._session.timeout)
+        rsp = self._requests.get(request.getUrl(self._session),
+                                 headers=headers, verify=self._session.secure,
+                                 timeout=self._session.timeout)
+        if not self.responseIsOk(rsp):
+            raise RestError(0, rsp.text, rsp.status_code)
+        return rsp.text
 
     def post(self, request):
         """Return data from the server for the given request on the
@@ -80,4 +83,7 @@ class RestAccess(object):
             uriPathAndOptions = request.getUriPathAndOptions(self._session)
             self._session.url = loc.rstrip(uriPathAndOptions)
             return self.post(request)
-        return rsp
+
+        if not self.responseIsOk(rsp):
+            raise RestError(0, rsp.text, rsp.status_code)
+        return rsp.text

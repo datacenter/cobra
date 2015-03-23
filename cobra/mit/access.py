@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,8 +14,6 @@
 
 from builtins import object
 
-from cobra.internal.codec.jsoncodec import fromJSONStr, parseJSONError
-from cobra.internal.codec.xmlcodec import fromXMLStr, parseXMLError
 from cobra.mit.request import (DnQuery, ClassQuery, CommitError, QueryError,
                                RestError)
 
@@ -66,10 +64,11 @@ class MoDirectory(object):
         Returns:
           list: A list of Managed Objects (MOs) returned from the query
         """
-        rsp = self._session.get(queryObject)
-        if not self._session.responseIsOk(rsp.status_code):
-            self.__parseError(rsp, QueryError, rsp.status_code)
-        return self.__parseResponse(rsp)
+        try:
+            rsp = self._session.get(queryObject)
+            return self.__parseResponse(rsp)
+        except RestError as ex:
+            self.__parseError(ex.reason, QueryError, ex.httpCode)
 
     def commit(self, configObject):
         """Commit operation for a request object.
@@ -89,10 +88,11 @@ class MoDirectory(object):
         Raises:
           CommitError: If no MOs have been added to the config request
         """
-        rsp = self._session.post(configObject)
-        if not self._session.responseIsOk(rsp.status_code):
-            self.__parseError(rsp, CommitError, rsp.status_code)
-        return self.__parseResponse(rsp)
+        try:
+            rsp = self._session.post(configObject)
+            return self.__parseResponse(rsp)
+        except RestError as ex:
+            self.__parseError(ex.reason, CommitError, ex.status_code)
 
     def lookupByDn(self, dnStrOrDn):
         """Query the APIC or fabric node by distinguished name (Dn)
@@ -144,15 +144,7 @@ class MoDirectory(object):
         return mos
 
     def __parseError(self, rsp, errorClass, httpCode):
-        try:
-            if self._session.formatType == self._session.XML_FORMAT:
-                parseXMLError(rsp.text, errorClass, httpCode)
-            parseJSONError(rsp.text, errorClass, httpCode)
-        except ValueError as ex:
-            raise
-            #raise RestError(None, str(ex), httpCode)
+        self._session.codec.error(rsp, errorClass, httpCode)
 
     def __parseResponse(self, rsp):
-        if self._session.formatType == self._session.XML_FORMAT:
-            return fromXMLStr(rsp.text)
-        return fromJSONStr(rsp.text)
+        return self._session.codec.fromStr(rsp)

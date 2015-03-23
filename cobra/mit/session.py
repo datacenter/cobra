@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@ from builtins import object
 
 try:
     from OpenSSL.crypto import FILETYPE_PEM, load_privatekey, sign
+
     inlineSignature = True
 except ImportError:
     inlineSignature = False
@@ -29,8 +30,11 @@ import subprocess
 import base64
 import time
 import math
+
+from .codec import XMLMoCodec, JSONMoCodec
 from cobra.internal.rest.accessimpl import RestAccess
 from cobra.mit.request import LoginRequest, RefreshRequest
+
 
 class AbstractSession(object):
     """Abstract session class
@@ -46,7 +50,7 @@ class AbstractSession(object):
 
       url (str): The APIC or fabric node URL - readonly
 
-      formattype (str): The format type for the request - readonly
+      formatType (str): The format type for the request - readonly
 
       formatStr (str): The format string for the request, either xml or json
         - readonly
@@ -70,14 +74,16 @@ class AbstractSession(object):
         """
         if requestFormat not in {'xml', 'json'}:
             raise NotImplementedError("requestFormat should be one of: %s" %
-                                                             {'xml', 'json'})
+                                      {'xml', 'json'})
         self.__secure = secure
         self.__timeout = timeout
         self.__controllerUrl = controllerUrl
         if requestFormat == 'xml':
             self.__format = AbstractSession.XML_FORMAT
+            self.__codec = XMLMoCodec()
         elif requestFormat == 'json':
             self.__format = AbstractSession.JSON_FORMAT
+            self.__codec = JSONMoCodec()
         self._accessimpl = RestAccess(self)
 
     @property
@@ -105,6 +111,10 @@ class AbstractSession(object):
     def formatStr(self):
         return 'xml' if self.__format == AbstractSession.XML_FORMAT else 'json'
 
+    @property
+    def codec(self):
+        return self.__codec
+
     def login(self):
         """Login to the remote server.
         
@@ -126,19 +136,11 @@ class AbstractSession(object):
         
         A generic refresh method that should be overridden by classes that
         derive from this class
-        """ 
+        """
         pass
 
-    def responseIsOk(self, response):
-        """Check if the response from the remote server is ok
-
-        Returns:
-          bool: True if the response did not indicate an error, False otherwise
-        """
-        return self._accessimpl.responseIsOk(response)
-
     def get(self, queryObject):
-        """Peform a query using the specified queryObject.
+        """Perform a query using the specified queryObject.
 
         Args:
           queryObject(cobra.mit.request.AbstractQuery): The query object to
@@ -150,16 +152,16 @@ class AbstractSession(object):
         return self._accessimpl.get(queryObject)
 
     def post(self, requestObject):
-         """Perform a request using the specified requestObject.
+        """Perform a request using the specified requestObject.
 
-         Args:
-           requestObject(cobra.mit.request.AbstractRequest): The request object
-             to use for the request.
+        Args:
+          requestObject(cobra.mit.request.AbstractRequest): The request object
+            to use for the request.
 
-         Returns:
-           requests.response: The raw requests response.
-         """
-         return self._accessimpl.post(requestObject)
+        Returns:
+          requests.response: The raw requests response.
+        """
+        return self._accessimpl.post(requestObject)
 
 
 class LoginError(Exception):
@@ -168,6 +170,7 @@ class LoginError(Exception):
     These exceptions usually involve a timeout or invalid authentication
     parameters
     """
+
     def __init__(self, errorCode, reasonStr):
         """Initialize a LoginError instance
         
@@ -316,7 +319,7 @@ class LoginSession(AbstractSession):
         """
         pass
 
-    def refreshSession(self):
+    def refresh(self):
         """Refresh a session with the remote server (APIC or Fabric Node)
 
         Raises:
@@ -354,7 +357,6 @@ class LoginSession(AbstractSession):
 
 
 class CertSession(AbstractSession):
-
     """A session using a certificate dn and private key to generate signatures
     
     Attributes:
@@ -434,19 +436,19 @@ class CertSession(AbstractSession):
         cookie = self._generateSignature(uriPathAndOptions, data)
         return {'Cookie': cookie}
 
-    def login():
+    def login(self):
         """login method has no relevancy for this class but is included for
         consistency.
         """
         pass
 
-    def logout():
+    def logout(self):
         """logout method has no relevancy for this class but is included for 
         consistency.
         """
         pass
 
-    def refreshSession():
+    def refresh(self):
         """refreshSession method has no relevancy for this class but is
         included for consistency.
         """
@@ -546,7 +548,7 @@ class CertSession(AbstractSession):
                 self.writeFile(payloadFile, mode="wt", fileData='GET' + uri)
             else:
                 self.writeFile(payloadFile, mode="wt", fileData='POST' + uri +
-                               data)
+                                                                data)
             tmpFiles.append(payloadFile)
 
             self.writeFile(fileName=keyFile, mode="w", fileData=privateKeyStr)
