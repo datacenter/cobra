@@ -12,21 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""The Access module for the ACI Python SDK (cobra).
+
+This module ties together the session object and requests to allow a single
+interface by which requests are made.
+"""
+
 from builtins import object
+from future.utils import viewitems
 
 from cobra.mit.request import (DnQuery, ClassQuery, CommitError, QueryError,
                                RestError)
 
 
 class MoDirectory(object):
+
     """Creates a connection to the APIC and the MIT.
 
     MoDirectory requires an existing session.
-
     """
 
     def __init__(self, session):
-        """Initialize a MoDirectory instance
+        """Initialize a MoDirectory instance.
 
         Args:
           session (cobra.mit.session.AbstractSession): The session
@@ -35,11 +42,11 @@ class MoDirectory(object):
         self._session = session
 
     def login(self):
-        """Creates a session to an APIC."""
+        """Create a session to an APIC."""
         self._session.login()
 
     def logout(self):
-        """Ends a session to an APIC."""
+        """End a session to an APIC."""
         self._session.logout()
 
     def reauth(self):
@@ -53,7 +60,7 @@ class MoDirectory(object):
         self._session.refreshSession()
 
     def query(self, queryObject):
-        """Queries the Model Information Tree.
+        """Query the Model Information Tree.
 
         The various types of potential queryObjects provide a variety of
         search options
@@ -80,10 +87,8 @@ class MoDirectory(object):
             request to commit
 
         Returns:
-          requests.response:  The response.
-          
-            .. note::
-               This is different behavior than the query method.
+          str:  The response as a string
+
 
         Raises:
           CommitError: If no MOs have been added to the config request
@@ -94,26 +99,29 @@ class MoDirectory(object):
         except RestError as ex:
             self.__parseError(ex.reason, CommitError, ex.httpCode)
 
-    def lookupByDn(self, dnStrOrDn):
-        """Query the APIC or fabric node by distinguished name (Dn)
-        
+    def lookupByDn(self, dnStrOrDn, **kwargs):
+        """Query the APIC or fabric node by distinguished name (Dn).
+
         A short-form managed object (MO) query using the Dn of the MO
         of the MO.
 
         Args:
           dnStrOrDn (str or cobra.mit.naming.Dn): A distinguished name as a
             :class:`cobra.mit.naming.Dn` or string
+          **kwargs: Arbitrary parameters to be passed to the query
+            generated internally, to further filter the result
 
         Returns:
           None or cobra.mit.mo.Mo: None if no MO was returned otherwise
             :class:`cobra.mit.mo.Mo`
         """
         dnQuery = DnQuery(dnStrOrDn)
+        self.__setQueryParams(dnQuery, kwargs)
         mos = self.query(dnQuery)
         return mos[0] if mos else None
 
-    def lookupByClass(self, classNames, parentDn=None, propFilter=None):
-        """Lookup MO's by class
+    def lookupByClass(self, classNames, parentDn=None, **kwargs):
+        """Lookup MO's by class.
 
         A short-form managed object (MO) query by class.
 
@@ -121,10 +129,11 @@ class MoDirectory(object):
           classNames (str or list): The class name list of class names.
             If parentDn is set, the classNames are used as a filter in a
             subtree query for the parentDn
-          parentDn (cobra.mit.naming.Dn or str): The distinguished
+          parentDn (cobra.mit.naming.Dn or str, optional): The distinguished
             name of the parent object as a :class:`cobra.mit.naming.Dn` or
             string.
-          propFilter (str): A property filter expression
+          **kwargs: Arbitrary parameters to be passed to the query
+            generated internally, to further filter the result
 
         Returns:
           list: A list of the managed objects found in the query.
@@ -133,18 +142,57 @@ class MoDirectory(object):
             dnQuery = DnQuery(parentDn)
             dnQuery.classFilter = classNames
             dnQuery.queryTarget = 'subtree'
-            if propFilter:
-                dnQuery.propFilter = propFilter
+            self.__setQueryParams(dnQuery, kwargs)
             mos = self.query(dnQuery)
         else:
             classQuery = ClassQuery(classNames)
-            if propFilter:
-                classQuery.propFilter = propFilter
+            self.__setQueryParams(classQuery, kwargs)
             mos = self.query(classQuery)
         return mos
 
     def __parseError(self, rsp, errorClass, httpCode):
+        """Parse errors.
+
+        Parse any errors that may have occurred in rsp and raise the exception
+        errorClass.
+
+        Args:
+          rsp (str): The response that contains the error.
+          errorClass (Exception): The exception that should be raised once the
+            response is parsed.
+          httpCode (int): The HTTP error code, example 400.
+
+        Raises:
+          Exception: The errorClass.
+
+        """
         self._session.codec.error(rsp, errorClass, httpCode)
 
     def __parseResponse(self, rsp):
+        """Parse a response.
+
+        Args:
+          rsp (str): The response to parse.
+
+        Returns:
+          cobra.mit.mo.Mo: The response parsed into a managed object.
+        """
         return self._session.codec.fromStr(rsp)
+
+    @staticmethod
+    def __setQueryParams(query, queryParams):
+        """Utility function to set the query parameters.
+
+        Utility function used to set in the 'query' passed as
+        argument, the 'queryParams' dictionary. The key in the
+        dictionary will be used as the property name to set, with
+        the value content.
+
+        Args:
+          query: query class to be modified
+          queryParams: a dictionary including the properties to the
+            added to the query.
+        """
+        for param, value in viewitems(queryParams):
+            if value is not None:
+                setattr(query, param, value)
