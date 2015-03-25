@@ -27,7 +27,6 @@ import string
 import time
 import xml.etree.ElementTree as ET
 import logging
-import requests
 
 from cobra.internal.codec.jsoncodec import toJSONStr, fromJSONStr
 from cobra.internal.codec.xmlcodec import toXMLStr, fromXMLStr
@@ -81,13 +80,8 @@ class Test_rest_configrequest(object):
         configRequest.subtree = 'full'
         configRequest.id = dcid
 
-        r = moDir.commit(configRequest)
-        assert r.status_code == requests.codes.ok
-
-        if moDir._accessImpl._session.formatType == cobra.mit.session.AbstractSession.XML_FORMAT:
-            mos = fromXMLStr(r.content)
-        else:
-            mos = fromJSONStr(r.content)
+        mos = moDir.commit(configRequest)
+        assert mos
 
         mo = mos[0]
         assert len(mos) > 0
@@ -107,7 +101,7 @@ class Test_rest_configrequest(object):
         configRequest.addMo(tenant)
 
         r = moDir.commit(configRequest)
-        assert r.status_code == 200
+        assert r == []
 
         tenant = moDir.lookupByDn('uni/tn-{0}'.format(tenantname[0]))
         assert not tenant
@@ -242,7 +236,7 @@ class Test_rest_login(object):
                                                  secure=secure)
         moDir = cobra.mit.access.MoDirectory(session)
         moDir.login()
-        assert moDir._accessImpl._session
+        assert moDir._session
 
     def test_login_negative(self, apic):
         """
@@ -290,8 +284,8 @@ class Test_rest_login(object):
         moDir = cobra.mit.access.MoDirectory(session)
         moDir.login()
 
-        assert moDir._accessImpl._session.refreshTime > int(time.time())
-        assert moDir._accessImpl._session.refreshTimeoutSeconds > 0
+        assert moDir._session.refreshTime > int(time.time())
+        assert moDir._session.refreshTimeoutSeconds > 0
 
 
 class Test_rest_tracequery(object):
@@ -316,7 +310,7 @@ class Test_rest_tracequery(object):
 
         for node in nodes:
             a = cobra.mit.request.TraceQuery(node.dn, cls)
-            print(a.getUrl(moDir._accessImpl._session))
+            print(a.getUrl(moDir._session))
             mos = moDir.query(a)
             for mo in mos:
                 print(mo.dn)
@@ -353,7 +347,7 @@ class Test_services_devicepackage(object):
         packageUpload = cobra.services.UploadPackage(self.realPackage,
                                                      validate=True)
         r = moDir.commit(packageUpload)
-        assert r.status_code == 200
+        assert r == []
 
     def test_validateupload(self, moDir):
         """

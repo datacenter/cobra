@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,11 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from builtins import object
+"""The Access module for the ACI Python SDK (cobra).
 
-from cobra.mit.request import DnQuery, ClassQuery
-from cobra.internal.rest.accessimpl import RestAccess
+This module ties together the session object and requests to allow a single
+interface by which requests are made.
+"""
+
+from builtins import object
 from future.utils import viewitems
+
+from cobra.mit.request import (DnQuery, ClassQuery, CommitError, QueryError,
+                               RestError)
 
 
 class MoDirectory(object):
@@ -24,7 +30,6 @@ class MoDirectory(object):
     """Creates a connection to the APIC and the MIT.
 
     MoDirectory requires an existing session.
-
     """
 
     def __init__(self, session):
@@ -34,15 +39,15 @@ class MoDirectory(object):
           session (cobra.mit.session.AbstractSession): The session
 
         """
-        self._accessImpl = RestAccess(session)
+        self._session = session
 
     def login(self):
         """Create a session to an APIC."""
-        self._accessImpl.login()
+        self._session.login()
 
     def logout(self):
         """End a session to an APIC."""
-        self._accessImpl.logout()
+        self._session.logout()
 
     def reauth(self):
         """Re-authenticate the session with the current authentication cookie.
@@ -52,7 +57,7 @@ class MoDirectory(object):
         the server side. If this method fails, the user must login again to
         authenticate and effectively create a new session.
         """
-        self._accessImpl.refreshSession()
+        self._session.refreshSession()
 
     def query(self, queryObject):
         """Query the Model Information Tree.
@@ -66,7 +71,11 @@ class MoDirectory(object):
         Returns:
           list: A list of Managed Objects (MOs) returned from the query
         """
-        return self._accessImpl.get(queryObject)
+        try:
+            rsp = self._session.get(queryObject)
+            return self.__parseResponse(rsp)
+        except RestError as ex:
+            self.__parseError(ex.reason, QueryError, ex.httpCode)
 
     def commit(self, configObject):
         """Commit operation for a request object.
@@ -78,15 +87,17 @@ class MoDirectory(object):
             request to commit
 
         Returns:
-          requests.response:  The response.
+          str:  The response as a string
 
-            .. note::
-               This is different behavior than the query method.
 
         Raises:
           CommitError: If no MOs have been added to the config request
         """
-        return self._accessImpl.post(configObject)
+        try:
+            rsp = self._session.post(configObject)
+            return self.__parseResponse(rsp)
+        except RestError as ex:
+            self.__parseError(ex.reason, CommitError, ex.httpCode)
 
     def lookupByDn(self, dnStrOrDn, **kwargs):
         """Query the APIC or fabric node by distinguished name (Dn).
@@ -118,7 +129,7 @@ class MoDirectory(object):
           classNames (str or list): The class name list of class names.
             If parentDn is set, the classNames are used as a filter in a
             subtree query for the parentDn
-          parentDn (cobra.mit.naming.Dn or str): The distinguished
+          parentDn (cobra.mit.naming.Dn or str, optional): The distinguished
             name of the parent object as a :class:`cobra.mit.naming.Dn` or
             string.
           **kwargs: Arbitrary parameters to be passed to the query
@@ -138,6 +149,35 @@ class MoDirectory(object):
             self.__setQueryParams(classQuery, kwargs)
             mos = self.query(classQuery)
         return mos
+
+    def __parseError(self, rsp, errorClass, httpCode):
+        """Parse errors.
+
+        Parse any errors that may have occurred in rsp and raise the exception
+        errorClass.
+
+        Args:
+          rsp (str): The response that contains the error.
+          errorClass (Exception): The exception that should be raised once the
+            response is parsed.
+          httpCode (int): The HTTP error code, example 400.
+
+        Raises:
+          Exception: The errorClass.
+
+        """
+        self._session.codec.error(rsp, errorClass, httpCode)
+
+    def __parseResponse(self, rsp):
+        """Parse a response.
+
+        Args:
+          rsp (str): The response to parse.
+
+        Returns:
+          cobra.mit.mo.Mo: The response parsed into a managed object.
+        """
+        return self._session.codec.fromStr(rsp)
 
     @staticmethod
     def __setQueryParams(query, queryParams):

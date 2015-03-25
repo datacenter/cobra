@@ -15,6 +15,7 @@
 from builtins import str
 from builtins import object
 
+import json
 from cobra.mit.naming import Dn
 from cobra.internal.codec.jsoncodec import toJSONStr
 from cobra.internal.codec.xmlcodec import toXMLStr
@@ -284,6 +285,61 @@ class AbstractQuery(AbstractRequest):
             raise ValueError('"%s" is invalid, valid values are "%s"' %
                              (value, str(allowedValues)))
         self.__options['replica'] = value
+
+
+class LoginRequest(AbstractRequest):
+    """
+    LoginRequest for standard user/password based authentication
+    """
+
+    def __init__(self, user, password):
+        super(LoginRequest, self).__init__()
+        self.user = user
+        self.password = password
+        self.uriBase = '/api/aaaLogin.json'
+
+    @property
+    def data(self):
+        userJson = {
+            'aaaUser': {
+                'attributes': {
+                    'name': self.user,
+                    'pwd': self.password
+                }
+            }
+        }
+        # Keys are sorted because the APIC REST API requires the attributes
+        # to come first.
+        return json.dumps(userJson, sort_keys=True)
+
+    def requestargs(self, session):
+        uriPathandOptions = self.getUriPathAndOptions(session)
+        headers = session.getHeaders(uriPathandOptions, self.data)
+        kwargs = {
+            'headers': headers,
+            'verify': session.secure,
+            'data': self.data,
+            'timeout': session.timeout,
+            'allow_redirects': False
+        }
+        return kwargs
+
+    def getUrl(self, session):
+        return session.url + self.uriBase
+
+
+class RefreshRequest(AbstractRequest):
+    """
+    Session refresh request for standard user/password based authentication
+    """
+
+    def __init__(self, cookie):
+        super(RefreshRequest, self).__init__()
+        self.cookie = cookie
+        self.uriBase = '/api/aaaRefresh.json'
+
+    def getUrl(self, session):
+        return session.url + self.uriBase
 
 
 class DnQuery(AbstractQuery):

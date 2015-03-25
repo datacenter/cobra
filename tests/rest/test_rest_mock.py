@@ -189,7 +189,7 @@ def moDir(getResponseMock, apic):
                                              requestFormat='json')
     md = cobra.mit.access.MoDirectory(session)
     md.login()
-    logger.debug('login token {0}'.format(md._accessImpl._session._cookie))
+    logger.debug('login token {0}'.format(md._session._cookie))
     if apic[0] == 'http://mock':
         getResponseMock.stop()
     return md
@@ -213,8 +213,8 @@ class Test_rest_login(object):
         moDir.login()
 
         logger.debug(
-            'login token {0}'.format(moDir._accessImpl._session._cookie))
-        assert moDir._accessImpl._session._cookie
+            'login token {0}'.format(moDir._session._cookie))
+        assert moDir._session._cookie
         if apic[0] == 'http://mock':
             getResponseMock.stop()
 
@@ -241,13 +241,12 @@ class Test_rest_configrequest(object):
         configRequest.subtree = 'full'
         configRequest.id = dcid
 
-        r = moDir.commit(configRequest)
-        logger.debug('commit response {0}'.format(r.content))
-        assert r.status_code == 200
+        mos = moDir.commit(configRequest)
+        logger.debug('commit response {0}'.format(mos))
+        assert mos
 
-        mos = fromJSONStr(str(r.text))
         mo = mos[0]
-        logger.debug('r.content: {0}'.format(r.content))
+        logger.debug('mo: {0}'.format(str(mo)))
         assert len(mos) > 0
         assert str(mo.dn) == str(tenant.dn)
         assert len(list(mo.children)) >= 2  # expect at least fvBD and fvAp
@@ -297,8 +296,8 @@ class Test_rest_configrequest(object):
 
         logger.debug('commit body {0}'.format(toXMLStr(tenant)))
 
-        r = moDir.commit(configRequest)
-        assert r.status_code == 200
+        mos = moDir.commit(configRequest)
+        assert mos == []
 
         if apic[0] == 'http://mock':
             getResponseMock.reset()

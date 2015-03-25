@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@ from builtins import object
 
 try:
     from OpenSSL.crypto import FILETYPE_PEM, load_privatekey, sign
+
     inlineSignature = True
 except ImportError:
     inlineSignature = False
@@ -29,6 +30,12 @@ import subprocess
 import base64
 import time
 import math
+import json
+
+from .codec import XMLMoCodec, JSONMoCodec
+from cobra.internal.rest.accessimpl import RestAccess
+from cobra.mit.request import LoginRequest, RefreshRequest, RestError
+
 
 class AbstractSession(object):
     """Abstract session class
@@ -44,7 +51,7 @@ class AbstractSession(object):
 
       url (str): The APIC or fabric node URL - readonly
 
-      formattype (str): The format type for the request - readonly
+      formatType (str): The format type for the request - readonly
 
       formatStr (str): The format string for the request, either xml or json
         - readonly
@@ -68,14 +75,17 @@ class AbstractSession(object):
         """
         if requestFormat not in {'xml', 'json'}:
             raise NotImplementedError("requestFormat should be one of: %s" %
-                                                             {'xml', 'json'})
+                                      {'xml', 'json'})
         self.__secure = secure
         self.__timeout = timeout
         self.__controllerUrl = controllerUrl
         if requestFormat == 'xml':
             self.__format = AbstractSession.XML_FORMAT
+            self.__codec = XMLMoCodec()
         elif requestFormat == 'json':
             self.__format = AbstractSession.JSON_FORMAT
+            self.__codec = JSONMoCodec()
+        self._accessimpl = RestAccess(self)
 
     @property
     def secure(self):
@@ -102,6 +112,10 @@ class AbstractSession(object):
     def formatStr(self):
         return 'xml' if self.__format == AbstractSession.XML_FORMAT else 'json'
 
+    @property
+    def codec(self):
+        return self.__codec
+
     def login(self):
         """Login to the remote server.
         
@@ -123,8 +137,32 @@ class AbstractSession(object):
         
         A generic refresh method that should be overridden by classes that
         derive from this class
-        """ 
+        """
         pass
+
+    def get(self, queryObject):
+        """Perform a query using the specified queryObject.
+
+        Args:
+          queryObject(cobra.mit.request.AbstractQuery): The query object to
+            use for the query.
+
+        Returns:
+          cobra.mit.mo.Mo: The query response parsed into a managed object
+        """
+        return self._accessimpl.get(queryObject)
+
+    def post(self, requestObject):
+        """Perform a request using the specified requestObject.
+
+        Args:
+          requestObject(cobra.mit.request.AbstractRequest): The request object
+            to use for the request.
+
+        Returns:
+          requests.response: The raw requests response.
+        """
+        return self._accessimpl.post(requestObject)
 
 
 class LoginError(Exception):
@@ -133,12 +171,13 @@ class LoginError(Exception):
     These exceptions usually involve a timeout or invalid authentication
     parameters
     """
+
     def __init__(self, errorCode, reasonStr):
         """Initialize a LoginError instance
         
         Args:
-        errorCode (int): The error code for the exception
-        reasonStr (str): A string indicating why the exception occurred
+          errorCode (int): The error code for the exception
+          reasonStr (str): A string indicating why the exception occurred
         """
         self.error = errorCode
         self.reason = reasonStr
@@ -263,8 +302,40 @@ class LoginSession(AbstractSession):
             headers['APIC-challenge'] = self._challenge
         return headers
 
+    def login(self):
+        """Login in to the remote server (APIC or Fabric Node)
+
+        Raises:
+          LoginError: If there was an error during login or the response could
+            not be parsed.
+        """
+        loginRequest = LoginRequest(self.user, self.password)
+        try:
+            rsp = self._accessimpl.post(loginRequest)
+        except RestError as ex:
+            self._parseResponse(ex.reason)
+        self._parseResponse(rsp)
+
+    def logout(self):
+        """Logout of the remote server (APIC or Fabric Node)
+
+        Currently this method does nothing
+        """
+        pass
+
+    def refresh(self):
+        """Refresh a session with the remote server (APIC or Fabric Node)
+
+        Raises:
+          LoginError: If there was an error when refreshing the session or
+            the response could not be parsed.
+        """
+        refreshRequest = RefreshRequest(self.cookie)
+        rsp = self.accessimpl.get(refreshRequest)
+        self._parseResponse(rsp)
+
     def _parseResponse(self, rsp):
-        rspDict = rsp.json()
+        rspDict = json.loads(rsp)
         data = rspDict.get('imdata', None)
         if not data:
             raise LoginError(0, 'Bad Response: ' + str(rsp.text))
@@ -277,18 +348,19 @@ class LoginSession(AbstractSession):
             raise LoginError(errorCode, reasonStr)
         elif 'aaaLogin' in firstRecord:
             cookie = firstRecord['aaaLogin']['attributes']['token']
-            refreshTimeoutSeconds = firstRecord['aaaLogin']['attributes']['refreshTimeoutSeconds']
+            refreshTimeoutSeconds = \
+                firstRecord['aaaLogin']['attributes']['refreshTimeoutSeconds']
             version = firstRecord['aaaLogin']['attributes']['version']
             self._cookie = cookie
             self._version = version
-            self._refreshTime = int(refreshTimeoutSeconds) + math.trunc(time.time())
+            self._refreshTime = (int(refreshTimeoutSeconds) +
+                                 math.trunc(time.time()))
             self._refreshTimeoutSeconds = int(refreshTimeoutSeconds)
         else:
             raise LoginError(0, 'Bad Response: ' + str(rsp.text))
 
 
 class CertSession(AbstractSession):
-
     """A session using a certificate dn and private key to generate signatures
     
     Attributes:
@@ -367,6 +439,24 @@ class CertSession(AbstractSession):
         """
         cookie = self._generateSignature(uriPathAndOptions, data)
         return {'Cookie': cookie}
+
+    def login(self):
+        """login method has no relevancy for this class but is included for
+        consistency.
+        """
+        pass
+
+    def logout(self):
+        """logout method has no relevancy for this class but is included for 
+        consistency.
+        """
+        pass
+
+    def refresh(self):
+        """refreshSession method has no relevancy for this class but is
+        included for consistency.
+        """
+        pass
 
     @staticmethod
     def runCmd(cmd):
@@ -462,7 +552,7 @@ class CertSession(AbstractSession):
                 self.writeFile(payloadFile, mode="wt", fileData='GET' + uri)
             else:
                 self.writeFile(payloadFile, mode="wt", fileData='POST' + uri +
-                               data)
+                                                                data)
             tmpFiles.append(payloadFile)
 
             self.writeFile(fileName=keyFile, mode="w", fileData=privateKeyStr)

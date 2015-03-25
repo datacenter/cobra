@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,7 +57,7 @@ def _createMo(node, parentMo):
     moProps = {}
     for attr, val in list(node.attrib.items()):
         if (attr != 'dn' and attr != 'rn' and attr != 'instanceId' and
-                attr != 'status'):
+                    attr != 'status'):
             moProps[attr] = str(val)
         elif attr == 'dn':
             # Set the dn of this MO from the data returned by server
@@ -123,7 +123,7 @@ def _toXMLStr(mo, includeAllProps, excludeChildren=False):
             if includeAllProps:
                 value = str(mo.rn)
         elif (propMeta.isNaming or includeAllProps or
-                mo.isPropDirty(name)):
+                  mo.isPropDirty(name)):
             value = getattr(mo, name)
         if value is not None:
             value = encodeValue(str(value))
@@ -137,7 +137,7 @@ def _toXMLStr(mo, includeAllProps, excludeChildren=False):
     xmlStr = ""
     if attrStr or childXml:
         xmlStr = "<{0}{1}>{2}</{3}>".format(className, attrStr, childXml,
-                                                className)
+                                            className)
 
     return xmlStr
 
