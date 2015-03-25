@@ -12,16 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Managed object implementation.
+
+The internal implementation of managed objects.
+"""
+
 from __future__ import unicode_literals
-from builtins import next
-from builtins import str
-from builtins import object
+from builtins import next    # pylint:disable=redefined-builtin
+from builtins import str     # pylint:disable=redefined-builtin
+from builtins import object  # pylint:disable=redefined-builtin
 
 from cobra.mit.naming import Dn
 from cobra.mit.naming import Rn
 
 
 class MoStatus(object):
+
+    """Managed object status.
+
+    Implements a bitmask to represent managed object status.
+    """
+
     # Status Constants
     DEFAULT = 0
     CREATED = 2
@@ -30,6 +41,14 @@ class MoStatus(object):
 
     @classmethod
     def fromString(cls, statusStr):
+        """Constructor to create a MoStatus from a string.
+
+        Args:
+          statusStr (str): A status string, example: created,modified
+
+        Returns:
+          MoStatus: The MoStatus instance
+        """
         status = MoStatus(1)
         if statusStr:
             codes = statusStr.split(',')
@@ -44,34 +63,67 @@ class MoStatus(object):
         return status
 
     def __init__(self, status):
+        """Initialize a MoStatus instance.
+
+        Args:
+          status (int): The status as an integer.
+        """
         self.__status = status
 
     @property
     def status(self):
+        """Return the status."""
         return self.__status
 
     @property
     def created(self):
+        """Check the status for created.
+
+        Returns:
+          bool: Returns True if the status has the created bit set.
+        """
         return (self.__status & MoStatus.CREATED) != 0
 
     @property
     def deleted(self):
+        """Check the status for deleted.
+
+        Returns:
+          bool: Returns True if the status has the deleted bit set.
+        """
         return (self.__status & MoStatus.DELETED) != 0
 
     @property
     def modified(self):
+        """Check the status for modified.
+
+        Returns:
+          bool: Returns True if the status has the modified bit set.
+        """
         return (self.__status & MoStatus.MODIFIED) != 0
 
     def onBit(self, status):
+        """Turn a bit on.
+
+        Args:
+          status (int): The bit to turn on.
+        """
         self.__status |= status
 
     def offBit(self, status):
+        """Turn a bit off.
+
+        Args:
+          status (int): The bit to turn off.
+        """
         self.__status &= ~status
 
     def clear(self):
+        """Clear the status to 0."""
         self.__status = 0
 
     def __str__(self):
+        """Return the status as a string."""
         if self.deleted:
             return 'deleted'
         status = ''
@@ -85,31 +137,37 @@ class MoStatus(object):
         return status
 
     def __lt__(self, other):
+        """Implement the < operator for status objects."""
         if other is None:
             return -1
         return self.status < other.status
 
     def __le__(self, other):
+        """Implement the <= operator for status objects."""
         if other is None:
             return -1
         return self.status <= other.status
 
     def __eq__(self, other):
+        """Implement the == operator for status objects."""
         if other is None:
             return -1
         return self.status == other.status
 
     def __ne__(self, other):
+        """Implement the != operator for status objects."""
         if other is None:
             return -1
         return self.status != other.status
 
     def __gt__(self, other):
+        """Implement the > operator for status objects."""
         if other is None:
             return -1
         return self.status > other.status
 
     def __ge__(self, other):
+        """Implement the >= operator for status objects."""
         if other is None:
             return -1
         return self.status >= other.status
@@ -117,9 +175,22 @@ class MoStatus(object):
 
 class BaseMo(object):
 
+    """The internal Base Managed Object."""
+
     class _ChildContainer(object):
+
+        """An internal container object for child objects."""
+
         class _ClassContainer(object):
+
+            """An internal container objects for child classes."""
+
             def __init__(self, childClass):
+                """Initialize a _ClassContainer instance.
+
+                Args:
+                  childClass (object): The child class.
+                """
                 self._childClass = childClass
 
                 # Key is the tuple of naming props and value is the child Mo
@@ -155,10 +226,10 @@ class BaseMo(object):
                 elif numNamingProps > 1:
                     if not isinstance(key, tuple):
                         raise ValueError('"%s" requires tuple of naming props'
-                                          % meta.className)
+                                         % meta.className)
                     elif len(key) != numNamingProps:
                         raise ValueError('"%s" requires "%d" naming props'
-                                          % (meta.className, numNamingProps))
+                                         % (meta.className, numNamingProps))
                     namingVals.extend(key)
                 else:
                     namingVals.append(key)
@@ -172,7 +243,15 @@ class BaseMo(object):
                                          (keyVal, moVal, str(mo.rn)))
 
         class _ChildIter(object):
+
+            """Internal class to iterate over child objects."""
+
             def __init__(self, classContainers):
+                """Initialize a _ChildIter instance.
+
+                Args:
+                  classContainers (list): A list of _ClassContainer instances.
+                """
                 self._containers = iter(list(classContainers.values()))
                 self._currentContainer = None
 
@@ -193,6 +272,12 @@ class BaseMo(object):
                 return self
 
         def __init__(self, classMeta):
+            """Initialize a _ChildContainer instance.
+
+            Args:
+              classMeta (cobra.mit.meta.ClassMeta): The class meta for the
+                child class.
+            """
             self._classMeta = classMeta
 
             # Key is the first rn prefix with the leading '-' if any
@@ -209,14 +294,15 @@ class BaseMo(object):
                     # childPrefix being passed in without a hyphen, add it
                     # here for this circumstance
                     if (childPrefix[-1] != '-' and
-                        len(childMeta.namingProps) > 0):
-                            newPrefix = childPrefix + '-'
+                            len(childMeta.namingProps) > 0):
+                        newPrefix = childPrefix + '-'
                     if newPrefix == prefix:
                         # Do not overwrite the classContainer for a lookup
                         # operation
                         if not lookup:
                             classContainer = \
-                            BaseMo._ChildContainer._ClassContainer(childClass)
+                                BaseMo._ChildContainer._ClassContainer(
+                                    childClass)
                             self._classContainers[newPrefix] = classContainer
                         else:
                             classContainer = self._classContainers.get(
@@ -229,6 +315,7 @@ class BaseMo(object):
             return classContainer
 
         def __iter__(self):
+            # pylint:disable=non-iterator-returned
             return BaseMo._ChildContainer._ChildIter(self._classContainers)
 
         def __len__(self):
@@ -237,14 +324,30 @@ class BaseMo(object):
                 numChildren += len(classContainer)
             return numChildren
 
-    def __init__(self, parentMoOrDn, markDirty, *namingVals, 
-            **creationProps):
+    def __init__(self, parentMoOrDn, markDirty, *namingVals,
+                 **creationProps):
+        """Initialize a BaseMo instance.
 
+        This class can not be instantiated directly, instead instantiate a
+        managed object.
+
+        Args:
+          parentMoOrDn (cobra.mit.mo.Mo or str): The parent managed object or
+            the parent managed object distinguished name.
+          markDirty (bool): If set to True, the creation properties will be
+            marked dirty to indicate that they have not been committed.
+          *namingVals (str): The required naming values for the managed object.
+          **creationProps (dict of str): The properties that should be set at
+            object creation time.
+
+        """
         if self.__class__ == BaseMo:
             raise NotImplementedError('BaseMo cannot be instantiated.')
 
+        # pylint:disable=no-member
         self.__dict__['_BaseMo__meta'] = self.__class__.meta
-        self.__dict__['_BaseMo__status'] = MoStatus(MoStatus.CREATED | MoStatus.MODIFIED)
+        self.__dict__['_BaseMo__status'] = MoStatus(MoStatus.CREATED |
+                                                    MoStatus.MODIFIED)
         self.__dict__['_BaseMo__dirtyProps'] = set()
         self.__dict__['_BaseMo__children'] = BaseMo._ChildContainer(self.__meta)
         self.__dict__['_BaseMo__rn'] = Rn(self.__meta, *namingVals)
@@ -293,7 +396,7 @@ class BaseMo(object):
             propMeta = self.meta.props[attrName]
             defValue = propMeta.defaultValue
             self.__setprop(propMeta, attrName, defValue, markDirty=False,
-                    forced=True)
+                           forced=True)
             return defValue
 
         # We got this call because properties did not match, so look for
@@ -310,7 +413,7 @@ class BaseMo(object):
             raise AttributeError('property "%s" not found' % attrName)
 
     def __setprop(self, propMeta, propName, propValue, markDirty=True,
-            forced=False):
+                  forced=False):
         value = propMeta.makeValue(propValue)
         if propMeta.isDn:
             raise ValueError("dn cannot be set")
@@ -373,8 +476,8 @@ class BaseMo(object):
 
     def _detachChild(self, childMo):
         if childMo.parent != self:
-            raise ValueError('%s is not attached to %s' (str(self.dn),
-                str(childMo.dn)))
+            raise ValueError('%s is not attached to %s' % (str(self.dn),
+                                                           str(childMo.dn)))
         self.__modifyChild(childMo, False)
         childMo._setParent(None)
 
@@ -417,4 +520,3 @@ class BaseMo(object):
 
     def _isPropDirty(self, propName):
         return propName in self.__dirtyProps
-

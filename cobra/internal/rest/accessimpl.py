@@ -12,8 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from builtins import object
-from builtins import str
+"""accessimpl.py.
+
+The implementation of the access layer for the ACI Python SDK (cobra).
+"""
+
+# These imports are for python2/3 compatibility
+from builtins import object  # pylint:disable=redefined-builtin
+from builtins import str     # pylint:disable=redefined-builtin
 
 import requests
 from cobra.mit.request import RestError
@@ -21,22 +27,30 @@ from cobra.mit.request import RestError
 
 class RestAccess(object):
 
+    """Rest access object.
+
+    The implementation of of REST access for ACI.
+    """
+
     def __init__(self, session):
+        """Initialize an instance of RestAccess."""
         self._session = session
         self._requests = requests.Session()
 
     @staticmethod
     def responseIsOk(response):
-        """Check if the response from the remote server is ok
+        """Check if the response from the remote server is ok.
 
         Returns:
           bool: True if the response did not indicate an error, False otherwise
         """
+        # pylint:disable=no-member
         return response.status_code == requests.codes.ok
 
     def get(self, request):
-        """Return data from the server for the given request on the
-        given session
+        """Query the server.
+
+        Return data from the server for the given request on the given session.
 
         Args:
           request (cobra.mit.request.AbstractQuery): The query object
@@ -59,9 +73,10 @@ class RestAccess(object):
         return str(rsp.text)
 
     def post(self, request):
-        """Return data from the server for the given request on the
-        given session by posting the data in the request object, the response
-        is parsed for errors.
+        """Return data from the server.
+
+        For the given request on the session, return POST data from the
+        server.  The response is parsed for errors.
 
         Args:
           request (cobra.mit.request.AbstractRequest): The request object
@@ -77,8 +92,10 @@ class RestAccess(object):
         uriPathAndOptions = request.getUriPathAndOptions(self._session)
         headers = self._session.getHeaders(uriPathAndOptions, None)
         rsp = self._requests.post(request.getUrl(self._session),
+                                  headers=headers,
                                   **request.requestargs(self._session))
         # handle a redirect, for example from http to https
+        # pylint:disable=no-member
         while rsp.status_code in (requests.codes.moved, requests.codes.found):
             loc = rsp.headers['Location']
             uriPathAndOptions = request.getUriPathAndOptions(self._session)
