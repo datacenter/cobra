@@ -183,7 +183,7 @@ class CertSessionObject(object):
             self.gen_cert_subprocess()
 
     @staticmethod
-    def writeFile(fileDir=None, fileName=None, fileData=None, mode="wt"):
+    def writeFile(fileDir=None, fileName=None, fileData=None, mode="wb"):
         """
         Write data to a file
         """

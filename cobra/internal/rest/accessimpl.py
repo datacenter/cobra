@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from builtins import object
+from builtins import str
 
 import requests
 from cobra.mit.request import RestError
@@ -54,8 +55,8 @@ class RestAccess(object):
                                  headers=headers, verify=self._session.secure,
                                  timeout=self._session.timeout)
         if not self.responseIsOk(rsp):
-            raise RestError(0, rsp.text.encode('utf-8'), rsp.status_code)
-        return rsp.text.encode('utf-8')
+            raise RestError(0, str(rsp.text), rsp.status_code)
+        return str(rsp.text)
 
     def post(self, request):
         """Return data from the server for the given request on the
@@ -85,5 +86,5 @@ class RestAccess(object):
             return self.post(request)
 
         if not self.responseIsOk(rsp):
-            raise RestError(0, rsp.text.encode('utf-8'), rsp.status_code)
-        return rsp.text.encode('utf-8')
+            raise RestError(0, str(rsp.text), rsp.status_code)
+        return str(rsp.text)
