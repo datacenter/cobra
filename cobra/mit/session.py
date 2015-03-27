@@ -91,31 +91,69 @@ class AbstractSession(object):
 
     @property
     def secure(self):
+        """Get the secure value.
+
+        Returns:
+          bool: True if the certificate for remote device should be verified,
+            False otherwise.
+        """
         return self.__secure
 
     @property
     def timeout(self):
+        """Get the request timeout value.
+
+        Returns:
+          int: The time a request is allowed to take before an error is raised.
+        """
         return self.__timeout
 
     @property
     def url(self):
+        """Get the URL for the remote system.
+
+        Returns:
+          str: The URl for the remote system.
+        """
         return self.__controllerUrl
 
     @url.setter
-    def url(self, value):
-        # Allow setting of the controller URL to be able to handle redirects
-        self.__controllerUrl = value
+    def url(self, url):
+        """Set the URL for the remote system.
+
+        This is primarily used to handle redirects.
+
+        Args:
+          url (str): The URL to use for the controller.
+        """
+        self.__controllerUrl = url
 
     @property
     def formatType(self):
+        """Get the format type for this session.
+
+        Returns:
+          int: The format type represented as an integer
+        """
         return self.__format
 
     @property
     def formatStr(self):
+        """Get the format string for this session.
+
+        Returns:
+          str: The formatType represented as a string.  Currently this is
+            either 'xml' or 'json'.
+        """
         return 'xml' if self.__format == AbstractSession.XML_FORMAT else 'json'
 
     @property
     def codec(self):
+        """Get the codec being used for this session.
+
+        Returns:
+          cobra.mit.codec.AbstractCodec: The codec being used for this session.
+        """
         return self.__codec
 
     def login(self):
@@ -255,38 +293,89 @@ class LoginSession(AbstractSession):
 
     @property
     def user(self):
+        """Get the username being used for this session.
+
+        This can not be changed.  If you need to change the session username,
+        instantiate a new session object.
+
+        Returns:
+          str: The username for this session.
+        """
         return self._user
 
     @property
     def password(self):
+        """Get the password being used for this session.
+
+        This can not be changed. if you need to change the session password,
+        instantiate a new session object.
+
+        Returns:
+          str: The session password.
+        """
         return self._password
 
     @property
     def cookie(self):
+        """Get the session cookie value.
+
+        Returns:
+          str: The value of the session cookie.
+        """
         return self._cookie
 
     @cookie.setter
     def cookie(self, cookie):
+        """Set the cookie for the session.
+
+        Args:
+          cookie (str): The value to set the cookie to.
+        """
         self._cookie = cookie
 
     @property
     def challenge(self):
+        """Get the challenge key value.
+
+        Returns:
+          str: The challeng key value.
+        """
         return self._challenge
 
     @challenge.setter
     def challenge(self, challenge):
+        """Set the challenge key.
+
+        Args:
+          challenge (str): The value to set the challenge key to.
+        """
         self._challenge = challenge
 
     @property
     def version(self):
+        """Get the version.
+
+        Returns:
+          str: The version returned by the login request.
+        """
         return self._version
 
     @property
     def refreshTime(self):
+        """Get the refresh time.
+
+        Returns:
+          int: The refresh time returned by the login request.
+        """
         return self._refreshTime
 
     @property
     def refreshTimeoutSeconds(self):
+        """Get the refresh timeout in seconds.
+
+        Returns:
+          int: The refresh timeout in seconds returned by the login request.
+        """
         return self._refreshTimeoutSeconds
 
     # pylint:disable=unused-argument
@@ -339,6 +428,15 @@ class LoginSession(AbstractSession):
         self._parseResponse(rsp)
 
     def _parseResponse(self, rsp):
+        """Parse a response to a LoginRequest or a RefreshRequest.
+
+        Args:
+          rsp (str): the response, currently only JSON is supported.
+
+        Raises:
+          LoginError: If there was no data found in the response, or the
+            response could not be parsed.
+        """
         rspDict = json.loads(rsp)
         data = rspDict.get('imdata', None)
         if not data:
@@ -424,10 +522,20 @@ class CertSession(AbstractSession):
 
     @property
     def certificateDn(self):
+        """Get the certificateDn for the user for this session.
+
+        Returns:
+          str: The certifcate Dn for this session.
+        """
         return self.__certificateDn
 
     @property
     def privateKey(self):
+        """Get the private key for this session.
+
+        Returns:
+          str: The private key as a string.
+        """
         return self.__privateKey
 
     def getHeaders(self, uriPathAndOptions, data):
@@ -523,6 +631,24 @@ class CertSession(AbstractSession):
     # this should probably be refactored at some point.
     # pylint:disable=too-many-locals
     def _generateSignature(self, uri, data, forceManual=False):
+        """Generate a signature over the uri and data.
+
+        This signature is used to authenticate with the APIC and must be
+        calculated for each transaction because the signature is calculated
+        using the uri and data if any.
+
+        Args:
+          uri (str): The string that represents the URI for the transaction.
+            The uri is everything from api to the end of the options.
+          data (str): The payload for the request that will be sent.
+          forceManual (bool): If True, the signature will be calculated using
+            subprocess to execute openssl commands, otherwise pyOpenSSL is
+            used.
+
+        Returns:
+          str: A string containing the cookie that should be used in the
+            request.
+        """
         # One global that is not changing in the rest of the file is ok
         global INLINE_SIGNATURE  # pylint:disable=global-statement
         # Added for easier testing of each signature generation method

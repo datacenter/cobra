@@ -171,14 +171,29 @@ class Rn(object):
 
     @property
     def namingVals(self):
+        """Get the naming vals for this Rn as an iterator
+
+        Returns:
+          iterator: The naming vals for this Rn.
+        """
         return iter(self.__namingVals)
 
     @property
     def meta(self):
+        """Get the meta object for this Rn.
+
+        Returns:
+          cobra.mit.meta.ClassMeta: The meta object for this Rn.
+        """
         return self.__meta
 
     @property
     def moClass(self):
+        """Get the Mo class from the meta for this Rn.
+
+        Returns:
+          cobra.mit.mo.Mo: The Mo class from the meta for this Rn.
+        """
         return self.__meta.getClass()
 
     def __lt__(self, other):
@@ -200,26 +215,29 @@ class Rn(object):
         return str(self) >= str(other)
 
     def __str__(self):
-        """
-        Returns the string form of the Rn
+        """Returns the string form of the Rn.
 
-        :returns: string form of the Rn
-        :rtype: str
+        Returns:
+          str: The string form of the Rn.
         """
         if not self.__rnStr:
             self.__rnStr = self.__makeRnStr()
         return self.__rnStr
 
     def __hash__(self):
-        """
-        Returns the hash code for the Rn
+        """Returns the hash code for the Rn.
 
-        :returns: hash code for the Rn
-        :rtype: int
+        Returns:
+          int: hash code for the Rn
         """
         return hash(str(self))
 
     def __makeRnStr(self):
+        """Build a Rn string based on the naming props from the meta if any.
+
+        Returns:
+          str: The string that represents this rn.
+        """
         if self.__meta.namingProps:
             namingProps = {}
             namingValsIter = iter(self.__namingVals)
@@ -270,18 +288,39 @@ class Dn(object):
 
     @property
     def rns(self):
+        """Get the Rn's that make up this Dn as an iterator.
+
+        Returns:
+          iterator: An iterator object reprsenting the Rn's for this Dn.
+        """
         return iter(self.__rns)
 
     @property
     def meta(self):
+        """Get the meta object for this Dn.
+
+        Returns:
+          cobra.mit.meta.ClassMeta: The class meta for this Dn.
+        """
         return self.__meta
 
     @property
     def moClass(self):
+        """Get the Mo class for this Dn.
+
+        Returns:
+          cobra.mit.mo.Mo: The Mo class for this Dn.
+        """
         return self.__class
 
     @property
     def contextRoot(self):
+        """Get the Dn's context root.
+
+        Returns:
+          None: If the Dn has no context root.
+          cobra.mit.meta.ClassMeta: The class meta for this Dn's Rn.
+        """
         for rn in reversed(self.__rns):
             if rn.meta.isContextRoot:
                 return rn.meta
@@ -514,6 +553,11 @@ class Dn(object):
         return hash(str(self))
 
     def __makeDn(self):
+        """Make a Dn string from the rns in this Dn.
+
+        Returns:
+          str: The Dn string for this Dn object.
+        """
         rnStrs = []
         for rn in self.__rns:
             rnStrs.append(str(rn))
@@ -521,6 +565,17 @@ class Dn(object):
 
     @classmethod
     def __splitDnStr(cls, dnStr):
+        """Split Dn strings into Rn strings.
+
+        Args:
+          dnStr (str): The Dn string to split
+
+        Raises:
+          ValueError: If the Dn has unbalanced delimiters
+
+        Returns:
+          list: A list of Rn strings.
+        """
         rnStrs = []
         rnStr = ""
         delimCount = 0
@@ -547,6 +602,16 @@ class Dn(object):
 
     @classmethod
     def __findChild(cls, pMeta, rnStr):
+        """Find the child given the parent  meta and Rn string.
+
+        Args:
+          pMeta (cobra.mit.meta.ClassMeta): The parent classes meta object.
+          rnStr (str): A string for the Rn of the child that should be found.
+
+        Returns:
+          None: If no child is found.
+          cobra.mit.meta.ClassMeta: The child's meta object.
+        """
         # This method assumes that the childNamesAndRnPrefix in the meta
         # is sorted with longest prefix first. This will allow us to match
         # child prefixes that are sub strings. For example 'ac' and 'action'

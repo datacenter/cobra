@@ -293,9 +293,15 @@ class ClassMeta(object):
 
         @property
         def names(self):
+            """Get the list of class names contained by the class container."""
             return list(self._classes.keys())
 
         def add(self, className):
+            """Add a class to the class container.
+
+            Args:
+              className (str): The name of the class to add to the container.
+            """
             self._classes[className] = None
 
         def __init__(self):
@@ -326,10 +332,21 @@ class ClassMeta(object):
             self._props = {}
 
         def add(self, propName, propMeta):
+            """Add a property to the property container.
+
+            Args:
+              propName (str): The name of the property.
+              propMeta (cobra.mit.meta.PropMeta): The property meta object.
+            """
             self._props[propName] = propMeta
 
         @property
         def names(self):
+            """Get the list of property names.
+
+            Returns:
+              list: The list of property names in the property container.
+            """
             return list(self._props.keys())
 
         def __getitem__(self, propName):
@@ -589,11 +606,25 @@ class PropMeta(object):
         return False
 
     def _addConstant(self, const, label, value):
+        """Add a constant to the constants list.
+
+        Args:
+          const (str): The string that uniquely identifies the constant.
+          label (str): The label for the constant.
+          value:  The value the const is defined to represent.
+        """
         self.constants[const] = Constant(const, label, value)
         self.constsToLabels[const] = label
         self.labelsToConsts[label] = const
 
     def _addValidator(self, validator):
+        """Append a validator to the validators list.
+
+        Not currently used.
+
+        Args:
+          validator: A validator for the property.
+        """
         self._validators.append(validator)
 
     def __str__(self):
