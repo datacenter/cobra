@@ -90,9 +90,8 @@ class RestAccess(object):
             request
         """
         uriPathAndOptions = request.getUriPathAndOptions(self._session)
-        headers = self._session.getHeaders(uriPathAndOptions, None)
+        self._session.getHeaders(uriPathAndOptions, None)
         rsp = self._requests.post(request.getUrl(self._session),
-                                  headers=headers,
                                   **request.requestargs(self._session))
         # handle a redirect, for example from http to https
         # pylint:disable=no-member
