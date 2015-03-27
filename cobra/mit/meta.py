@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from builtins import str
-from builtins import next
-from builtins import object
+"""The meta module for the ACI Python SDK (cobra)."""
+
+from builtins import str     # pylint:disable=redefined-builtin
+from builtins import next    # pylint:disable=redefined-builtin
+from builtins import object  # pylint:disable=redefined-builtin
 
 import importlib
 
@@ -27,14 +29,14 @@ class Category(object):
     categories are defined in the ACI model package for ever MO property.
     """
     def __init__(self, name, categoryId):
-        """Initialize a MO property category
-        
+        """Initialize a MO property category.
+
         Args:
           name (str): The name of the category
           categoryId (int): The integer representing the category id
         """
         self.name = name
-        self.id = categoryId
+        self.id = categoryId  # pylint:disable=invalid-name
 
     def __str__(self):
         return self.name
@@ -97,8 +99,8 @@ class ClassLoader(object):
 
     @classmethod
     def loadClass(cls, fqClassName):
-        """Load a class from a fully qualified name
-        
+        """Load a class from a fully qualified name.
+
         Args:
           fqClassName (str): A fully qualified class name as in
             package.module.class.  For example: cobra.model.pol.Uni
@@ -112,10 +114,11 @@ class ClassLoader(object):
         return getattr(module, className)
 
 
+# pylint:disable=too-many-instance-attributes
 class ClassMeta(object):
 
     """Represents a classes metadata.
-    
+
     Attributes:
       className (str): The class name for the meta
 
@@ -185,8 +188,8 @@ class ClassMeta(object):
       ctxRoot (None or cobra.mit.mo.Mo): The context root for this class.
     """
     def __init__(self, className):
-        """Initialize a ClassMeta instance
-        
+        """Initialize a ClassMeta instance.
+
         Args:
           className (str): The class name for this meta object
         """
@@ -232,15 +235,15 @@ class ClassMeta(object):
         return ClassLoader.loadClass(self.className)
 
     def hasContextRoot(self):
-        """Check if the meta has a context root
-        
+        """Check if the meta has a context root.
+
         Returns:
           boo: True if the meta has a context root and False otherwise
         """
         ctxRoot = self.getContextRoot()
         return ctxRoot and ctxRoot != self
 
-    def getContextRoot(self, pStack=set()):
+    def getContextRoot(self, pStack=None):
         """Get the meta's context root
 
         Args:
@@ -249,6 +252,8 @@ class ClassMeta(object):
         Returns:
           None or cobra.mit.mo.Mo: The class of the context root
         """
+        if pStack is None:
+            pStack = set()
         if self.isContextRoot:
             return self
         elif self.ctxRoot:
@@ -268,7 +273,13 @@ class ClassMeta(object):
         return None
 
     class _ClassContainer(object):
+
+        """A class that defines a container for Mo classes."""
+
         class LazyIter(object):
+
+            """A class that defines an iterator that has a lazy nature."""
+
             def __init__(self, container):
                 self._container = container
                 self._classNames = iter(container.names)
@@ -277,7 +288,7 @@ class ClassMeta(object):
                 nextClassName = next(self._classNames)
                 return self._container[nextClassName]
 
-            def __iter__(self):
+            def __iter__(self):  # pylint:disable=non-iterator-returned
                 return self
 
         @property
@@ -303,10 +314,14 @@ class ClassMeta(object):
         def __len__(self):
             return len(self._classes)
 
-        def __iter__(self):
+        def __iter__(self):  # pylint:disable=non-iterator-returned
+            # pylint:disable=protected-access
             return ClassMeta._ClassContainer.LazyIter(self)
 
     class _PropContainer(object):
+
+        """A class that defines a container for Mo properties."""
+
         def __init__(self):
             self._props = {}
 
@@ -345,8 +360,8 @@ class SourceRelationMeta(ClassMeta):
     N_TO_M = object()
 
     def __init__(self, className, targetClassName):
-        """Initialize a source relationship meta object
-        
+        """Initialize a source relationship meta object.
+
         Args:
           className (str): The source Mo class name for the relationship
           targetClassName (str): The target class name for the relationship
@@ -368,8 +383,8 @@ class SourceRelationMeta(ClassMeta):
 
 
 class NamedSourceRelationMeta(SourceRelationMeta):
-    """The meta data for a named source relationship object"""
-    
+    """The meta data for a named source relationship object."""
+
     def __init__(self, className, targetClassName):
         """Initialize a named source relationship meta object
 
@@ -384,8 +399,8 @@ class NamedSourceRelationMeta(SourceRelationMeta):
 
 
 class TargetRelationMeta(ClassMeta):
-    """The meta data for a target object in a relationship"""
-    
+    """The meta data for a target object in a relationship."""
+
     def __init__(self, className, sourceClassName):
         """Initialize a target relationship meta object
 
@@ -400,7 +415,7 @@ class TargetRelationMeta(ClassMeta):
 
     def getSourceClass(self):
         """Import and return the source class
-        
+
         Returns:
           cobra.mit.mo.Mo: The source class
         """
@@ -411,8 +426,8 @@ class Constant(object):
     """A class to represent constants for properties."""
 
     def __init__(self, const, label, value):
-        """Initialize a constant object
-        
+        """Initialize a constant object.
+
         Args:
           const (str): The constant string that can be used for the property
           label (str): The label for this constant
@@ -444,9 +459,10 @@ class Constant(object):
         return self.const >= other.const
 
 
+#pylint:disable=too-many-instance-attributes
 class PropMeta(object):
-    """The meta data for properties of managed objects
-    
+    """The meta data for properties of managed objects.
+
     Attributes:
       typeClass (str): The class of the property
 
@@ -506,8 +522,8 @@ class PropMeta(object):
         labels to the constants consts
     """
     def __init__(self, typeClassName, name, moPropName, propId, category):
-        """Initialize a PropMeta instance
-        
+        """Initialize a PropMeta instance.
+
         Args:
           typeClassName (str): The class for the type of python object that
             should be used to represent this property
@@ -518,7 +534,7 @@ class PropMeta(object):
         self.typeClass = typeClassName  # Load this dynamically
         self.name = name
         self.moPropName = moPropName
-        self.id = None
+        self.id = propId  # pylint:disable=invalid-name
         self.category = category
         self.help = None
         self.label = None
@@ -543,7 +559,8 @@ class PropMeta(object):
 
         self._validators = []
 
-    def makeValue(self, value):
+    @staticmethod
+    def makeValue(value):
         """
         Create a property using a value.
 
@@ -556,8 +573,8 @@ class PropMeta(object):
         return value
 
     def isValidValue(self, value):
-        """Check a value against the validators in the meta
-        
+        """Check a value against the validators in the meta.
+
         Args:
           value (str): The value to check
 

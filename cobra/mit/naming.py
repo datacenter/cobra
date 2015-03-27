@@ -12,20 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from builtins import next
-from builtins import str
-from builtins import object
+"""The naming module for the ACI Python SDK (cobra)."""
+
+from builtins import next    # pylint:disable=redefined-builtin
+from builtins import str     # pylint:disable=redefined-builtin
+from builtins import object  # pylint:disable=redefined-builtin
 
 from cobra.mit.meta import ClassLoader
 from collections import deque
 
 
 class Rn(object):
+
     """The relative name (Rn) of the managed object (MO).
-    
+
     You can use Rn to convert between Rn of an MO its constituent naming
     values. The string form of Rn is {prefix}{val1}{prefix2}{Val2} (...)
-    
+
     Note:
       The naming value is enclosed in brackets ([]) if the meta object
       specifies that properties be delimited.
@@ -34,7 +37,7 @@ class Rn(object):
       namingVals (tupleiterator): An interator for the naming values - readonly
 
       meta (cobra.mit.meta.ClassMeta): The class meta for this Rn - readonly
-      
+
       moClass (cobra.mit.mo.Mo): The class of the Mo for this Rn - readonly
     """
 
@@ -54,12 +57,25 @@ class Rn(object):
           cobra.mit.naming.Rn: The Rn object
         """
         def findBalancedPropDelims(rn, start):
+            """Find the matching closing naming value property delimitor.
+            Args:
+              rn (str): The Rn as a string.
+              start (int): The character location in the Rn to start parsing
+                at.
+
+            Raises:
+              ValueError: If a closing naming property delimiter is found
+                before a matching opening naming property delimiter.
+
+            Returns:
+              int: The character location in rn where the naming property ends.
+            """
             stk = deque()
             first = True
             end = start
             # loop through the rnStr looking for [ and append them to the deque
             # and ] and pop them off the deque, once things are balanced return
-            # that character as the end of the Rn.
+            # that character location as the end of the Rn.
             while end < len(rn):
                 if not first and len(stk) == 0:
                     return end
@@ -78,7 +94,18 @@ class Rn(object):
                 end += 1
             return -1
 
+        # pylint:disable=too-many-branches
         def parseNamingProps(meta, rn):
+            """Parse the naming properties into a list.
+
+            Args:
+              meta (cobra.mit.meta.PropMeta): The property meta object.
+              rn (cobra.mit.naming.Rn): The relative name to parse for naming
+                properties.
+
+            Returns:
+              list: A list of naming properties.
+            """
             rnFormat = meta.rnFormat
             if not len(meta.namingProps):
                 if rn == rnFormat:
@@ -214,7 +241,7 @@ class Dn(object):
     from the top of the Mit to the Mo.
 
     dn = "uni/userext/user-john"
-    
+
     Attributes:
       rns (listiterator): Iterator for all the rns from topRoot to the target
         Mo
@@ -300,16 +327,24 @@ class Dn(object):
           cobra.mit.naming.Dn: Dn object of the common parent if any, else Dn
             for topRoot
         """
-        def allRnsEqual(allDns, i):
+        def allRnsEqual(allDns, idx):
+            """Check if all Rn's a specific level are equal
+
+            Args:
+              allDns (list): The Dn objects that will be used in the comparison
+              idx (int): The index of the Rn in the Dn's to compare
+            Returns:
+              bool: True if the Rn's are equal up to the idx for every Dn in
+                allDns
+            """
             firstRn = None
             for eachDn in allDns:
-                currentRn = eachDn.__rns[i]
+                currentRn = eachDn.__rns[idx]  #pylint:disable=protected-access
                 if firstRn is None:
                     firstRn = currentRn
                 else:
                     if firstRn != currentRn:
                         return False
-
             # All Rns at this level are equal
             return True
 
@@ -319,6 +354,7 @@ class Dn(object):
             return dns[0]
 
         index = 0
+        # pylint:disable=protected-access
         maxLen = min([len(dn.__rns) for dn in dns])
         while index < maxLen:
             if allRnsEqual(dns, index):
@@ -327,12 +363,12 @@ class Dn(object):
                 break
         if index == 0:
             return Dn()
-        rns = dns[0].__rns
+        rns = dns[0].__rns  # pylint:disable=protected-access
         return Dn(rns[:index])
 
     def rn(self, index=None):
         """Get a Rn at a specified index
-        
+
         If index is None, then the Rn of the target Mo is returned
 
         Args:
@@ -361,8 +397,8 @@ class Dn(object):
 
     def getParent(self):
         """Get the parent Dn of the current Dn
-        
-        Same as::
+
+        Same as:
 
             self.getAncetor(1)
 
@@ -384,7 +420,7 @@ class Dn(object):
 
     def appendRn(self, rn):
         """ Append an Rn to this Dn
-        
+
         Note:
           This changes the target MO
 
@@ -433,7 +469,7 @@ class Dn(object):
 
     def __len__(self):
         """ Get the length of the Dn
-        
+
         The length is the number of Rns in this Dn
 
         Returns:

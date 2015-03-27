@@ -79,10 +79,8 @@ class UploadPackage(AbstractRequest):
         Returns:
           dict: A dictionary containing the arguments
         """
-        uriPathandOptions = self.getUriPathAndOptions(session)
-        headers = session.getHeaders(uriPathandOptions, self.data)
         kwargs = {
-            'headers': headers,
+            'headers': self.getHeaders(session),
             'verify': session.secure,
             'files': {
                 'file': self.data

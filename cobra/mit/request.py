@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from builtins import str
-from builtins import object
+"""The request module for the ACI Python SDK (cobra)."""
+
+from builtins import str     # pylint:disable=redefined-builtin
+from builtins import object  # pylint:disable=redefined-builtin
 
 import json
 from cobra.mit.naming import Dn
@@ -22,8 +24,9 @@ from cobra.internal.codec.xmlcodec import toXMLStr
 
 
 class AbstractRequest(object):
-    """Abstract base class for all other request types
-    
+
+    """Abstract base class for all other request types.
+
     Attributes:
       options (str): The HTTP request query string for this object - readonly
 
@@ -36,7 +39,7 @@ class AbstractRequest(object):
 
     def __init__(self):
         self.__options = {}
-        self.id = None
+        self.id = None  # pylint:disable=invalid-name
         self.__uriBase = ""
 
     @classmethod
@@ -73,16 +76,35 @@ class AbstractRequest(object):
         return "%s.%s%s%s" % (self.uriBase, session.formatStr,
                               '?' if self.options else '', self.options)
 
+    def getHeaders(self, session, data=None):
+        """Get the headers for the session.
+
+        The data may be needed if a signature is needed to be calculated for
+        a transaction.
+
+        Args:
+          session (cobra.mit.session.AbstractSession): The session
+            the headers should be for.
+          data (str, optional): The data for the request.  The default is None
+
+        Returns:
+          dict: A dictionary with the headers for the session.
+        """
+        uriPathandOptions = self.getUriPathAndOptions(session)
+        # Data is needed for CertSession where the payload is used to calculate
+        # a signature.
+        return session.getHeaders(uriPathandOptions, data)
+
     @property
     def options(self):
         return AbstractRequest.makeOptions(self.__options)
 
     @property
-    def id(self):
+    def id(self):  # pylint:disable=invalid-name
         return self.__options.get('_dc', None)
 
     @id.setter
-    def id(self, value):
+    def id(self, value):  # pylint:disable=invalid-name
         self.__options['_dc'] = value
 
     @property
@@ -96,7 +118,7 @@ class AbstractRequest(object):
 
 class AbstractQuery(AbstractRequest):
     """Abstract base class for a query.
-    
+
     Attributes:
       options (str): The HTTP request query string for this object - readonly
 
@@ -158,13 +180,13 @@ class AbstractQuery(AbstractRequest):
         * children - Only the children objects
         * full - A full subtree
 
-      replica (int): The replica option can direct a query to a specific replica.
-        The possible values are:
+      replica (int): The replica option can direct a query to a specific
+        replica.  The possible values are:
 
         * 1
         * 2
         * 3
-        
+
       id (None or int): An internal troubleshooting value useful for tracing
         the processing of a request within the cluster
 
@@ -223,8 +245,8 @@ class AbstractQuery(AbstractRequest):
                          'relations', 'stats', 'tasks', 'count', 'no-scoped',
                          'required'}
         allValues = value.split(',')
-        for v in allValues:
-            if v not in allowedValues:
+        for val in allValues:
+            if val not in allowedValues:
                 raise ValueError('"%s" is invalid, valid values are "%s"' %
                                  (value, str(allowedValues)))
         self.__options['rsp-subtree-include'] = value
@@ -313,10 +335,8 @@ class LoginRequest(AbstractRequest):
         return json.dumps(userJson, sort_keys=True)
 
     def requestargs(self, session):
-        uriPathandOptions = self.getUriPathAndOptions(session)
-        headers = session.getHeaders(uriPathandOptions, self.data)
         kwargs = {
-            'headers': headers,
+            'headers': self.getHeaders(session, self.data),
             'verify': session.secure,
             'data': self.data,
             'timeout': session.timeout,
@@ -329,6 +349,7 @@ class LoginRequest(AbstractRequest):
 
 
 class RefreshRequest(AbstractRequest):
+
     """
     Session refresh request for standard user/password based authentication
     """
@@ -343,8 +364,9 @@ class RefreshRequest(AbstractRequest):
 
 
 class DnQuery(AbstractQuery):
+
     """Query based on distinguished name (Dn).
-    
+
     Attributes:
       options (str): The HTTP request query string string for this DnQuery
         object - readonly
@@ -409,13 +431,13 @@ class DnQuery(AbstractQuery):
         * children - Only the children objects
         * full - A full subtree
 
-      replica (int): The replica option can direct a query to a specific replica.
-        The possible values are:
+      replica (int): The replica option can direct a query to a specific
+        replica.  The possible values are:
 
         * 1
         * 2
         * 3
-        
+
       id (None or int): An internal troubleshooting value useful for tracing
         the processing of a request within the cluster
 
@@ -425,7 +447,7 @@ class DnQuery(AbstractQuery):
 
     def __init__(self, dn):
         """Initialize a DnQuery object
-        
+
         Args:
           dn (str or cobra.mit.naming.Dn): The Dn to query
         """
@@ -523,13 +545,13 @@ class ClassQuery(AbstractQuery):
         * children - Only the children objects
         * full - A full subtree
 
-      replica (int): The replica option can direct a query to a specific replica.
-        The possible values are:
+      replica (int): The replica option can direct a query to a specific
+        replica.  The possible values are:
 
         * 1
         * 2
         * 3
-        
+
       id (None or int): An internal troubleshooting value useful for tracing
         the processing of a request within the cluster
 
@@ -539,7 +561,7 @@ class ClassQuery(AbstractQuery):
 
     def __init__(self, className):
         """Initialize a ClassQuery instance
-        
+
         Args:
           className (str): The className to query for
         """
@@ -578,7 +600,7 @@ class TraceQuery(AbstractQuery):
         object - readonly
 
       targetClass (str): The targetClass for this trace query
-      
+
       dnStr (str): The base Dn string for this trace query
 
       propInclude (str): the current response property include filter.
@@ -639,13 +661,13 @@ class TraceQuery(AbstractQuery):
         * children - Only the children objects
         * full - A full subtree
 
-      replica (int): The replica option can direct a query to a specific replica.
-        The possible values are:
+      replica (int): The replica option can direct a query to a specific
+        replica.  The possible values are:
 
         * 1
         * 2
         * 3
-        
+
       id (None or int): An internal troubleshooting value useful for tracing
         the processing of a request within the cluster
 
@@ -702,7 +724,7 @@ class TagsRequest(AbstractRequest):
 
     This class does both setting of tags (request) and retrieving of tags
     (query).
-    
+
     Attributes:
       options (str): The HTTP request query string string for this DnQuery
         object - readonly
@@ -724,7 +746,7 @@ class TagsRequest(AbstractRequest):
 
     def __init__(self, dn, add=None, remove=None):
         """Initialize a tags query/request object
-        
+
         Args:
           dn (str or cobra.mit.naming.Dn): The base Dn for this request/query
 
@@ -739,7 +761,7 @@ class TagsRequest(AbstractRequest):
         self.remove = [] if remove is None else remove
 
     @property
-    def data(self):
+    def data(self):  # pylint:disable=no-self-use
         return str({})
 
     @property
@@ -778,10 +800,8 @@ class TagsRequest(AbstractRequest):
         Returns:
           dict: The arguments
         """
-        uriPathandOptions = self.getUriPathAndOptions(session)
-        headers = session.getHeaders(uriPathandOptions, self.data)
         kwargs = {
-            'headers': headers,
+            'headers': self.getHeaders(session, self.data),
             'verify': session.secure,
             'timeout': session.timeout,
             'data': self.data
@@ -815,7 +835,7 @@ class AliasRequest(AbstractRequest):
 
     This class does both setting of aliases (request) and retrieving of aliases
     (query).
-    
+
     Attributes:
       options (str): The HTTP request query string string for this DnQuery
         object - readonly
@@ -841,7 +861,7 @@ class AliasRequest(AbstractRequest):
         self.alias = alias
 
     @property
-    def data(self):
+    def data(self):  # pylint:disable=no-self-use
         return str({})
 
     @property
@@ -874,10 +894,8 @@ class AliasRequest(AbstractRequest):
         Returns:
           dict: The arguments
         """
-        uriPathandOptions = self.getUriPathAndOptions(session)
-        headers = session.getHeaders(uriPathandOptions, self.data)
         kwargs = {
-            'headers': headers,
+            'headers': self.getHeaders(session, self.data),
             'verify': session.secure,
             'timeout': session.timeout,
             'data': self.data
@@ -906,7 +924,7 @@ class ConfigRequest(AbstractRequest):
     """Change the configuration
 
     :py:func:`cobra.mit.access.MoDirectory.commit` function uses this class.
-    
+
     Attributes:
       options (str): The HTTP request query string string for this DnQuery
         object - readonly
@@ -914,7 +932,7 @@ class ConfigRequest(AbstractRequest):
       data (str): The payload for this request in JSON format - readonly
 
       xmldata (str): The payload for this request in XML format - readonly
-      
+
       subtree (str): The response subtree filter can be used to define what
         objects you want in the response.  The possible values are:
 
@@ -978,11 +996,9 @@ class ConfigRequest(AbstractRequest):
         Returns:
           dict: The arguments
         """
-        uriPathandOptions = self.getUriPathAndOptions(session)
         data = self.xmldata if session.formatStr == 'xml' else self.data
-        headers = session.getHeaders(uriPathandOptions, data)
         kwargs = {
-            'headers': headers,
+            'headers': self.getHeaders(session, data),
             'verify': session.secure,
             'timeout': session.timeout,
             'data': str(data)
@@ -1037,22 +1053,30 @@ class ConfigRequest(AbstractRequest):
 
     def getRootMo(self):
         """Get the Root Mo for this configuration request
-        
+
         Returns:
           None or cobra.mit.mo.Mo: The root Mo for the config request
         """
         def addDescendantMo(rMo, descendantMo):
+            """Add a descendant to a root Mo (rMo)
+
+            Args:
+              rMo (cobra.mit.mo.Mo): The root Mo to add the descendant to.
+              descendantMo (cobra.mit.mo.Mo): The descendant to add to the root
+                Mo.
+            """
             rDn = rMo.dn
             descendantDn = descendantMo.dn
             parentDn = descendantDn.getParent()
             while rDn != parentDn:
-                # This is a descendant. make the parent mo
+                # This is a descendant.  Make the parent mo.
                 parentMo = ConfigRequest.__getMoForDnInFlatTree(parentDn,
                                                                 flatTreeDict)
+                # pylint:disable=protected-access
                 parentMo._attachChild(descendantMo)
                 descendantMo = parentMo
                 parentDn = parentDn.getParent()
-            rMo._attachChild(descendantMo)
+            rMo._attachChild(descendantMo)  # pylint:disable=protected-access
 
         if self.__rootMo:
             return self.__rootMo
@@ -1096,7 +1120,7 @@ class ConfigRequest(AbstractRequest):
             return None
         dnStr = str(rootMo.dn)
         return "%s/%s.%s%s%s" % (self.uriBase, dnStr, session.formatStr,
-                              '?' if self.options else '', self.options)
+                                 '?' if self.options else '', self.options)
 
     def getUrl(self, session):
         """Get the URL containing all the query options
@@ -1117,7 +1141,8 @@ class ConfigRequest(AbstractRequest):
         This method lookup for the given dn in a tree, if there is not any
         entry for that dn, it use the given mo or it creates a new mo.
         """
-        return flatTree.setdefault(dn, mo if mo else ConfigRequest.__makeMoFromDn(dn))
+        return flatTree.setdefault(dn, mo if mo else
+                                   ConfigRequest.__makeMoFromDn(dn))
 
     @staticmethod
     def __makeMoFromDn(dn):
@@ -1129,7 +1154,7 @@ class ConfigRequest(AbstractRequest):
 
 class MultiQuery(AbstractQuery):
     """Perform a multiquery
-    
+
     Attributes:
       options (str): The HTTP request query string string for this DnQuery
         object - readonly
@@ -1194,13 +1219,13 @@ class MultiQuery(AbstractQuery):
         * children - Only the children objects
         * full - A full subtree
 
-      replica (int): The replica option can direct a query to a specific replica.
-        The possible values are:
+      replica (int): The replica option can direct a query to a specific
+        replica.  The possible values are:
 
         * 1
         * 2
         * 3
-        
+
       id (None or int): An internal troubleshooting value useful for tracing
         the processing of a request within the cluster
 
@@ -1210,7 +1235,7 @@ class MultiQuery(AbstractQuery):
 
     def __init__(self, target):
         """Initialize a MultiQuery instance
-        
+
         Args:
         target (str): The target for this MultiQuery
         """
@@ -1320,8 +1345,8 @@ class TroubleshootingQuery(MultiQuery):
     def include(self, value):
         allowedValues = {'topo', 'services', 'stats', 'faults', 'events'}
         allValues = value.split(',')
-        for v in allValues:
-            if v not in allowedValues:
+        for val in allValues:
+            if val not in allowedValues:
                 raise ValueError('"%s" is invalid, valid values are "%s"' %
                                  (value, str(allowedValues)))
         self.__options['include'] = value
@@ -1389,6 +1414,7 @@ class RestError(Exception):
 
           httpCode (int): The HTTP response code
         """
+        super(RestError, self).__init__(reasonStr)
         self.reason = reasonStr
         self.error = errorCode
         self.httpCode = httpCode
@@ -1432,7 +1458,7 @@ class QueryError(RestError):
     """
     def __init__(self, errorCode, reasonStr, httpCode=None):
         """Initialize a QueryError instance
-        
+
         Args:
           errorCode (int): The REST error code for the exception
 

@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from builtins import str
-from builtins import object
+"""The session module for the ACI Python SDK (cobra)."""
+
+from builtins import str     # pylint:disable=redefined-builtin
+from builtins import object  # pylint:disable=redefined-builtin
 
 try:
     from OpenSSL.crypto import FILETYPE_PEM, load_privatekey, sign
 
-    inlineSignature = True
+    INLINE_SIGNATURE = True
 except ImportError:
-    inlineSignature = False
+    INLINE_SIGNATURE = False
 
 # Always import these just for tests
 import os
@@ -39,9 +41,9 @@ from cobra.mit.request import LoginRequest, RefreshRequest, RestError
 
 class AbstractSession(object):
     """Abstract session class
-    
+
     Other sessions classes should derive from this class.
-    
+
     Attributes:
       secure (bool): Only used for https. If True the remote server will be
         verified for authenticity.  If False the remote server will not be
@@ -60,7 +62,7 @@ class AbstractSession(object):
 
     def __init__(self, controllerUrl, secure, timeout, requestFormat):
         """Initialize an AbstractSession instance
-        
+
         Args:
           controllerURL (str): The URL to reach the controller or fabric node
           secure (bool): Only used for https. If True the remote server will be
@@ -118,7 +120,7 @@ class AbstractSession(object):
 
     def login(self):
         """Login to the remote server.
-        
+
         A generic login method that should be overridden by classes that derive
         from this class
         """
@@ -126,7 +128,7 @@ class AbstractSession(object):
 
     def logout(self):
         """Logout from the remote server.
-        
+
         A generic logout method that should be overridden by classes that
         derive from this class
         """
@@ -134,7 +136,7 @@ class AbstractSession(object):
 
     def refresh(self):
         """Refresh the session to the remote server.
-        
+
         A generic refresh method that should be overridden by classes that
         derive from this class
         """
@@ -167,18 +169,19 @@ class AbstractSession(object):
 
 class LoginError(Exception):
     """Represents exceptions that occur during logging in
-    
+
     These exceptions usually involve a timeout or invalid authentication
     parameters
     """
 
     def __init__(self, errorCode, reasonStr):
         """Initialize a LoginError instance
-        
+
         Args:
           errorCode (int): The error code for the exception
           reasonStr (str): A string indicating why the exception occurred
         """
+        super(LoginError, self).__init__(reasonStr)
         self.error = errorCode
         self.reason = reasonStr
 
@@ -188,10 +191,10 @@ class LoginError(Exception):
 
 class LoginSession(AbstractSession):
     """A login session with a username and password
-    
+
     Note:
       The username and password are stored in memory.
-      
+
     Attributes:
       user (str): The username to use for this session - readonly
 
@@ -210,7 +213,7 @@ class LoginSession(AbstractSession):
 
       refreshTimeoutSeconds (str or None): The number of seconds for which this
         session is valid - readonly
-        
+
       secure (bool): Only used for https. If True the remote server will be
         verified for authenticity.  If False the remote server will not be
         verified for authenticity - readonly
@@ -228,7 +231,7 @@ class LoginSession(AbstractSession):
     def __init__(self, controllerUrl, user, password, secure=False, timeout=90,
                  requestFormat='xml'):
         """Initialize a LoginSession instance
-        
+
         Args:
           controllerURL (str): The URL to reach the controller or fabric node
           user (str): The username to use to authenticate
@@ -286,9 +289,10 @@ class LoginSession(AbstractSession):
     def refreshTimeoutSeconds(self):
         return self._refreshTimeoutSeconds
 
+    # pylint:disable=unused-argument
     def getHeaders(self, uriPathAndOptions, data):
         """Get the HTTP headers for a given URI path and options string
-        
+
         Args:
           uriPathAndOptions (str): The full URI path including the
             options string
@@ -331,7 +335,7 @@ class LoginSession(AbstractSession):
             the response could not be parsed.
         """
         refreshRequest = RefreshRequest(self.cookie)
-        rsp = self.accessimpl.get(refreshRequest)
+        rsp = self._accessimpl.get(refreshRequest)
         self._parseResponse(rsp)
 
     def _parseResponse(self, rsp):
@@ -362,7 +366,7 @@ class LoginSession(AbstractSession):
 
 class CertSession(AbstractSession):
     """A session using a certificate dn and private key to generate signatures
-    
+
     Attributes:
       certificateDn (str): The distingushed name (Dn) for the users X.509
         certificate - readonly
@@ -401,7 +405,7 @@ class CertSession(AbstractSession):
     def __init__(self, controllerUrl, certificateDn, privateKey, secure=False,
                  timeout=90, requestFormat='xml'):
         """Initialize a CertSession instance
-        
+
         Args:
           controllerURL (str): The URL to reach the controller or fabric node
           certificateDn (str): The distinguished name of the users certificate
@@ -428,7 +432,7 @@ class CertSession(AbstractSession):
 
     def getHeaders(self, uriPathAndOptions, data):
         """Get the HTTP headers for a given URI path and options string
-        
+
         Args:
           uriPathAndOptions (str): The full URI path including the
             options string
@@ -447,7 +451,7 @@ class CertSession(AbstractSession):
         pass
 
     def logout(self):
-        """logout method has no relevancy for this class but is included for 
+        """logout method has no relevancy for this class but is included for
         consistency.
         """
         pass
@@ -476,7 +480,7 @@ class CertSession(AbstractSession):
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
-        out, error = proc.communicate()
+        out, error = proc.communicate()  # pylint:disable=unused-variable
         if proc.returncode != 0:
             raise subprocess.CalledProcessError(proc.returncode,
                                                 " ".join(cmd),
@@ -516,12 +520,14 @@ class CertSession(AbstractSession):
             fileData = aFile.read()
         return fileData
 
+    # this should probably be refactored at some point.
+    # pylint:disable=too-many-locals
     def _generateSignature(self, uri, data, forceManual=False):
         # One global that is not changing in the rest of the file is ok
-        global inlineSignature
+        global INLINE_SIGNATURE  # pylint:disable=global-statement
         # Added for easier testing of each signature generation method
         if forceManual:
-            inlineSignature = False
+            INLINE_SIGNATURE = False
 
         privateKeyStr = str(self.privateKey)
         certDn = str(self.certificateDn)
@@ -530,7 +536,7 @@ class CertSession(AbstractSession):
             uri = uri[:-1]
         uri = uri.replace('//', '/')
 
-        if inlineSignature:
+        if INLINE_SIGNATURE:
             if data is None:
                 payLoad = 'GET' + uri
             else:
@@ -551,8 +557,8 @@ class CertSession(AbstractSession):
             if data is None:
                 self.writeFile(payloadFile, mode="wt", fileData='GET' + uri)
             else:
-                self.writeFile(payloadFile, mode="wt", fileData='POST' + uri +
-                                                                data)
+                self.writeFile(payloadFile, mode="wt",
+                               fileData='POST' + uri + data)
             tmpFiles.append(payloadFile)
 
             self.writeFile(fileName=keyFile, mode="w", fileData=privateKeyStr)
@@ -574,11 +580,11 @@ class CertSession(AbstractSession):
             for fileName in tmpFiles:
                 try:
                     os.remove(fileName)
-                except:
+                except:  # pylint:disable=bare-except
                     pass
                 try:
                     os.rmdir(tempDir)
-                except:
+                except:  # pylint:disable=bare-except
                     pass
 
         cookieFmt = ("  APIC-Request-Signature=%s;" +
