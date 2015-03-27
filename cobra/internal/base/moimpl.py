@@ -216,6 +216,14 @@ class BaseMo(object):
                 return iter(list(self._childObjects.values()))
 
             def _checkKey(self, key, mo):
+                """Check if a key is valid.
+
+                Args:
+                  key (str): The key to check for validity for this
+                    child container.
+                  mo (cobra.mit.mo.Mo): The mo to verify that the key is
+                    correct.
+                """
                 meta = self._childClass.meta
                 numNamingProps = len(meta.namingProps)
                 namingVals = []
@@ -256,6 +264,12 @@ class BaseMo(object):
                 self._currentContainer = None
 
             def __next__(self):
+                """Implement next().
+
+                Returns:
+                  cobra.mit.internal.base.moimpl.BaseMo._ChildContainer: The
+                  next child container.
+                """
                 if self._currentContainer is None:
                     # If no more containers this statement will throw an
                     # StopIteration exception and we exit else we move on
@@ -269,6 +283,12 @@ class BaseMo(object):
                     return next(self)
 
             def __iter__(self):
+                """Implement iter().
+
+                Returns:
+                  iterator: The child iterator.
+                """
+                # pylint:disable=non-iterator-returned
                 return self
 
         def __init__(self, classMeta):
@@ -284,6 +304,27 @@ class BaseMo(object):
             self._classContainers = {}
 
         def _getChildContainer(self, childPrefix, lookup=False):
+            """Get a child container based on prefix.
+
+            This is called in two situations, looking up the child container
+            when modifying a child and looking up a child container when
+            accessing a child as an attribute, for example fvTenantObj.name.
+            The second situation is considered a "lookup" operation and are
+            handled differently because the child prefix changes depending
+            on how this method is called.
+
+            Args:
+              childPrefix (str): The prefix for the child's Rn.
+              lookup (bool, optional): If true the operation is considered a
+                lookup and the child's Rn prefix is not expected to contain a
+                trailing hyphen if there are naming properties, if False the
+                rn prefix is expected to have a trailing hyphen if there are
+                naming properties.
+
+            Returns:
+              cobra.internal.base.moimpl.BaseMo._ChildContainer: The child
+              container with the specified childPrefix.
+            """
             classContainer = self._classContainers.get(childPrefix, None)
             if classContainer is None:
                 for childClass in self._classMeta.childClasses:
@@ -315,10 +356,20 @@ class BaseMo(object):
             return classContainer
 
         def __iter__(self):
+            """Get the child iterator.
+
+            Returns:
+              iterator: The child iterator.
+            """
             # pylint:disable=non-iterator-returned
             return BaseMo._ChildContainer._ChildIter(self._classContainers)
 
         def __len__(self):
+            """Get the number of children.
+
+            Returns:
+              int: The number of children.
+            """
             numChildren = 0
             for classContainer in self._classContainers:
                 numChildren += len(classContainer)
@@ -391,6 +442,14 @@ class BaseMo(object):
             self.__parentMo.__modifyChild(self, attach=True)
 
     def __getattr__(self, attrName):
+        """Get an attribute.
+
+        A custom getattr for Mo's is used to allow attributes on BaseMo to
+        be returned if the attribute does not exist on the Mo.
+
+        Args:
+          attrName (str): The attribute name.
+        """
         if attrName in self.meta.props:
             # need to do lazy initialization of this prop to default value
             propMeta = self.meta.props[attrName]
@@ -404,6 +463,18 @@ class BaseMo(object):
         return self.__children._getChildContainer(attrName, True)
 
     def __setattr__(self, attrName, attrValue):
+        """Set an attribute.
+
+        A custom setattr for Mo's is used to allow attributes on BaseMo to
+        be set if the attributes does not exist on the Mo.
+
+        Args:
+          attrName (str): The attribute name.
+          attrValue:  The attribute value
+
+        Raises:
+          AttributeError: If the attribute (property) can not be found.
+        """
         if attrName in self.meta.props:
             propMeta = self.meta.props[attrName]
             self.__setprop(propMeta, attrName, attrValue)
@@ -414,6 +485,24 @@ class BaseMo(object):
 
     def __setprop(self, propMeta, propName, propValue, markDirty=True,
                   forced=False):
+        """Set a property for this Mo.
+
+        Args:
+          propMeta (cobra.mit.meta.PropMeta): The property meta object
+          propName (str): The name of the property
+          propValue:  The value that the property should be set to.
+          markDirty (bool, optional): If True the property will be marked as
+            dirty and not yet committed.  If False the property will not be
+            marked as dirty.  The default is True.
+          forced (bool, optional): If True the property will be set even if
+            it is a create only property.  If False, trying to set a create
+            only property will result in an exception.
+
+        Raises:
+          ValueError: If the property is a Dn property or the property is a
+            Rn property or if the property is a create only property and
+            forced is False.
+        """
         value = propMeta.makeValue(propValue)
         if propMeta.isDn:
             raise ValueError("dn cannot be set")
@@ -431,10 +520,18 @@ class BaseMo(object):
             self.__dirtyProps.add(propName)
 
     def __setModified(self):
+        """Set the Mo status to modified."""
         self.__status.onBit(MoStatus.MODIFIED)
         self.__dirtyProps.add('status')
 
     def __modifyChild(self, childMo, attach):
+        """Modify the child of this Mo.
+
+        Args:
+          childMo (cobra.mit.mo.Mo): The child to modify.
+          attach (bool): If True the child is attached to this Mo, otherwise
+            the child container is deleted.
+        """
         childMeta = childMo.meta
         namingVals = []
         for nPropMeta in childMeta.namingProps:
@@ -459,6 +556,13 @@ class BaseMo(object):
                 del childContainer[nvKey]
 
     def _setParent(self, parentMo):
+        """Set the parent of this Mo.
+
+        Initializes the parent Mo if it is not already initialized.
+
+        Args:
+          parentMo (cobra.mit.mo.Mo): The parent Mo.
+        """
         self.__parentMo = parentMo
         if parentMo is not None:
             self.__parentDn = parentMo.dn.clone()
@@ -466,6 +570,13 @@ class BaseMo(object):
             self.__parentDn = None
 
     def _attachChild(self, childMo):
+        """Attach a child to this Mo.
+
+        If the child is already attached to parent it is detached first.
+
+        Args:
+          childMo (cobra.mit.mo.Mo): The child Mo.
+        """
         pMo = childMo.parent
         if pMo is not None:
             # Detach from the current parent
@@ -475,6 +586,14 @@ class BaseMo(object):
         childMo._setParent(self)
 
     def _detachChild(self, childMo):
+        """Detach a child Mo from this parent Mo.
+
+        Args:
+          childMo (cobra.mit.mo.Mo): The child Mo.
+
+        Raises:
+          ValueError: If the parent of the child Mo is not this Mo.
+        """
         if childMo.parent != self:
             raise ValueError('%s is not attached to %s' % (str(self.dn),
                                                            str(childMo.dn)))
@@ -482,41 +601,95 @@ class BaseMo(object):
         childMo._setParent(None)
 
     def _delete(self):
+        """Mark this Mo as deleted."""
         self.__status.clear()
         self.__status.onBit(MoStatus.DELETED)
         self.__dirtyProps.add('status')
 
     def _dn(self):
+        """Get the Dn for this Mo.
+
+        Initializes the Dn if it wasn't already intialized.
+
+        Returns:
+          cobra.mit.naming.Dn: The Dn of this Mo.
+        """
         if self.__dn is None:
             self.__dn = self._parentDn().clone()
             self.__dn.appendRn(self.__rn)
         return self.__dn
 
     def _rn(self):
+        """Get the Rn for this Mo.
+
+        Returns:
+          cobra.mit.naming.Rn: The Rn for this Mo.
+        """
         return self.__rn
 
     def _status(self):
+        """Get the status of this Mo.
+
+        Returns:
+          cobra.internal.base.moimpl.MoStatus: The status of this Mo.
+        """
         return self.__status
 
     def _parentDn(self):
+        """Get the Dn for the parent of this Mo.
+
+        Initializes the parent Dn if it wasn't initilized yet.
+
+        Returns:
+          cobra.mit.naming.Dn: The Dn of the parent of this Mo.
+        """
         if self.__parentDn is None:
             self.__parentDn = Dn.fromString(self.__parentDnStr)
         return self.__parentDn
 
     def _parent(self):
+        """Get the parent Mo for this Mo.
+
+        Returns:
+          cobra.mit.mo.Mo: The parent Mo for this Mo.
+        """
         return self.__parentMo
 
     def _dirtyProps(self):
+        """Get the dirty props for the Mo.
+
+        Returns:
+          iterator: An iterator for the dirty properties for the Mo.
+        """
         return iter(self.__dirtyProps)
 
     def _children(self):
+        """Get the children of the Mo.
+
+        Returns:
+          iterator: An iterator for the children of the Mo.
+        """
         return iter(self.__children)
 
     def _numChildren(self):
+        """Get the number of children of the Mo.
+
+        Returns:
+          int: The number of children.
+        """
         return len(self.__children)
 
     def _resetProps(self):
+        """Mark all properties as clean."""
         self.__dirtyProps = set()
 
     def _isPropDirty(self, propName):
+        """Check if the given propName is marked as dirty.
+
+        Args:
+          propName (str): The property name.
+
+        Returns:
+          bool: True if the propName is dirty, false otherwise.
+        """
         return propName in self.__dirtyProps
