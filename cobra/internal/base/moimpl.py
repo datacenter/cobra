@@ -177,6 +177,7 @@ class BaseMo(object):
 
     """The internal Base Managed Object."""
 
+    # pylint:disable=too-few-public-methods
     class _ChildContainer(object):
 
         """An internal container object for child objects."""
@@ -341,6 +342,7 @@ class BaseMo(object):
                         # Do not overwrite the classContainer for a lookup
                         # operation
                         if not lookup:
+                            # pylint:disable=protected-access
                             classContainer = \
                                 BaseMo._ChildContainer._ClassContainer(
                                     childClass)
@@ -361,7 +363,7 @@ class BaseMo(object):
             Returns:
               iterator: The child iterator.
             """
-            # pylint:disable=non-iterator-returned
+            # pylint:disable=non-iterator-returned,protected-access
             return BaseMo._ChildContainer._ChildIter(self._classContainers)
 
         def __len__(self):
@@ -439,6 +441,7 @@ class BaseMo(object):
                 self.__dirtyProps.add(name)
 
         if self.__parentMo:
+            # pylint:disable=protected-access
             self.__parentMo.__modifyChild(self, attach=True)
 
     def __getattr__(self, attrName):
@@ -460,6 +463,7 @@ class BaseMo(object):
 
         # We got this call because properties did not match, so look for
         # child class containers
+        # pylint:disable=protected-access
         return self.__children._getChildContainer(attrName, True)
 
     def __setattr__(self, attrName, attrValue):
@@ -483,6 +487,7 @@ class BaseMo(object):
         else:
             raise AttributeError('property "%s" not found' % attrName)
 
+    # pylint:disable=too-many-arguments
     def __setprop(self, propMeta, propName, propValue, markDirty=True,
                   forced=False):
         """Set a property for this Mo.
@@ -537,6 +542,7 @@ class BaseMo(object):
         for nPropMeta in childMeta.namingProps:
             namingVals.append(getattr(childMo, nPropMeta.name))
         childPrefix = childMeta.rnPrefixes[0][0]
+        # pylint:disable=protected-access
         childContainer = self.__children._getChildContainer(childPrefix)
         if len(namingVals) == 0:
             if attach:
@@ -563,8 +569,12 @@ class BaseMo(object):
         Args:
           parentMo (cobra.mit.mo.Mo): The parent Mo.
         """
+        # This attribute is defined in BaseMo
+        # pylint:disable=attribute-defined-outside-init
         self.__parentMo = parentMo
         if parentMo is not None:
+            # This attribute is defined in BaseMo
+            # pylint:disable=attribute-defined-outside-init
             self.__parentDn = parentMo.dn.clone()
         else:
             self.__parentDn = None
@@ -580,9 +590,11 @@ class BaseMo(object):
         pMo = childMo.parent
         if pMo is not None:
             # Detach from the current parent
+            # pylint:disable=protected-access
             pMo._detachChild(childMo)
 
         self.__modifyChild(childMo, True)
+        # pylint:disable=protected-access
         childMo._setParent(self)
 
     def _detachChild(self, childMo):
@@ -598,6 +610,7 @@ class BaseMo(object):
             raise ValueError('%s is not attached to %s' % (str(self.dn),
                                                            str(childMo.dn)))
         self.__modifyChild(childMo, False)
+        # pylint:disable=protected-access
         childMo._setParent(None)
 
     def _delete(self):
@@ -614,7 +627,11 @@ class BaseMo(object):
         Returns:
           cobra.mit.naming.Dn: The Dn of this Mo.
         """
+        # This attribute is defined in BaseMo
+        # pylint:disable=access-member-before-definition
         if self.__dn is None:
+            # This attribute is defined in BaseMo
+            # pylint:disable=attribute-defined-outside-init
             self.__dn = self._parentDn().clone()
             self.__dn.appendRn(self.__rn)
         return self.__dn
@@ -644,6 +661,8 @@ class BaseMo(object):
           cobra.mit.naming.Dn: The Dn of the parent of this Mo.
         """
         if self.__parentDn is None:
+            # This attribute is defined in BaseMo
+            # pylint:disable=attribute-defined-outside-init
             self.__parentDn = Dn.fromString(self.__parentDnStr)
         return self.__parentDn
 
@@ -681,6 +700,8 @@ class BaseMo(object):
 
     def _resetProps(self):
         """Mark all properties as clean."""
+        # This attribute is defined in BaseMo
+        # pylint:disable=attribute-defined-outside-init
         self.__dirtyProps = set()
 
     def _isPropDirty(self, propName):
