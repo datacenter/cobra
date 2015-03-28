@@ -92,7 +92,6 @@ def fromJSONDict(moDict):
     return allMos
 
 
-# pylint:disable=too-many-locals
 def _createMo(moClassName, moData, parentMo):
     """Create a Mo given a class name, some data and a parent Mo.
 
@@ -154,7 +153,7 @@ def __toJSONDict(mo, includeAllProps=False, excludeChildren=False):
     for propMeta in meta.props:
         moPropName = propMeta.moPropName
         value = getPropValue(mo, propMeta, includeAllProps)
-        if value != None:
+        if value is not None:
             attrDict[moPropName] = {}
             attrDict[moPropName] = str(value)
 

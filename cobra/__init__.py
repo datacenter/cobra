@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""The ACI Python SDK (cobra)"""
+"""The ACI Python SDK (cobra)."""
 
 try:
     import pkg_resources

@@ -23,11 +23,13 @@ import importlib
 
 
 class Category(object):
-    """Category class for Managed Object (MO) class meta or property meta
+
+    """Category class for Managed Object (MO) class meta or property meta.
 
     Used to classify MOs or MO properties into various categories. The
     categories are defined in the ACI model package for ever MO property.
     """
+
     def __init__(self, name, categoryId):
         """Initialize a MO property category.
 
@@ -39,9 +41,11 @@ class Category(object):
         self.id = categoryId  # pylint:disable=invalid-name
 
     def __str__(self):
+        """Implement str()."""
         return self.name
 
     def __lt__(self, other):
+        """Implement <."""
         if isinstance(other, Category):
             return self.id < other.id
         elif isinstance(other, int):
@@ -50,6 +54,7 @@ class Category(object):
             return str(self.name) < other
 
     def __le__(self, other):
+
         if isinstance(other, Category):
             return self.id <= other.id
         elif isinstance(other, int):

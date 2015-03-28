@@ -71,6 +71,7 @@ def parseMoClassName(className):
         klass = ""
     return (pkg, klass)
 
+
 def buildMo(pyClass, moProps, parentMo, parentDnStr):
     """Build a Mo by calling pyClass.
 
@@ -101,8 +102,9 @@ def buildMo(pyClass, moProps, parentMo, parentDnStr):
     mo.resetProps()
     return mo
 
+
 def getPropValue(mo, propMeta, includeAllProps):
-    """Get a Mo property value
+    """Get a Mo property value.
 
     Args:
       mo (cobra.mit.mo.Mo): The Mo for the attribute.

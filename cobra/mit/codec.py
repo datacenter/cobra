@@ -28,13 +28,14 @@ class MoCodec(object):
     """
 
     def __init__(self):
+        """Instantiate a MoCodec instance."""
         pass
 
     def fromStr(self, moStr):
         """Implement this method to convert an moStr into Mo.
 
         Args:
-            moStr (str): mo in string format.
+          moStr (str): mo in string format.
 
         Raises:
           NotImplementedError: This method should be overriden by classes that
@@ -46,7 +47,7 @@ class MoCodec(object):
         """Implement this method to convert an moStr into Mo.
 
         Args:
-            moStream (str): mo in string format read from the stream.
+          moStream (str): mo in string format read from the stream.
 
         Raises:
           NotImplementedError: This method should be overriden by classes that
@@ -59,13 +60,13 @@ class MoCodec(object):
         """Convert mo into it's string format.
 
         Args:
-            mo (cobra.mit.mo.Mo): mo to be converted.
-            includeAllProps (bool, optional): True if Dn and Rn are required to
-              be included in to output.  The default is False.
-            prettyPrint (bool, optional): True if output needs to be human
-              readable.  The default is False.
-            excludeChildren (bool, optional): True if child mo objects need not
-              be included in the output.  The default is False.
+          mo (cobra.mit.mo.Mo): mo to be converted.
+          includeAllProps (bool, optional): True if Dn and Rn are required to
+            be included in to output.  The default is False.
+          prettyPrint (bool, optional): True if output needs to be human
+            readable.  The default is False.
+          excludeChildren (bool, optional): True if child mo objects need not
+            be included in the output.  The default is False.
 
         Raises:
           NotImplementedError: This method should be overriden by classes that
@@ -103,10 +104,10 @@ class XMLMoCodec(MoCodec):
         """Convert an xml formatted string into a mo.
 
         Args:
-            moStr (str): mo in xml format
+          moStr (str): mo in xml format
 
         Returns:
-            list: A list of managed objects converted from the xml
+          list: A list of managed objects converted from the xml
         """
         return fromXMLStr(moStr)
 
@@ -114,28 +115,28 @@ class XMLMoCodec(MoCodec):
         """Convert an xml stream into a mo.
 
         Args:
-            moStream (str): mo in xml format read from the stream.
+          moStream (str): mo in xml format read from the stream.
 
         Returns:
-            list: A list of managed objects converted from the xml.
+          list: A list of managed objects converted from the xml.
         """
         return fromXMLStream(moStream)
 
     def toStr(self, mo, includeAllProps=False, prettyPrint=False,
               excludeChildren=False):
-        """Convert the mo into xml format
+        """Convert the mo into xml format.
 
         Args:
-            mo (cobra.mit.mo.Mo): mo to be converted.
-            includeAllProps (bool, optional): True if Dn and Rn are required to
-              be included in to output.  The default is False.
-            prettyPrint (bool, optional): True if output needs to be human
-              readable.  The default is False.
-            excludeChildren (bool, optional): True if child mo objects need not
-              be included in the output.  The default is False.
+          mo (cobra.mit.mo.Mo): mo to be converted.
+          includeAllProps (bool, optional): True if Dn and Rn are required to
+            be included in to output.  The default is False.
+          prettyPrint (bool, optional): True if output needs to be human
+            readable.  The default is False.
+          excludeChildren (bool, optional): True if child mo objects need not
+            be included in the output.  The default is False.
 
         Returns:
-            str: string representing the mo in xml format
+          str: string representing the mo in xml format
         """
         return toXMLStr(mo, includeAllProps, prettyPrint, excludeChildren)
 
@@ -145,10 +146,10 @@ class XMLMoCodec(MoCodec):
         The exception that will be raised should be defined by the error class.
 
         Args:
-            errorStr (str): xml formatted error string to be parsed.
-            errorClass (class): class instance to be raised for this error.
-            httpCode (int, optional): optional http code to be included in the
-              error.  The default is None.
+          errorStr (str): xml formatted error string to be parsed.
+          errorClass (class): class instance to be raised for this error.
+          httpCode (int, optional): optional http code to be included in the
+            error.  The default is None.
         """
         parseXMLError(errorStr, errorClass, httpCode)
 
@@ -158,16 +159,17 @@ class JSONMoCodec(MoCodec):
     """A JSON codec to convert Mo to and from XML format."""
 
     def __init__(self):
+        """Instantiate a JSONMoCodec instance."""
         super(JSONMoCodec, self).__init__()
 
     def fromStr(self, moStr):
         """Convert an json formatted string into mo.
 
         Args:
-            moStr (str): mo in json format.
+          moStr (str): mo in json format.
 
         Returns:
-            list: A list of managed objects converted from the json.
+          list: A list of managed objects converted from the json.
         """
         return fromJSONStr(moStr)
 
@@ -175,10 +177,10 @@ class JSONMoCodec(MoCodec):
         """Convert an json stream into mo.
 
         Args:
-            moStream (str): mo in json format read from the stream.
+          moStream (str): mo in json format read from the stream.
 
         Returns:
-            list: A list of managed objects converted from the json.
+          list: A list of managed objects converted from the json.
         """
         jsonStr = moStream.read()
         return self.fromStr(jsonStr)
@@ -188,16 +190,16 @@ class JSONMoCodec(MoCodec):
         """Convert mo into json format.
 
         Args:
-            mo (cobra.mit.mo.Mo): mo to be converted.
-            includeAllProps (bool, optional): True if Dn and Rn are required to
-              be included in to output.  The default is False.
-            prettyPrint (bool, optional): True if output needs to be human
-              readable.  The default is False.
-            excludeChildren (bool, optional): True if child mo objects need not
-              be included in the output.  The default is False.
+          mo (cobra.mit.mo.Mo): mo to be converted.
+          includeAllProps (bool, optional): True if Dn and Rn are required to
+            be included in to output.  The default is False.
+          prettyPrint (bool, optional): True if output needs to be human
+            readable.  The default is False.
+          excludeChildren (bool, optional): True if child mo objects need not
+            be included in the output.  The default is False.
 
         Returns:
-            str: string representing the mo in json format
+          str: string representing the mo in json format
         """
         return toJSONStr(mo, includeAllProps, prettyPrint, excludeChildren)
 
@@ -208,9 +210,9 @@ class JSONMoCodec(MoCodec):
         class
 
         Args:
-            errorStr (str): json formatted error string to be parsed.
-            errorClass (class): class instance to be raised for this error.
-            httpCode (int, optional): optional http code to be included in the
-              error.  The default is None.
+          errorStr (str): json formatted error string to be parsed.
+          errorClass (class): class instance to be raised for this error.
+          httpCode (int, optional): optional http code to be included in the
+            error.  The default is None.
         """
         parseJSONError(errorStr, errorClass, httpCode)

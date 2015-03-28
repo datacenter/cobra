@@ -41,7 +41,6 @@ def parseXMLError(rspStr, errorClass, httpCode=None):
           to will be raised.
         ValueError: If the response can not be parsed.
     """
-
     errorNode = ET.fromstring(rspStr).find('error')
     if errorNode is not None:
         errorStr = errorNode.attrib['text']
@@ -98,7 +97,7 @@ def fromXMLStream(xmlStream):
     xmlRootNode = ET.parse(xmlStream).getroot()
     return _fromXMLRootNode(xmlRootNode)
 
-# pylint:disable=too-many-locals
+
 def _createMo(node, parentMo):
     """Create a managed object.
 
@@ -226,4 +225,3 @@ def _toXMLStr(mo, includeAllProps, excludeChildren=False):
                                             className)
 
     return xmlStr
-
