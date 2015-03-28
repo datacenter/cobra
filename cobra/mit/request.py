@@ -71,7 +71,7 @@ class AbstractRequest(object):
         Args:
           session (cobra.mit.session.AbstractSession): The session object which
             contains information needed to build the URI
-        
+
         Returns:
           str: The URI and options strings
         """
@@ -1698,7 +1698,7 @@ class TroubleshootingQuery(MultiQuery):
 
     def __init__(self, target):
         """Initialize a TroubleshootingQuery instance.
-   
+
         Args:
           target (str) : The target for this TroubleshootingQuery
         """

@@ -18,10 +18,6 @@ from setuptools.command.test import test as TestCommand
 
 
 class PyTest(TestCommand):
-    def __init__(self):
-        self.test_args = None
-        self.test_suit = None
-
     def finalize_options(self):
         TestCommand.finalize_options(self)
         self.test_args = ['--junitxml=unittests.xml']

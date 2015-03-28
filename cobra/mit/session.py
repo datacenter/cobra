@@ -466,7 +466,7 @@ class LoginSession(AbstractSession):
 
 
 class CertSession(AbstractSession):
-    
+
     """A session using a certificate dn and private key to generate signatures.
 
     Attributes:
@@ -566,7 +566,7 @@ class CertSession(AbstractSession):
 
     def logout(self):
         """logout method.
-        
+
         Not relevant for CertSession but is included for consistency.
         """
         pass
@@ -714,12 +714,12 @@ class CertSession(AbstractSession):
             for fileName in tmpFiles:
                 try:
                     os.remove(fileName)
-                except:  # pylint:disable=bare-except
-                    pass # pylint:disable=pointless-except
+                except:   # pylint:disable=bare-except
+                    pass  # pylint:disable=pointless-except
                 try:
                     os.rmdir(tempDir)
-                except:  # pylint:disable=bare-except
-                    pass # pylint:disable=pointless-except
+                except:   # pylint:disable=bare-except
+                    pass  # pylint:disable=pointless-except
 
         cookieFmt = ("  APIC-Request-Signature=%s;" +
                      " APIC-Certificate-Algorithm=v1.0;" +
