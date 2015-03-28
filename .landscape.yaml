@@ -8,6 +8,10 @@ ignore-paths:
 ignore-patterns:
     - (^|/)docs(/|$)
 
+mccabe:
+  disable:
+    - MC0001
+
 pep8:
   disable:
     - N803
