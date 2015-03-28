@@ -97,22 +97,48 @@ class AbstractRequest(object):
 
     @property
     def options(self):
+        """Get the options.
+
+        Returns:
+          str: All the options for this abstract request as a string
+            joined by &'s.
+        """
         return AbstractRequest.makeOptions(self.__options)
 
     @property
     def id(self):  # pylint:disable=invalid-name
+        """Get the id.
+
+        Returns:
+           str: The id for this request.
+        """
         return self.__options.get('_dc', None)
 
     @id.setter
     def id(self, value):  # pylint:disable=invalid-name
+        """Set the id.
+
+        Args:
+          value (str): The id to use for this request.
+        """
         self.__options['_dc'] = value
 
     @property
     def uriBase(self):
+        """Get the base uri.
+
+        Returns:
+          str: A string representing the base URI for this request.
+        """
         return self.__uriBase
 
     @uriBase.setter
     def uriBase(self, value):
+        """Set the base uri.
+
+        Args:
+          value (str): The base uri for this request.
+        """
         self.__uriBase = value
 
 
@@ -200,15 +226,42 @@ class AbstractQuery(AbstractRequest):
 
     @property
     def options(self):
+        """Get the options.
+
+        Returns:
+          str: All the options for this abstract query as a string
+            joined by &'s.
+        """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(AbstractQuery, self).options] if _f])
 
     @property
     def propInclude(self):
+        """Get the property include.
+
+        Returns:
+          str: The property include (rsp-prop-include) value.
+        """
         return self.__options.get('rsp-prop-include', None)
 
     @propInclude.setter
     def propInclude(self, value):
+        """Set the property include value.
+
+        Args:
+          value (str): The value to set the property include to.  Valid values
+            are:
+
+            * _all_
+            * naming-only
+            * config-explicit
+            * config-all
+            * config-only
+            * oper
+
+        Raises:
+          ValueError: If the value is not a valid value.
+        """
         allowedValues = {'_all_', 'naming-only', 'config-explicit',
                          'config-all', 'config-only', 'oper'}
         if value not in allowedValues:
@@ -218,28 +271,76 @@ class AbstractQuery(AbstractRequest):
 
     @property
     def subtreePropFilter(self):
+        """Get the subtree property filter.
+
+        Returns:
+          str: The subtree property filter (rsp-subtree-filter) value.
+        """
         return self.__options.get('rsp-subtree-filter', None)
 
     @subtreePropFilter.setter
     def subtreePropFilter(self, pFilter):
+        """Set the subtree property filter.
+
+        Args:
+          pFilter (str): The subtree property filter.
+        """
         self.__options['rsp-subtree-filter'] = str(pFilter)
 
     @property
     def subtreeClassFilter(self):
+        """Get the the subtree class filter.
+
+        Returns:
+          str: The subtree class filter (rsp-subtree-class)
+        """
         return self.__options.get('rsp-subtree-class', None)
 
     @subtreeClassFilter.setter
     def subtreeClassFilter(self, value):
+        """Set the subtree class filter.
+
+        Args:
+          value (str or list of str):  A list of subtree class filter strings
+            or a string for the subtree class filter.
+        """
         if isinstance(value, list):
             value = ','.join(value)
         self.__options['rsp-subtree-class'] = value
 
     @property
     def subtreeInclude(self):
+        """Get the subtree include
+
+        Returns:
+          str: The subtree include (rsp-subtree-include) value.
+        """
         return self.__options.get('rsp-subtree-include', None)
 
     @subtreeInclude.setter
     def subtreeInclude(self, value):
+        """Set the subtree include
+
+        Args:
+          value (str):  The subtree include value.  Valid values are:
+
+            * audit-logs
+            * event-logs
+            * faults
+            * fault-records
+            * health
+            * health-rcords
+            * deployment-records
+            * relations
+            * stats
+            * tasks
+            * count
+            * no-scoped
+            * required
+
+        Raises:
+          ValueError: If the value is not a valid value.
+        """
         allowedValues = {'audit-logs', 'event-logs', 'faults', 'fault-records',
                          'health', 'health-records', 'deployment-records',
                          'relations', 'stats', 'tasks', 'count', 'no-scoped',
@@ -253,10 +354,27 @@ class AbstractQuery(AbstractRequest):
 
     @property
     def queryTarget(self):
+        """Get the query target.
+
+        Returns:
+          str: The query target (query-target).
+        """
         return self.__options.get('query-target', None)
 
     @queryTarget.setter
     def queryTarget(self, value):
+        """Set the query target
+
+        Args:
+          value (str): The query target value.  The valid values are:
+
+            * self
+            * children
+            * subtree
+
+        Raises:
+          ValueError: If the value is not a valid value.
+        """
         allowedValues = {'self', 'children', 'subtree'}
         if value not in allowedValues:
             raise ValueError('"%s" is invalid, valid values are "%s"' %
@@ -265,10 +383,21 @@ class AbstractQuery(AbstractRequest):
 
     @property
     def classFilter(self):
+        """Get the class filter.
+
+        Returns:
+          str: The class filter (target-subtree-class)
+        """
         return self.__options.get('target-subtree-class', None)
 
     @classFilter.setter
     def classFilter(self, value):
+        """Set the class filter.
+
+        Args:
+          value (str or list of strings): The class filter value as either a
+            string or a list of strings.
+        """
         if not isinstance(value, list):
             value = value.split(',')
 
@@ -278,18 +407,45 @@ class AbstractQuery(AbstractRequest):
 
     @property
     def propFilter(self):
+        """Get the the property filter.
+
+        Returns:
+          str: The property filter (query-target-filter)
+        """
         return self.__options.get('query-target-filter', None)
 
     @propFilter.setter
     def propFilter(self, pFilter):
+        """Set the property filter.
+
+        Args:
+          pFilter (str): The value the property filter should be set to.
+        """
         self.__options['query-target-filter'] = str(pFilter)
 
     @property
     def subtree(self):
+        """Get the subtree.
+
+        Returns:
+          str: The subtree specifier (rsp-subtree).
+        """
         return self.__options.get('rsp-subtree', None)
 
     @subtree.setter
     def subtree(self, value):
+        """Set the subtree specifier.
+
+        Args:
+          value (str): The subtree value can be:
+
+            * no
+            * children
+            * full
+
+        Raises:
+          ValueError: If the value is not a valid value.
+        """
         allowedValues = {'no', 'children', 'full'}
         if value not in allowedValues:
             raise ValueError('"%s" is invalid, valid values are "%s"' %
@@ -298,10 +454,23 @@ class AbstractQuery(AbstractRequest):
 
     @property
     def replica(self):
+        """Get the replica
+
+        Returns:
+          int: The replica option to be set on this query (replica).
+        """
         return self.__options.get('replica', None)
 
     @replica.setter
     def replica(self, value):
+        """Set the replica value
+
+        Args:
+          value (int): The replica value to set.  Valid values are: 1, 2 or 3.
+
+        Raises:
+          ValueError: If the value is not a valid value.
+        """
         allowedValues = set([1, 2, 3])
         if value not in allowedValues:
             raise ValueError('"%s" is invalid, valid values are "%s"' %
@@ -322,6 +491,13 @@ class LoginRequest(AbstractRequest):
 
     @property
     def data(self):
+        """Get the data
+
+        Currently only JSON is supported.
+
+        Returns:
+          str: The data that will be committed as a JSON string.
+        """
         userJson = {
             'aaaUser': {
                 'attributes': {
@@ -335,6 +511,14 @@ class LoginRequest(AbstractRequest):
         return json.dumps(userJson, sort_keys=True)
 
     def requestargs(self, session):
+        """Get the arguments to be used by the HTTP request
+
+        session (cobra.mit.session.AbstractSession): The session to be used to
+          build the the request arguments
+
+        Returns:
+          dict: The arguments
+        """
         kwargs = {
             'headers': self.getHeaders(session, self.data),
             'verify': session.secure,
@@ -345,6 +529,15 @@ class LoginRequest(AbstractRequest):
         return kwargs
 
     def getUrl(self, session):
+        """Get the URL containing all the query options
+
+        Args:
+          session (cobra.mit.session.AbstractSession): The session to use for
+            this query.
+
+        Returns:
+          str: The url
+        """
         return session.url + self.uriBase
 
 
@@ -360,6 +553,15 @@ class RefreshRequest(AbstractRequest):
         self.uriBase = '/api/aaaRefresh.json'
 
     def getUrl(self, session):
+        """Get the URL containing all the query options
+
+        Args:
+          session (cobra.mit.session.AbstractSession): The session to use for
+            this query.
+
+        Returns:
+          str: The url
+        """
         return session.url + self.uriBase
 
 
@@ -458,11 +660,22 @@ class DnQuery(AbstractQuery):
 
     @property
     def options(self):
+        """Get the options.
+
+        Returns:
+          str: All the options for this dn queryas a string
+            joined by &'s.
+        """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(DnQuery, self).options] if _f])
 
     @property
     def dnStr(self):
+        """Get the dn string.
+
+        Returns:
+          str: The dn string for this dn query.
+        """
         return self.__dnStr
 
     def getUrl(self, session):
@@ -572,11 +785,22 @@ class ClassQuery(AbstractQuery):
 
     @property
     def options(self):
+        """Get the options.
+
+        Returns:
+          str: All the options for this class query as a string
+            joined by &'s.
+        """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(ClassQuery, self).options] if _f])
 
     @property
     def className(self):
+        """Get the class name.
+
+        Returns:
+          str: The class name for this class query
+        """
         return self.__className
 
     def getUrl(self, session):
@@ -691,19 +915,41 @@ class TraceQuery(AbstractQuery):
 
     @property
     def options(self):
+        """Get the options.
+
+        Returns:
+          str: All the options for this trace query as a string
+            joined by &'s.
+        """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(TraceQuery, self).options] if _f])
 
     @property
     def targetClass(self):
+        """Get the target class.
+
+        Returns:
+          str: The string representing the target class for this trace query.
+        """
         return self.__options.get('target-class', None)
 
     @targetClass.setter
     def targetClass(self, value):
+        """Set the target class.
+
+        Args:
+          value(str): The string representing the target class for this trace
+            query.
+        """
         self.__options['target-class'] = value.replace('.', '')
 
     @property
     def dnStr(self):
+        """Get the base dn string.
+
+        Returns:
+          str: The string representing the base Dn for this trace query.
+        """
         return self.__dnStr
 
     def getUrl(self, session):
@@ -762,32 +1008,73 @@ class TagsRequest(AbstractRequest):
 
     @property
     def data(self):  # pylint:disable=no-self-use
+        """Get the data
+
+        Currently only JSON is supported
+
+        Returns:
+          str: The data that will be committed as a JSON string.
+        """
         return str({})
 
     @property
     def options(self):
+        """Get the options.
+
+        Returns:
+          str: All the options for this tags request as a string
+            joined by &'s.
+        """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(TagsRequest, self).options] if _f])
 
     @property
     def dnStr(self):
+        """Get the dn string.
+
+        Returns:
+          str: The string representing the Dn that the tags will be committed
+            to.
+        """
         return self.__dnStr
 
     @property
     def remove(self):
+        """Get the remove string.
+
+        Returns:
+          str: The string of tags that will be removed by this request.
+        """
         return self.__options['remove']
 
     @remove.setter
     def remove(self, tags):
+        """Set the remove string
+
+        Args:
+          tags (list or str): The tags to remove via this tags request as a
+            list or comma separated string.
+        """
         tags = self._get_tags_string(tags)
         self.__options['remove'] = tags
 
     @property
     def add(self):
+        """Get the add string.
+
+        Returns:
+          str: The string of tags that will be added by this request.
+        """
         return self.__options['add']
 
     @add.setter
     def add(self, tags):
+        """Set the add string
+
+        Args:
+          tags (list or str): The tags to add via this tags request as a list
+            or comma separated string.
+        """
         tags = self._get_tags_string(tags)
         self.__options['add'] = tags
 
@@ -822,6 +1109,18 @@ class TagsRequest(AbstractRequest):
 
     @staticmethod
     def _get_tags_string(value):
+        """Get the tags string.
+
+        Args:
+          value (list or str): A list of tags or a string of tags comma
+             separated.
+
+        Raises:
+          ValueError: If the value is not a list or a string.
+
+        Returns:
+          str: The tags string.
+        """
         if isinstance(value, list):
             value = ','.join(value)
         elif not isinstance(value, str):
@@ -862,23 +1161,52 @@ class AliasRequest(AbstractRequest):
 
     @property
     def data(self):  # pylint:disable=no-self-use
+        """Get the data
+
+        Currently only JSON is supported.
+
+        Returns:
+          str: The data that will be committed as a JSON string.
+        """
         return str({})
 
     @property
     def options(self):
+        """Get the options.
+
+        Returns:
+          str: All the options for this alias request as a string
+            joined by &'s.
+        """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(AliasRequest, self).options] if _f])
 
     @property
     def dnStr(self):
+        """Get the dnStr
+
+        Returns:
+          str: The dn string for this alias request.
+        """
         return self.__dnStr
 
     @property
     def alias(self):
+        """Get the alias
+
+        Returns:
+          str: The alias if it is set, otherwise an empty string.
+        """
         return self.__options['set']
 
     @alias.setter
     def alias(self, value):
+        """Set the alias
+
+        Args:
+          value (str): The value to set the alias to.  If the value is None or
+            an empty string, the alias is cleared.
+        """
         if value is None or value == "":
             self.__options['clear'] = "yes"
         else:
@@ -903,7 +1231,7 @@ class AliasRequest(AbstractRequest):
         return kwargs
 
     def getUrl(self, session):
-        """Get the URL containing all the query options
+        """Get the URL containing all the query options.
 
         Args:
           session (cobra.mit.session.AbstractSession): The session to use for
@@ -915,7 +1243,7 @@ class AliasRequest(AbstractRequest):
         return session.url + self.getUriPathAndOptions(session)
 
     def clear(self):
-        """Clear the alias"""
+        """Clear the alias."""
         self.__options['set'] = ""
         self.__options['clear'] = "yes"
 
@@ -958,11 +1286,25 @@ class ConfigRequest(AbstractRequest):
 
     @property
     def options(self):
+        """Get the options.
+
+        Returns:
+          str: All the options for this config request as a string
+            joined by &'s.
+        """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(ConfigRequest, self).options] if _f])
 
     @property
     def data(self):
+        """Get the data as JSON
+
+        Raises:
+          CommitError: If no Mo's have been added to this config request.
+
+        Returns:
+          str: The data that will be committed as a JSON string.
+        """
         if self.getRootMo() is None:
             raise CommitError(0, "No mos in config request")
 
@@ -970,6 +1312,14 @@ class ConfigRequest(AbstractRequest):
 
     @property
     def xmldata(self):
+        """Get the data as XML
+
+        Raises:
+          CommitError: If no Mo's ahve been added to this config request.
+
+        Returns:
+          str: The data as a XML string.
+        """
         if self.getRootMo() is None:
             raise CommitError(0, "No mos in config request")
 
@@ -977,10 +1327,27 @@ class ConfigRequest(AbstractRequest):
 
     @property
     def subtree(self):
+        """Get the subtree.
+
+        Returns:
+          str: The subtree specifier.
+        """
         return self.__options.get('rsp-subtree', None)
 
     @subtree.setter
     def subtree(self, value):
+        """Set the subtree specifier.
+
+        Args:
+          value (str): The subtree value can be:
+
+            * no
+            * full
+            * modified
+
+        Raises:
+          ValueError: If the value is not a valid value.
+        """
         allowedValues = {'no', 'full', 'modified'}
         if value not in allowedValues:
             raise ValueError('"%s" is invalid, valid values are "%s"' %
@@ -1146,6 +1513,14 @@ class ConfigRequest(AbstractRequest):
 
     @staticmethod
     def __makeMoFromDn(dn):
+        """Make a managed object from a Dn object.
+
+        Args:
+          dn (cobra.mit.naming.Dn): The Dn to build an Mo from.
+
+        Returns:
+          cobra.mit.mo.Mo: The managed object that the dn represented.
+        """
         klass = dn.moClass
         namingVals = list(dn.rn().namingVals)
         pDn = dn.getParent()
@@ -1246,11 +1621,22 @@ class MultiQuery(AbstractQuery):
 
     @property
     def options(self):
+        """Get the options.
+
+        Returns:
+          str: All the options for this MultiQuery request as a string
+            joined by &'s.
+        """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(MultiQuery, self).options] if _f])
 
     @property
     def target(self):
+        """Get the target
+
+        Returns:
+          str: The target for this MultiQuery request.
+        """
         return self.__target
 
     def getUrl(self, session):
@@ -1315,10 +1701,28 @@ class TroubleshootingQuery(MultiQuery):
 
     @property
     def mode(self):
+        """Get the mode.
+
+        Returns:
+          str: The mode for this troubleshooting request.
+        """
         return self.__options.get('mode', None)
 
     @mode.setter
     def mode(self, value):
+        """Set the mode.
+
+        Args:
+          value (str): The mode for this troubleshooting request.  Valid values
+            are:
+
+            * createsession
+            * interactive
+            * generatereport
+
+        Raises:
+          ValueError: If the value is not a valid value.
+        """
         allowedValues = {'createsession', 'interactive', 'generatereport'}
         if value not in allowedValues:
             raise ValueError('"%s" is invalid, valid values are "%s"' %
@@ -1327,10 +1731,30 @@ class TroubleshootingQuery(MultiQuery):
 
     @property
     def format(self):
+        """Get the format
+
+        Returns:
+          str: The format for this troubleshooting request.
+        """
         return self.__options.get('format', None)
 
     @format.setter
     def format(self, value):
+        """Set the format.
+
+        Args:
+          value (str): The format for this troubleshooting request.  Valid
+            values are:
+
+            * xml
+            * json
+            * txt
+            * html
+            * pdf
+
+        Raises:
+          ValueError: If the value is not a valid value.
+        """
         allowedValues = {'xml', 'json', 'txt', 'html', 'pdf'}
         if value not in allowedValues:
             raise ValueError('"%s" is invalid, valid values are "%s"' %
@@ -1339,10 +1763,29 @@ class TroubleshootingQuery(MultiQuery):
 
     @property
     def include(self):
+        """Get the include value
+
+        Returns:
+          str: The include value for this troubleshooting request.
+        """
         return self.__options.get('include', None)
 
     @include.setter
     def include(self, value):
+        """Set the include property
+
+        Args:
+          value (str): The include value.  Valid values are:
+
+            * topo
+            * services
+            * stats
+            * faults
+            * events
+
+        Raises:
+          ValueError: If the value is not a valid value.
+        """
         allowedValues = {'topo', 'services', 'stats', 'faults', 'events'}
         allValues = value.split(',')
         for val in allValues:
@@ -1353,44 +1796,95 @@ class TroubleshootingQuery(MultiQuery):
 
     @property
     def session(self):
+        """Get the session.
+
+        Returns:
+          str: The session for this troubleshooting request.
+        """
         return self.__options.get('session', None)
 
     @session.setter
     def session(self, value):
+        """Set the session.
+
+        Args:
+          value (str): The session for this troubleshooting request.
+        """
         self.__options['session'] = value
 
     @property
     def srcep(self):
+        """Get the source EP.
+
+        Returns:
+          str: The source EP for this troubleshooting request.
+        """
         return self.__options.get('srcep', None)
 
     @srcep.setter
     def srcep(self, value):
+        """Set the source EP.
+
+        Args:
+          value (str): The source EP for this troubleshooting request.
+        """
         self.__options['srcep'] = value
 
     @property
     def dstep(self):
+        """Get the destination EP.
+
+        Returns:
+          str: The destination EP for this troubleshooting request.
+        """
         return self.__options.get('dstep', None)
 
     @dstep.setter
     def dstep(self, value):
+        """Set the destination EP.
+
+        Args:
+          value (str): The destination EP for this troubleshooting request.
+        """
         self.__options['dstep'] = value
 
 
     @property
     def starttime(self):
+        """Get the start time.
+
+        Returns:
+          str: The start time for the troubleshooting request.
+        """
         return self.__options.get('starttime', None)
 
     @starttime.setter
     def starttime(self, value):
+        """Set the start time
+
+        Args:
+          value (str): The start time for the troubleshooting request.
+        """
         self.__options['starttime'] = value
 
 
     @property
     def endtime(self):
+        """Get the end time.
+
+        Returns:
+          None: If the end time is not set.
+          str: The end time for the troubleshooting request if it is set.
+        """
         return self.__options.get('endtime', None)
 
     @endtime.setter
     def endtime(self, value):
+        """Set the endtime.
+
+        Args:
+          value (str): The end time for a troubleshooting request.
+        """
         self.__options['endtime'] = value
 
 
