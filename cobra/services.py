@@ -23,7 +23,7 @@ import zipfile
 
 class UploadPackage(AbstractRequest):
 
-    """Upload L4-L7 device packages to APIC
+    """Upload L4-L7 device packages to APIC.
 
     Attributes:
       data (str): A string containing the payload for this request in JSON
