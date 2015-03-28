@@ -51,6 +51,7 @@ class Mo(BaseMo):
       contextRoot (None or cobra.mit.mo.Mo): The managed object that is the
         context root for this managed object
     """
+
     def __init__(self, parentMoOrDn, markDirty, *namingVals, **creationProps):
         """Initialize a managed object (MO).
 
@@ -181,14 +182,16 @@ class Mo(BaseMo):
         return BaseMo._isPropDirty(self, propName)
 
     def resetProps(self):
-        """Resets managed object (MO) properties.
+        """Reset the managed object (MO) properties.
 
         This will discard uncommitted changes.
         """
         BaseMo._resetProps(self)
 
     def __getattr__(self, propName):
+        """Implements getattr()."""
         return BaseMo.__getattr__(self, propName)
 
     def __setattr__(self, propName, propValue):
+        """Implements setattr()."""
         BaseMo.__setattr__(self, propName, propValue)

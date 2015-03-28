@@ -12,13 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""The setup.py for the ACI Python SDK (cobra)."""
+
 import sys
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 
 class PyTest(TestCommand):
+
+    """A class to add a command to setup.py for tests."""
+
     def finalize_options(self):
+        """Finalize any testing options."""
         TestCommand.finalize_options(self)
         # pylint:disable=attribute-defined-outside-init
         self.test_args = ['--junitxml=unittests.xml']
@@ -26,6 +32,7 @@ class PyTest(TestCommand):
         self.test_suite = True
 
     def run_tests(self):
+        """Run the tests."""
         # import here, because outside the eggs aren't loaded
         import pytest
         errno = pytest.main(self.test_args)

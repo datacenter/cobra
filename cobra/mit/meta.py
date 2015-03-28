@@ -54,7 +54,7 @@ class Category(object):
             return str(self.name) < other
 
     def __le__(self, other):
-
+        """Implements <=."""
         if isinstance(other, Category):
             return self.id <= other.id
         elif isinstance(other, int):
@@ -63,6 +63,7 @@ class Category(object):
             return str(self.name) <= other
 
     def __eq__(self, other):
+        """Implements ==."""
         if isinstance(other, Category):
             return self.id == other.id
         elif isinstance(other, int):
@@ -71,6 +72,7 @@ class Category(object):
             return str(self.name) == other
 
     def __ne__(self, other):
+        """Implements !=."""
         if isinstance(other, Category):
             return self.id != other.id
         elif isinstance(other, int):
@@ -79,6 +81,7 @@ class Category(object):
             return str(self.name) != other
 
     def __gt__(self, other):
+        """Implements >."""
         if isinstance(other, Category):
             return self.id > other.id
         elif isinstance(other, int):
@@ -87,6 +90,7 @@ class Category(object):
             return str(self.name) > other
 
     def __ge__(self, other):
+        """Implements >=."""
         if isinstance(other, Category):
             return self.id >= other.id
         elif isinstance(other, int):
@@ -96,6 +100,7 @@ class Category(object):
 
 
 class ClassLoader(object):
+
     """Import a class by name.
 
     A convenience class to import classes from a string containing the class
@@ -192,6 +197,7 @@ class ClassMeta(object):
 
       ctxRoot (None or cobra.mit.mo.Mo): The context root for this class.
     """
+
     def __init__(self, className):
         """Initialize a ClassMeta instance.
 
@@ -232,7 +238,7 @@ class ClassMeta(object):
         self.ctxRoot = None
 
     def getClass(self):
-        """Uses the className to import the class for this meta object.
+        """Use the className to import the class for this meta object.
 
         Returns:
           mixed: The imported class for this meta object
@@ -397,7 +403,7 @@ class SourceRelationMeta(ClassMeta):
         self.isExplicit = True
 
     def getTargetClass(self):
-        """Imports and returns the target class for a relationship.
+        """Import and returns the target class for a relationship.
 
         Returns:
           cobra.mit.mo.Mo: The target class
@@ -448,6 +454,7 @@ class TargetRelationMeta(ClassMeta):
 
 
 class Constant(object):
+
     """A class to represent constants for properties."""
 
     def __init__(self, const, label, value):
@@ -463,29 +470,37 @@ class Constant(object):
         self.const = const
 
     def __str__(self):
+        """Implements str()."""
         return self.const
 
     def __lt__(self, other):
+        """Implements <."""
         return self.const < other.const
 
     def __le__(self, other):
+        """Implements <=."""
         return self.const <= other.const
 
     def __eq__(self, other):
+        """Implements ==."""
         return self.const == other.const
 
     def __ne__(self, other):
+        """Implements !=."""
         return self.const != other.const
 
     def __gt__(self, other):
+        """Implements >."""
         return self.const > other.const
 
     def __ge__(self, other):
+        """Implements >=."""
         return self.const >= other.const
 
 
 # pylint:disable=too-many-instance-attributes
 class PropMeta(object):
+
     """The meta data for properties of managed objects.
 
     Attributes:
@@ -546,6 +561,7 @@ class PropMeta(object):
       labelsToConsts (dict): A dictionary mapping the properties constants
         labels to the constants consts
     """
+
     # pylint:disable=too-many-arguments
     def __init__(self, typeClassName, name, moPropName, propId, category):
         """Initialize a PropMeta instance.
@@ -637,25 +653,33 @@ class PropMeta(object):
         self._validators.append(validator)
 
     def __str__(self):
+        """Implements str()."""
         return self.name
 
     def __lt__(self, other):
+        """Implements <."""
         return self.name < other.name
 
     def __le__(self, other):
+        """Implements <=."""
         return self.name <= other.name
 
     def __eq__(self, other):
+        """Implements ==."""
         return self.name == other.name
 
     def __ne__(self, other):
+        """Implements !=."""
         return self.name != other.name
 
     def __gt__(self, other):
+        """Implements >."""
         return self.name > other.name
 
     def __ge__(self, other):
+        """Implements >=."""
         return self.name >= other.name
 
     def __hash__(self):
+        """Implements hash()."""
         return hash(self.name)

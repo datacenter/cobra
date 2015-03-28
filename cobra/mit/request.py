@@ -37,7 +37,8 @@ class AbstractRequest(object):
         requests
     """
 
-    def __init__(self):
+    def __init__(self):	
+        """Instantiate an AbstractRequest instance."""
         self.__options = {}
         self.id = None  # pylint:disable=invalid-name
         self.__uriBase = ""
@@ -145,6 +146,7 @@ class AbstractRequest(object):
 
 
 class AbstractQuery(AbstractRequest):
+
     """Abstract base class for a query.
 
     Attributes:
@@ -546,8 +548,9 @@ class LoginRequest(AbstractRequest):
 
 class RefreshRequest(AbstractRequest):
 
-    """
-    Session refresh request for standard user/password based authentication.
+    """Session refresh request.
+
+    Does standard user/password based authentication.
     """
 
     def __init__(self, cookie):
@@ -696,6 +699,7 @@ class DnQuery(AbstractQuery):
 
 
 class ClassQuery(AbstractQuery):
+
     """Query based on class name.
 
     Attributes:
@@ -821,6 +825,7 @@ class ClassQuery(AbstractQuery):
 
 
 class TraceQuery(AbstractQuery):
+
     """Trace Query using a base Dn and a target class.
 
     Attributes:
@@ -970,6 +975,7 @@ class TraceQuery(AbstractQuery):
 
 
 class TagsRequest(AbstractRequest):
+
     """Hybrid query and request for tags.
 
     This class does both setting of tags (request) and retrieving of tags
@@ -1134,6 +1140,7 @@ class TagsRequest(AbstractRequest):
 
 
 class AliasRequest(AbstractRequest):
+
     """Hybrid query and request for alias support.
 
     This class does both setting of aliases (request) and retrieving of aliases
@@ -1156,6 +1163,7 @@ class AliasRequest(AbstractRequest):
       uriBase (str): The base URI used to build the URL for queries and
         requests
     """
+
     def __init__(self, dn, alias=None):
         """Instantiate an AliasRequest instance."""
         self.__options = {}
@@ -1254,6 +1262,7 @@ class AliasRequest(AbstractRequest):
 
 
 class ConfigRequest(AbstractRequest):
+
     """Change the configuration.
 
     :py:func:`cobra.mit.access.MoDirectory.commit` function uses this class.
@@ -1388,7 +1397,6 @@ class ConfigRequest(AbstractRequest):
             happen if the MO being added does not have a common context root
             with the MOs that are already added to the configuration request
         """
-
         moCtx = mo.contextRoot
         if moCtx is None:
             raise ValueError('mo context not found for {0}'.format(str(mo.dn)))
@@ -1533,6 +1541,7 @@ class ConfigRequest(AbstractRequest):
 
 
 class MultiQuery(AbstractQuery):
+
     """Perform a multiquery.
 
     Attributes:
@@ -1658,6 +1667,7 @@ class MultiQuery(AbstractQuery):
 
 
 class TroubleshootingQuery(MultiQuery):
+
     """Setup a troubleshooting query.
 
     Attributes:
@@ -1892,6 +1902,7 @@ class TroubleshootingQuery(MultiQuery):
 
 
 class RestError(Exception):
+
     """Exceptions that occur due to REST API errors.
 
     Attributes:
@@ -1901,6 +1912,7 @@ class RestError(Exception):
 
       httpCode (int): The HTTP response code
     """
+
     def __init__(self, errorCode, reasonStr, httpCode):
         """Initialize a RestError instance.
 
@@ -1917,10 +1929,12 @@ class RestError(Exception):
         self.httpCode = httpCode
 
     def __str__(self):
+        """Implements str()."""
         return self.reason
 
 
 class CommitError(RestError):
+
     """Exceptions that occur when trying to commit changes.
 
     Attributes:
@@ -1930,6 +1944,7 @@ class CommitError(RestError):
 
       httpCode (int): The HTTP response code
     """
+
     def __init__(self, errorCode, reasonStr, httpCode=None):
         """Initialize a CommitError instance.
 
@@ -1944,6 +1959,7 @@ class CommitError(RestError):
 
 
 class QueryError(RestError):
+
     """Exceptions that occur during queries.
 
     Attributes:

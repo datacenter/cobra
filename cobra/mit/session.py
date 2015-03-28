@@ -40,6 +40,7 @@ from cobra.mit.request import LoginRequest, RefreshRequest, RestError
 
 
 class AbstractSession(object):
+
     """Abstract session class.
 
     Other sessions classes should derive from this class.
@@ -58,6 +59,7 @@ class AbstractSession(object):
       formatStr (str): The format string for the request, either xml or json
         - readonly
     """
+
     XML_FORMAT, JSON_FORMAT = 0, 1
 
     def __init__(self, controllerUrl, secure, timeout, requestFormat):
@@ -214,7 +216,7 @@ class LoginError(Exception):
     """
 
     def __init__(self, errorCode, reasonStr):
-        """Initialize a LoginError instance
+        """Initialize a LoginError instance.
 
         Args:
           errorCode (int): The error code for the exception
@@ -225,6 +227,7 @@ class LoginError(Exception):
         self.reason = reasonStr
 
     def __str__(self):
+        """Implements str()."""
         return self.reason
 
 

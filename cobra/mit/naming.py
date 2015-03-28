@@ -58,6 +58,7 @@ class Rn(object):
         """
         def findBalancedPropDelims(rn, start):
             """Find the matching closing naming value property delimitor.
+
             Args:
               rn (str): The Rn as a string.
               start (int): The character location in the Rn to start parsing
@@ -197,39 +198,37 @@ class Rn(object):
         return self.__meta.getClass()
 
     def __lt__(self, other):
+        """Implements <."""
         return str(self) < str(other)
 
     def __le__(self, other):
+        """Implements <=."""
         return str(self) <= str(other)
 
     def __eq__(self, other):
+        """Implements ==."""
         return str(self) == str(other)
 
     def __ne__(self, other):
+        """Implements !=."""
         return str(self) != str(other)
 
     def __gt__(self, other):
+        """Implements >."""
         return str(self) > str(other)
 
     def __ge__(self, other):
+        """Implements >=."""
         return str(self) >= str(other)
 
     def __str__(self):
-        """Returns the string form of the Rn.
-
-        Returns:
-          str: The string form of the Rn.
-        """
+        """Implements str()."""
         if not self.__rnStr:
             self.__rnStr = self.__makeRnStr()
         return self.__rnStr
 
     def __hash__(self):
-        """Returns the hash code for the Rn.
-
-        Returns:
-          int: hash code for the Rn
-        """
+        """Implements has()."""
         return hash(str(self))
 
     def __makeRnStr(self):
@@ -249,7 +248,8 @@ class Rn(object):
 
 
 class Dn(object):
-    """
+    """A Distinguised name class.
+
     The distinguished name (Dn) uniquely identifies a managed object (MO).
     A Dn is an ordered list of relative names, such as:
 
@@ -508,49 +508,41 @@ class Dn(object):
         return descendantDn.isDescendantOf(self)
 
     def __len__(self):
-        """ Get the length of the Dn.
-
-        The length is the number of Rns in this Dn
-
-        Returns:
-          int: number of rns in the dn
-        """
+        """Implements len()."""
         return len(self.__rns)
 
     def __str__(self):
-        """Get the string form of this Dn.
-
-        Returns:
-          str: string form of the Dn
-        """
+        """Implements str()."""
         if not self.__dnStr:
             self.__dnStr = self.__makeDn()
         return self.__dnStr
 
     def __lt__(self, other):
+        """Implements <."""
         return str(self) < str(other)
 
     def __le__(self, other):
+        """Implements <=."""
         return str(self) <= str(other)
 
     def __eq__(self, other):
+        """Implements ==."""
         return str(self) == str(other)
 
     def __ne__(self, other):
+        """Implements !=."""
         return str(self) != str(other)
 
     def __gt__(self, other):
+        """Implements >."""
         return str(self) > str(other)
 
     def __ge__(self, other):
+        """Implements >=."""
         return str(self) >= str(other)
 
     def __hash__(self):
-        """Get the hash code for the Dn.
-
-        Returns:
-          int: hash code for the Dn
-        """
+        """Implements hash()."""
         return hash(str(self))
 
     def __makeDn(self):
