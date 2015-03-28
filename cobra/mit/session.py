@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from builtins import str
-from builtins import object
+"""The session module for the ACI Python SDK (cobra)."""
+
+from builtins import str     # pylint:disable=redefined-builtin
+from builtins import object  # pylint:disable=redefined-builtin
 
 try:
     from OpenSSL.crypto import FILETYPE_PEM, load_privatekey, sign
 
-    inlineSignature = True
+    INLINE_SIGNATURE = True
 except ImportError:
-    inlineSignature = False
+    INLINE_SIGNATURE = False
 
 # Always import these just for tests
 import os
@@ -38,10 +40,11 @@ from cobra.mit.request import LoginRequest, RefreshRequest, RestError
 
 
 class AbstractSession(object):
-    """Abstract session class
-    
+
+    """Abstract session class.
+
     Other sessions classes should derive from this class.
-    
+
     Attributes:
       secure (bool): Only used for https. If True the remote server will be
         verified for authenticity.  If False the remote server will not be
@@ -56,11 +59,12 @@ class AbstractSession(object):
       formatStr (str): The format string for the request, either xml or json
         - readonly
     """
+
     XML_FORMAT, JSON_FORMAT = 0, 1
 
     def __init__(self, controllerUrl, secure, timeout, requestFormat):
-        """Initialize an AbstractSession instance
-        
+        """Initialize an AbstractSession instance.
+
         Args:
           controllerURL (str): The URL to reach the controller or fabric node
           secure (bool): Only used for https. If True the remote server will be
@@ -89,36 +93,74 @@ class AbstractSession(object):
 
     @property
     def secure(self):
+        """Get the secure value.
+
+        Returns:
+          bool: True if the certificate for remote device should be verified,
+            False otherwise.
+        """
         return self.__secure
 
     @property
     def timeout(self):
+        """Get the request timeout value.
+
+        Returns:
+          int: The time a request is allowed to take before an error is raised.
+        """
         return self.__timeout
 
     @property
     def url(self):
+        """Get the URL for the remote system.
+
+        Returns:
+          str: The URl for the remote system.
+        """
         return self.__controllerUrl
 
     @url.setter
-    def url(self, value):
-        # Allow setting of the controller URL to be able to handle redirects
-        self.__controllerUrl = value
+    def url(self, url):
+        """Set the URL for the remote system.
+
+        This is primarily used to handle redirects.
+
+        Args:
+          url (str): The URL to use for the controller.
+        """
+        self.__controllerUrl = url
 
     @property
     def formatType(self):
+        """Get the format type for this session.
+
+        Returns:
+          int: The format type represented as an integer
+        """
         return self.__format
 
     @property
     def formatStr(self):
+        """Get the format string for this session.
+
+        Returns:
+          str: The formatType represented as a string.  Currently this is
+            either 'xml' or 'json'.
+        """
         return 'xml' if self.__format == AbstractSession.XML_FORMAT else 'json'
 
     @property
     def codec(self):
+        """Get the codec being used for this session.
+
+        Returns:
+          cobra.mit.codec.AbstractCodec: The codec being used for this session.
+        """
         return self.__codec
 
     def login(self):
         """Login to the remote server.
-        
+
         A generic login method that should be overridden by classes that derive
         from this class
         """
@@ -126,7 +168,7 @@ class AbstractSession(object):
 
     def logout(self):
         """Logout from the remote server.
-        
+
         A generic logout method that should be overridden by classes that
         derive from this class
         """
@@ -134,7 +176,7 @@ class AbstractSession(object):
 
     def refresh(self):
         """Refresh the session to the remote server.
-        
+
         A generic refresh method that should be overridden by classes that
         derive from this class
         """
@@ -166,32 +208,36 @@ class AbstractSession(object):
 
 
 class LoginError(Exception):
-    """Represents exceptions that occur during logging in
-    
+
+    """Represents exceptions that occur during logging in.
+
     These exceptions usually involve a timeout or invalid authentication
     parameters
     """
 
     def __init__(self, errorCode, reasonStr):
-        """Initialize a LoginError instance
-        
+        """Initialize a LoginError instance.
+
         Args:
           errorCode (int): The error code for the exception
           reasonStr (str): A string indicating why the exception occurred
         """
+        super(LoginError, self).__init__(reasonStr)
         self.error = errorCode
         self.reason = reasonStr
 
     def __str__(self):
+        """Implement str()."""
         return self.reason
 
 
 class LoginSession(AbstractSession):
-    """A login session with a username and password
-    
+
+    """A login session with a username and password.
+
     Note:
       The username and password are stored in memory.
-      
+
     Attributes:
       user (str): The username to use for this session - readonly
 
@@ -210,7 +256,7 @@ class LoginSession(AbstractSession):
 
       refreshTimeoutSeconds (str or None): The number of seconds for which this
         session is valid - readonly
-        
+
       secure (bool): Only used for https. If True the remote server will be
         verified for authenticity.  If False the remote server will not be
         verified for authenticity - readonly
@@ -225,10 +271,11 @@ class LoginSession(AbstractSession):
         - readonly
     """
 
+    # pylint:disable=too-many-arguments
     def __init__(self, controllerUrl, user, password, secure=False, timeout=90,
                  requestFormat='xml'):
-        """Initialize a LoginSession instance
-        
+        """Initialize a LoginSession instance.
+
         Args:
           controllerURL (str): The URL to reach the controller or fabric node
           user (str): The username to use to authenticate
@@ -252,43 +299,95 @@ class LoginSession(AbstractSession):
 
     @property
     def user(self):
+        """Get the username being used for this session.
+
+        This can not be changed.  If you need to change the session username,
+        instantiate a new session object.
+
+        Returns:
+          str: The username for this session.
+        """
         return self._user
 
     @property
     def password(self):
+        """Get the password being used for this session.
+
+        This can not be changed. if you need to change the session password,
+        instantiate a new session object.
+
+        Returns:
+          str: The session password.
+        """
         return self._password
 
     @property
     def cookie(self):
+        """Get the session cookie value.
+
+        Returns:
+          str: The value of the session cookie.
+        """
         return self._cookie
 
     @cookie.setter
     def cookie(self, cookie):
+        """Set the cookie for the session.
+
+        Args:
+          cookie (str): The value to set the cookie to.
+        """
         self._cookie = cookie
 
     @property
     def challenge(self):
+        """Get the challenge key value.
+
+        Returns:
+          str: The challeng key value.
+        """
         return self._challenge
 
     @challenge.setter
     def challenge(self, challenge):
+        """Set the challenge key.
+
+        Args:
+          challenge (str): The value to set the challenge key to.
+        """
         self._challenge = challenge
 
     @property
     def version(self):
+        """Get the version.
+
+        Returns:
+          str: The version returned by the login request.
+        """
         return self._version
 
     @property
     def refreshTime(self):
+        """Get the refresh time.
+
+        Returns:
+          int: The refresh time returned by the login request.
+        """
         return self._refreshTime
 
     @property
     def refreshTimeoutSeconds(self):
+        """Get the refresh timeout in seconds.
+
+        Returns:
+          int: The refresh timeout in seconds returned by the login request.
+        """
         return self._refreshTimeoutSeconds
 
+    # pylint:disable=unused-argument
     def getHeaders(self, uriPathAndOptions, data):
-        """Get the HTTP headers for a given URI path and options string
-        
+        """Get the HTTP headers for a given URI path and options string.
+
         Args:
           uriPathAndOptions (str): The full URI path including the
             options string
@@ -303,7 +402,7 @@ class LoginSession(AbstractSession):
         return headers
 
     def login(self):
-        """Login in to the remote server (APIC or Fabric Node)
+        """Login in to the remote server (APIC or Fabric Node).
 
         Raises:
           LoginError: If there was an error during login or the response could
@@ -317,24 +416,33 @@ class LoginSession(AbstractSession):
         self._parseResponse(rsp)
 
     def logout(self):
-        """Logout of the remote server (APIC or Fabric Node)
+        """Logout of the remote server (APIC or Fabric Node).
 
         Currently this method does nothing
         """
         pass
 
     def refresh(self):
-        """Refresh a session with the remote server (APIC or Fabric Node)
+        """Refresh a session with the remote server (APIC or Fabric Node).
 
         Raises:
           LoginError: If there was an error when refreshing the session or
             the response could not be parsed.
         """
         refreshRequest = RefreshRequest(self.cookie)
-        rsp = self.accessimpl.get(refreshRequest)
+        rsp = self._accessimpl.get(refreshRequest)
         self._parseResponse(rsp)
 
     def _parseResponse(self, rsp):
+        """Parse a response to a LoginRequest or a RefreshRequest.
+
+        Args:
+          rsp (str): the response, currently only JSON is supported.
+
+        Raises:
+          LoginError: If there was no data found in the response, or the
+            response could not be parsed.
+        """
         rspDict = json.loads(rsp)
         data = rspDict.get('imdata', None)
         if not data:
@@ -361,8 +469,9 @@ class LoginSession(AbstractSession):
 
 
 class CertSession(AbstractSession):
-    """A session using a certificate dn and private key to generate signatures
-    
+
+    """A session using a certificate dn and private key to generate signatures.
+
     Attributes:
       certificateDn (str): The distingushed name (Dn) for the users X.509
         certificate - readonly
@@ -398,10 +507,11 @@ class CertSession(AbstractSession):
         - readonly
     """
 
+    # pylint:disable=too-many-arguments
     def __init__(self, controllerUrl, certificateDn, privateKey, secure=False,
                  timeout=90, requestFormat='xml'):
-        """Initialize a CertSession instance
-        
+        """Initialize a CertSession instance.
+
         Args:
           controllerURL (str): The URL to reach the controller or fabric node
           certificateDn (str): The distinguished name of the users certificate
@@ -420,15 +530,25 @@ class CertSession(AbstractSession):
 
     @property
     def certificateDn(self):
+        """Get the certificateDn for the user for this session.
+
+        Returns:
+          str: The certifcate Dn for this session.
+        """
         return self.__certificateDn
 
     @property
     def privateKey(self):
+        """Get the private key for this session.
+
+        Returns:
+          str: The private key as a string.
+        """
         return self.__privateKey
 
     def getHeaders(self, uriPathAndOptions, data):
-        """Get the HTTP headers for a given URI path and options string
-        
+        """Get the HTTP headers for a given URI path and options string.
+
         Args:
           uriPathAndOptions (str): The full URI path including the
             options string
@@ -441,26 +561,29 @@ class CertSession(AbstractSession):
         return {'Cookie': cookie}
 
     def login(self):
-        """login method has no relevancy for this class but is included for
-        consistency.
+        """login method.
+
+        Not relevant for CertSession but is included for consistency.
         """
         pass
 
     def logout(self):
-        """logout method has no relevancy for this class but is included for 
-        consistency.
+        """logout method.
+
+        Not relevant for CertSession but is included for consistency.
         """
         pass
 
     def refresh(self):
-        """refreshSession method has no relevancy for this class but is
-        included for consistency.
+        """refresh method.
+
+        Not relevant for CertSession but is included for consistency.
         """
         pass
 
     @staticmethod
     def runCmd(cmd):
-        """Convenience method to run a command using subprocess
+        """Convenience method to run a command using subprocess.
 
         Args:
           cmd (str): The command to run
@@ -476,7 +599,7 @@ class CertSession(AbstractSession):
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
-        out, error = proc.communicate()
+        out, error = proc.communicate()  # pylint:disable=unused-variable
         if proc.returncode != 0:
             raise subprocess.CalledProcessError(proc.returncode,
                                                 " ".join(cmd),
@@ -485,7 +608,7 @@ class CertSession(AbstractSession):
 
     @staticmethod
     def writeFile(fileName=None, mode="w", fileData=None):
-        """Convenience method to write data to a file
+        """Convenience method to write data to a file.
 
         Args:
           fileName (str): The file to write to, default = None
@@ -501,7 +624,7 @@ class CertSession(AbstractSession):
 
     @staticmethod
     def readFile(fileName=None, mode="r"):
-        """Convenience method to read some data from a file
+        """Convenience method to read some data from a file.
 
         Args:
           fileName (str): The file to read from, default = None
@@ -516,12 +639,32 @@ class CertSession(AbstractSession):
             fileData = aFile.read()
         return fileData
 
+    # this should probably be refactored at some point.
+    # pylint:disable=too-many-locals
     def _generateSignature(self, uri, data, forceManual=False):
+        """Generate a signature over the uri and data.
+
+        This signature is used to authenticate with the APIC and must be
+        calculated for each transaction because the signature is calculated
+        using the uri and data if any.
+
+        Args:
+          uri (str): The string that represents the URI for the transaction.
+            The uri is everything from api to the end of the options.
+          data (str): The payload for the request that will be sent.
+          forceManual (bool): If True, the signature will be calculated using
+            subprocess to execute openssl commands, otherwise pyOpenSSL is
+            used.
+
+        Returns:
+          str: A string containing the cookie that should be used in the
+            request.
+        """
         # One global that is not changing in the rest of the file is ok
-        global inlineSignature
+        global INLINE_SIGNATURE  # pylint:disable=global-statement
         # Added for easier testing of each signature generation method
         if forceManual:
-            inlineSignature = False
+            INLINE_SIGNATURE = False
 
         privateKeyStr = str(self.privateKey)
         certDn = str(self.certificateDn)
@@ -530,7 +673,7 @@ class CertSession(AbstractSession):
             uri = uri[:-1]
         uri = uri.replace('//', '/')
 
-        if inlineSignature:
+        if INLINE_SIGNATURE:
             if data is None:
                 payLoad = 'GET' + uri
             else:
@@ -551,8 +694,8 @@ class CertSession(AbstractSession):
             if data is None:
                 self.writeFile(payloadFile, mode="wt", fileData='GET' + uri)
             else:
-                self.writeFile(payloadFile, mode="wt", fileData='POST' + uri +
-                                                                data)
+                self.writeFile(payloadFile, mode="wt",
+                               fileData='POST' + uri + data)
             tmpFiles.append(payloadFile)
 
             self.writeFile(fileName=keyFile, mode="w", fileData=privateKeyStr)
@@ -574,12 +717,12 @@ class CertSession(AbstractSession):
             for fileName in tmpFiles:
                 try:
                     os.remove(fileName)
-                except:
-                    pass
+                except:   # pylint:disable=bare-except
+                    pass  # pylint:disable=pointless-except
                 try:
                     os.rmdir(tempDir)
-                except:
-                    pass
+                except:   # pylint:disable=bare-except
+                    pass  # pylint:disable=pointless-except
 
         cookieFmt = ("  APIC-Request-Signature=%s;" +
                      " APIC-Certificate-Algorithm=v1.0;" +

@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""The services module for the ACI Python SDK.
+
+This is used to upload L4-L7 device packages to an APIC.
+"""
 
 from cobra.mit.request import AbstractRequest
 import zipfile
@@ -19,8 +23,8 @@ import zipfile
 
 class UploadPackage(AbstractRequest):
 
-    """Upload L4-L7 device packages to APIC
-    
+    """Upload L4-L7 device packages to APIC.
+
     Attributes:
       data (str): A string containing the payload for this request in JSON
         format - readonly
@@ -29,7 +33,7 @@ class UploadPackage(AbstractRequest):
         file system. No Path verification is performed, so any errors
         accessing the specified file will be raised directly to the calling
         function.
-        
+
         Note:
            If validation is requested, the device package contents are verified
            to contain a device specification XML/JSON document
@@ -45,19 +49,23 @@ class UploadPackage(AbstractRequest):
 
     def __init__(self, devicePackagePath, validate=False):
         """Upload a device package to an APIC.
-        
+
         :func:`cobra.mit.access.MoDirectory.commit` is required to commit the
         upload.
 
         Args:
           devicePackagePath (str): Path to the device package on the local
             file system
-          validate (bool): If true, the device package will be validated
-            locally before attempting to upload
-
+          validate (bool, optional): If true, the device package will be
+            validated locally before attempting to upload. The default is
+            False.
         """
         super(UploadPackage, self).__init__()
+        # Validate must be set before devicePackagePath
         self.__validate = validate
+        self.__devicePackagePath = ''  # Prevent pylint from barking
+        # Set this through the property so validation can take place
+        # if requested.
         self.devicePackagePath = devicePackagePath
         self.uriBase = "/ppi/node/mo"
 
@@ -71,10 +79,8 @@ class UploadPackage(AbstractRequest):
         Returns:
           dict: A dictionary containing the arguments
         """
-        uriPathandOptions = self.getUriPathAndOptions(session)
-        headers = session.getHeaders(uriPathandOptions, self.data)
         kwargs = {
-            'headers': headers,
+            'headers': self.getHeaders(session),
             'verify': session.secure,
             'files': {
                 'file': self.data
@@ -84,11 +90,12 @@ class UploadPackage(AbstractRequest):
 
     @property
     def data(self):
+        """Get the data for the request."""
         return open(self.__devicePackagePath, 'rb').read()
 
     def getUrl(self, session):
         """Get the URL for this request, includes all options as well.
-        
+
         Args:
           session (cobra.mit.session.AbstractSession): The session to use for
             this query.
@@ -100,10 +107,20 @@ class UploadPackage(AbstractRequest):
 
     @property
     def devicePackagePath(self):
+        """Get the device package path.
+
+        Returns:
+          str: The path to the device package.
+        """
         return self.__devicePackagePath
 
     @devicePackagePath.setter
     def devicePackagePath(self, devicePackagePath):
+        """Set the device package path.
+
+        Args:
+          devicePackagePath (str): The path to the device package as a string.
+        """
         if self.__validate:
             # Device package spec will look at the first .xml document and use
             # that as the device specification, so it must contain at least
