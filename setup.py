@@ -22,7 +22,7 @@ class PyTest(TestCommand):
         TestCommand.finalize_options(self)
         # pylint:disable=attribute-defined-outside-init
         self.test_args = ['--junitxml=unittests.xml']
-        # pylint:disable=attribute-defined-outside-init 
+        # pylint:disable=attribute-defined-outside-init
         self.test_suite = True
 
     def run_tests(self):
