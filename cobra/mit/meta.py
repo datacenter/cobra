@@ -543,6 +543,7 @@ class PropMeta(object):
       labelsToConsts (dict): A dictionary mapping the properties constants
         labels to the constants consts
     """
+    # pylint:disable=too-many-arguments
     def __init__(self, typeClassName, name, moPropName, propId, category):
         """Initialize a PropMeta instance.
 

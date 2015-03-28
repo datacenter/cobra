@@ -266,6 +266,7 @@ class LoginSession(AbstractSession):
         - readonly
     """
 
+    # pylint:disable=too-many-arguments
     def __init__(self, controllerUrl, user, password, secure=False, timeout=90,
                  requestFormat='xml'):
         """Initialize a LoginSession instance
@@ -500,6 +501,7 @@ class CertSession(AbstractSession):
         - readonly
     """
 
+    # pylint:disable=too-many-arguments
     def __init__(self, controllerUrl, certificateDn, privateKey, secure=False,
                  timeout=90, requestFormat='xml'):
         """Initialize a CertSession instance
