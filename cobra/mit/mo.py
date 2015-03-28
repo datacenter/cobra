@@ -192,4 +192,3 @@ class Mo(BaseMo):
 
     def __setattr__(self, propName, propValue):
         BaseMo.__setattr__(self, propName, propValue)
-

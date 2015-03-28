@@ -20,11 +20,13 @@ from setuptools.command.test import test as TestCommand
 class PyTest(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)
+        # pylint:disable=attribute-defined-outside-init
         self.test_args = ['--junitxml=unittests.xml']
+        # pylint:disable=attribute-defined-outside-init 
         self.test_suite = True
 
     def run_tests(self):
-        #import here, because outside the eggs aren't loaded
+        # import here, because outside the eggs aren't loaded
         import pytest
         errno = pytest.main(self.test_args)
         sys.exit(errno)
