@@ -189,9 +189,9 @@ class Mo(BaseMo):
         BaseMo._resetProps(self)
 
     def __getattr__(self, propName):
-        """Implements getattr()."""
+        """Implement getattr()."""
         return BaseMo.__getattr__(self, propName)
 
     def __setattr__(self, propName, propValue):
-        """Implements setattr()."""
+        """Implement setattr()."""
         BaseMo.__setattr__(self, propName, propValue)

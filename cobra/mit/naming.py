@@ -198,37 +198,37 @@ class Rn(object):
         return self.__meta.getClass()
 
     def __lt__(self, other):
-        """Implements <."""
+        """Implement <."""
         return str(self) < str(other)
 
     def __le__(self, other):
-        """Implements <=."""
+        """Implement <=."""
         return str(self) <= str(other)
 
     def __eq__(self, other):
-        """Implements ==."""
+        """Implement ==."""
         return str(self) == str(other)
 
     def __ne__(self, other):
-        """Implements !=."""
+        """Implement !=."""
         return str(self) != str(other)
 
     def __gt__(self, other):
-        """Implements >."""
+        """Implement >."""
         return str(self) > str(other)
 
     def __ge__(self, other):
-        """Implements >=."""
+        """Implement >=."""
         return str(self) >= str(other)
 
     def __str__(self):
-        """Implements str()."""
+        """Implement str()."""
         if not self.__rnStr:
             self.__rnStr = self.__makeRnStr()
         return self.__rnStr
 
     def __hash__(self):
-        """Implements has()."""
+        """Implement has()."""
         return hash(str(self))
 
     def __makeRnStr(self):
@@ -248,6 +248,7 @@ class Rn(object):
 
 
 class Dn(object):
+
     """A Distinguised name class.
 
     The distinguished name (Dn) uniquely identifies a managed object (MO).
@@ -508,41 +509,41 @@ class Dn(object):
         return descendantDn.isDescendantOf(self)
 
     def __len__(self):
-        """Implements len()."""
+        """Implement len()."""
         return len(self.__rns)
 
     def __str__(self):
-        """Implements str()."""
+        """Implement str()."""
         if not self.__dnStr:
             self.__dnStr = self.__makeDn()
         return self.__dnStr
 
     def __lt__(self, other):
-        """Implements <."""
+        """Implement <."""
         return str(self) < str(other)
 
     def __le__(self, other):
-        """Implements <=."""
+        """Implement <=."""
         return str(self) <= str(other)
 
     def __eq__(self, other):
-        """Implements ==."""
+        """Implement ==."""
         return str(self) == str(other)
 
     def __ne__(self, other):
-        """Implements !=."""
+        """Implement !=."""
         return str(self) != str(other)
 
     def __gt__(self, other):
-        """Implements >."""
+        """Implement >."""
         return str(self) > str(other)
 
     def __ge__(self, other):
-        """Implements >=."""
+        """Implement >=."""
         return str(self) >= str(other)
 
     def __hash__(self):
-        """Implements hash()."""
+        """Implement hash()."""
         return hash(str(self))
 
     def __makeDn(self):

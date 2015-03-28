@@ -227,7 +227,7 @@ class LoginError(Exception):
         self.reason = reasonStr
 
     def __str__(self):
-        """Implements str()."""
+        """Implement str()."""
         return self.reason
 
 

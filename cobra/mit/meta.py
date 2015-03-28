@@ -54,7 +54,7 @@ class Category(object):
             return str(self.name) < other
 
     def __le__(self, other):
-        """Implements <=."""
+        """Implement <=."""
         if isinstance(other, Category):
             return self.id <= other.id
         elif isinstance(other, int):
@@ -63,7 +63,7 @@ class Category(object):
             return str(self.name) <= other
 
     def __eq__(self, other):
-        """Implements ==."""
+        """Implement ==."""
         if isinstance(other, Category):
             return self.id == other.id
         elif isinstance(other, int):
@@ -72,7 +72,7 @@ class Category(object):
             return str(self.name) == other
 
     def __ne__(self, other):
-        """Implements !=."""
+        """Implement !=."""
         if isinstance(other, Category):
             return self.id != other.id
         elif isinstance(other, int):
@@ -81,7 +81,7 @@ class Category(object):
             return str(self.name) != other
 
     def __gt__(self, other):
-        """Implements >."""
+        """Implement >."""
         if isinstance(other, Category):
             return self.id > other.id
         elif isinstance(other, int):
@@ -90,7 +90,7 @@ class Category(object):
             return str(self.name) > other
 
     def __ge__(self, other):
-        """Implements >=."""
+        """Implement >=."""
         if isinstance(other, Category):
             return self.id >= other.id
         elif isinstance(other, int):
@@ -470,31 +470,31 @@ class Constant(object):
         self.const = const
 
     def __str__(self):
-        """Implements str()."""
+        """Implement str()."""
         return self.const
 
     def __lt__(self, other):
-        """Implements <."""
+        """Implement <."""
         return self.const < other.const
 
     def __le__(self, other):
-        """Implements <=."""
+        """Implement <=."""
         return self.const <= other.const
 
     def __eq__(self, other):
-        """Implements ==."""
+        """Implement ==."""
         return self.const == other.const
 
     def __ne__(self, other):
-        """Implements !=."""
+        """Implement !=."""
         return self.const != other.const
 
     def __gt__(self, other):
-        """Implements >."""
+        """Implement >."""
         return self.const > other.const
 
     def __ge__(self, other):
-        """Implements >=."""
+        """Implement >=."""
         return self.const >= other.const
 
 
@@ -653,33 +653,33 @@ class PropMeta(object):
         self._validators.append(validator)
 
     def __str__(self):
-        """Implements str()."""
+        """Implement str()."""
         return self.name
 
     def __lt__(self, other):
-        """Implements <."""
+        """Implement <."""
         return self.name < other.name
 
     def __le__(self, other):
-        """Implements <=."""
+        """Implement <=."""
         return self.name <= other.name
 
     def __eq__(self, other):
-        """Implements ==."""
+        """Implement ==."""
         return self.name == other.name
 
     def __ne__(self, other):
-        """Implements !=."""
+        """Implement !=."""
         return self.name != other.name
 
     def __gt__(self, other):
-        """Implements >."""
+        """Implement >."""
         return self.name > other.name
 
     def __ge__(self, other):
-        """Implements >=."""
+        """Implement >=."""
         return self.name >= other.name
 
     def __hash__(self):
-        """Implements hash()."""
+        """Implement hash()."""
         return hash(self.name)

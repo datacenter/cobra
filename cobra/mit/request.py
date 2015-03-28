@@ -37,7 +37,7 @@ class AbstractRequest(object):
         requests
     """
 
-    def __init__(self):	
+    def __init__(self):
         """Instantiate an AbstractRequest instance."""
         self.__options = {}
         self.id = None  # pylint:disable=invalid-name
@@ -1929,7 +1929,7 @@ class RestError(Exception):
         self.httpCode = httpCode
 
     def __str__(self):
-        """Implements str()."""
+        """Implement str()."""
         return self.reason
 
 
@@ -1969,6 +1969,7 @@ class QueryError(RestError):
 
       httpCode (int): The HTTP response code
     """
+
     def __init__(self, errorCode, reasonStr, httpCode=None):
         """Initialize a QueryError instance.
 
