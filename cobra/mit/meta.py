@@ -96,7 +96,7 @@ class Category(object):
 
 
 class ClassLoader(object):
-    """Import a class by name
+    """Import a class by name.
 
     A convenience class to import classes from a string containing the class
     name
@@ -232,7 +232,7 @@ class ClassMeta(object):
         self.ctxRoot = None
 
     def getClass(self):
-        """Uses the className to import the class for this meta object
+        """Uses the className to import the class for this meta object.
 
         Returns:
           mixed: The imported class for this meta object
@@ -249,7 +249,7 @@ class ClassMeta(object):
         return ctxRoot and ctxRoot != self
 
     def getContextRoot(self, pStack=None):
-        """Get the meta's context root
+        """Get the meta's context root.
 
         Args:
           pStack (set): The parent stack
@@ -373,7 +373,8 @@ class ClassMeta(object):
 
 
 class SourceRelationMeta(ClassMeta):
-    """The meta data for a source object in a relationship"""
+
+    """The meta data for a source object in a relationship."""
 
     # Cardinality constants
     ONE_TO_ONE = object()
@@ -396,7 +397,7 @@ class SourceRelationMeta(ClassMeta):
         self.isExplicit = True
 
     def getTargetClass(self):
-        """Imports and returns the target class for a relationship
+        """Imports and returns the target class for a relationship.
 
         Returns:
           cobra.mit.mo.Mo: The target class
@@ -405,10 +406,11 @@ class SourceRelationMeta(ClassMeta):
 
 
 class NamedSourceRelationMeta(SourceRelationMeta):
+
     """The meta data for a named source relationship object."""
 
     def __init__(self, className, targetClassName):
-        """Initialize a named source relationship meta object
+        """Initialize a named source relationship meta object.
 
         Args:
           className (str): The source Mo class name for the relationship
@@ -421,10 +423,11 @@ class NamedSourceRelationMeta(SourceRelationMeta):
 
 
 class TargetRelationMeta(ClassMeta):
+
     """The meta data for a target object in a relationship."""
 
     def __init__(self, className, sourceClassName):
-        """Initialize a target relationship meta object
+        """Initialize a target relationship meta object.
 
         Args:
           className (str): The target Mo class name for the relationship
@@ -436,7 +439,7 @@ class TargetRelationMeta(ClassMeta):
         self.isTarget = True
 
     def getSourceClass(self):
-        """Import and return the source class
+        """Import and return the source class.
 
         Returns:
           cobra.mit.mo.Mo: The source class
@@ -481,7 +484,7 @@ class Constant(object):
         return self.const >= other.const
 
 
-#pylint:disable=too-many-instance-attributes
+# pylint:disable=too-many-instance-attributes
 class PropMeta(object):
     """The meta data for properties of managed objects.
 

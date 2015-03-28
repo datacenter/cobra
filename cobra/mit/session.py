@@ -40,7 +40,7 @@ from cobra.mit.request import LoginRequest, RefreshRequest, RestError
 
 
 class AbstractSession(object):
-    """Abstract session class
+    """Abstract session class.
 
     Other sessions classes should derive from this class.
 
@@ -61,7 +61,7 @@ class AbstractSession(object):
     XML_FORMAT, JSON_FORMAT = 0, 1
 
     def __init__(self, controllerUrl, secure, timeout, requestFormat):
-        """Initialize an AbstractSession instance
+        """Initialize an AbstractSession instance.
 
         Args:
           controllerURL (str): The URL to reach the controller or fabric node
@@ -206,7 +206,8 @@ class AbstractSession(object):
 
 
 class LoginError(Exception):
-    """Represents exceptions that occur during logging in
+
+    """Represents exceptions that occur during logging in.
 
     These exceptions usually involve a timeout or invalid authentication
     parameters
@@ -228,7 +229,8 @@ class LoginError(Exception):
 
 
 class LoginSession(AbstractSession):
-    """A login session with a username and password
+
+    """A login session with a username and password.
 
     Note:
       The username and password are stored in memory.
@@ -269,7 +271,7 @@ class LoginSession(AbstractSession):
     # pylint:disable=too-many-arguments
     def __init__(self, controllerUrl, user, password, secure=False, timeout=90,
                  requestFormat='xml'):
-        """Initialize a LoginSession instance
+        """Initialize a LoginSession instance.
 
         Args:
           controllerURL (str): The URL to reach the controller or fabric node
@@ -381,7 +383,7 @@ class LoginSession(AbstractSession):
 
     # pylint:disable=unused-argument
     def getHeaders(self, uriPathAndOptions, data):
-        """Get the HTTP headers for a given URI path and options string
+        """Get the HTTP headers for a given URI path and options string.
 
         Args:
           uriPathAndOptions (str): The full URI path including the
@@ -397,7 +399,7 @@ class LoginSession(AbstractSession):
         return headers
 
     def login(self):
-        """Login in to the remote server (APIC or Fabric Node)
+        """Login in to the remote server (APIC or Fabric Node).
 
         Raises:
           LoginError: If there was an error during login or the response could
@@ -411,14 +413,14 @@ class LoginSession(AbstractSession):
         self._parseResponse(rsp)
 
     def logout(self):
-        """Logout of the remote server (APIC or Fabric Node)
+        """Logout of the remote server (APIC or Fabric Node).
 
         Currently this method does nothing
         """
         pass
 
     def refresh(self):
-        """Refresh a session with the remote server (APIC or Fabric Node)
+        """Refresh a session with the remote server (APIC or Fabric Node).
 
         Raises:
           LoginError: If there was an error when refreshing the session or
@@ -464,7 +466,8 @@ class LoginSession(AbstractSession):
 
 
 class CertSession(AbstractSession):
-    """A session using a certificate dn and private key to generate signatures
+    
+    """A session using a certificate dn and private key to generate signatures.
 
     Attributes:
       certificateDn (str): The distingushed name (Dn) for the users X.509
@@ -504,7 +507,7 @@ class CertSession(AbstractSession):
     # pylint:disable=too-many-arguments
     def __init__(self, controllerUrl, certificateDn, privateKey, secure=False,
                  timeout=90, requestFormat='xml'):
-        """Initialize a CertSession instance
+        """Initialize a CertSession instance.
 
         Args:
           controllerURL (str): The URL to reach the controller or fabric node
@@ -541,7 +544,7 @@ class CertSession(AbstractSession):
         return self.__privateKey
 
     def getHeaders(self, uriPathAndOptions, data):
-        """Get the HTTP headers for a given URI path and options string
+        """Get the HTTP headers for a given URI path and options string.
 
         Args:
           uriPathAndOptions (str): The full URI path including the
@@ -555,26 +558,29 @@ class CertSession(AbstractSession):
         return {'Cookie': cookie}
 
     def login(self):
-        """login method has no relevancy for this class but is included for
-        consistency.
+        """login method.
+
+        Not relevant for CertSession but is included for consistency.
         """
         pass
 
     def logout(self):
-        """logout method has no relevancy for this class but is included for
-        consistency.
+        """logout method.
+        
+        Not relevant for CertSession but is included for consistency.
         """
         pass
 
     def refresh(self):
-        """refreshSession method has no relevancy for this class but is
-        included for consistency.
+        """refresh method.
+
+        Not relevant for CertSession but is included for consistency.
         """
         pass
 
     @staticmethod
     def runCmd(cmd):
-        """Convenience method to run a command using subprocess
+        """Convenience method to run a command using subprocess.
 
         Args:
           cmd (str): The command to run
@@ -599,7 +605,7 @@ class CertSession(AbstractSession):
 
     @staticmethod
     def writeFile(fileName=None, mode="w", fileData=None):
-        """Convenience method to write data to a file
+        """Convenience method to write data to a file.
 
         Args:
           fileName (str): The file to write to, default = None
@@ -615,7 +621,7 @@ class CertSession(AbstractSession):
 
     @staticmethod
     def readFile(fileName=None, mode="r"):
-        """Convenience method to read some data from a file
+        """Convenience method to read some data from a file.
 
         Args:
           fileName (str): The file to read from, default = None
@@ -709,11 +715,11 @@ class CertSession(AbstractSession):
                 try:
                     os.remove(fileName)
                 except:  # pylint:disable=bare-except
-                    pass
+                    pass # pylint:disable=pointless-except
                 try:
                     os.rmdir(tempDir)
                 except:  # pylint:disable=bare-except
-                    pass
+                    pass # pylint:disable=pointless-except
 
         cookieFmt = ("  APIC-Request-Signature=%s;" +
                      " APIC-Certificate-Algorithm=v1.0;" +

@@ -18,7 +18,8 @@ from cobra.internal.base.moimpl import BaseMo
 
 
 class Mo(BaseMo):
-    """Represents managed objects (MOs)
+
+    """Represents managed objects (MOs).
 
     Managed objects (MOs) represent a physical or logical entity with a set of
     configurations and properties.
@@ -77,9 +78,10 @@ class Mo(BaseMo):
                         **creationProps)
 
     def delete(self):
-        """
-        Marks the mo as deleted. If this mo is committed, the corresponding mo
-        in the backend will be deleted.
+        """ Mark the Mo ad deleted.
+
+        If this mo is committed, the corresponding mo in the backend will be
+        deleted.
         """
         BaseMo._delete(self)
 
@@ -112,7 +114,7 @@ class Mo(BaseMo):
 
     @property
     def parentDn(self):
-        """Get the parent distinguished name
+        """Get the parent distinguished name.
 
         Returns:
           cobra.mit.naming.Dn: The parent Dn.
@@ -139,7 +141,7 @@ class Mo(BaseMo):
 
     @property
     def children(self):
-        """Get the children iterator
+        """Get the children iterator.
 
         Returns:
           iterator: An iterator for the children of this Mo.

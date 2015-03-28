@@ -43,7 +43,7 @@ class Rn(object):
 
     @classmethod
     def fromString(cls, classMeta, rnStr):
-        """Create a relative name instance from a string and classMeta
+        """Create a relative name instance from a string and classMeta.
 
         Args:
           classMeta (cobra.mit.meta.ClassMeta): class meta of the mo class
@@ -159,7 +159,7 @@ class Rn(object):
         return Rn(classMeta, *namingVals)
 
     def __init__(self, classMeta, *namingVals):
-        """Initalize a Rn object
+        """Initalize a Rn object.
 
         Args:
           classMeta (cobra.mit.meta.ClassMeta): class meta of the mo class
@@ -171,7 +171,7 @@ class Rn(object):
 
     @property
     def namingVals(self):
-        """Get the naming vals for this Rn as an iterator
+        """Get the naming vals for this Rn as an iterator.
 
         Returns:
           iterator: The naming vals for this Rn.
@@ -328,7 +328,7 @@ class Dn(object):
 
     @classmethod
     def fromString(cls, dnStr):
-        """Create a distingushed name instance from a dn string
+        """Create a distingushed name instance from a dn string.
 
         Parses the dn string into its constituent Rn strings and creates the Rn
         objects.
@@ -367,7 +367,7 @@ class Dn(object):
             for topRoot
         """
         def allRnsEqual(allDns, idx):
-            """Check if all Rn's a specific level are equal
+            """Check if all Rn's a specific level are equal.
 
             Args:
               allDns (list): The Dn objects that will be used in the comparison
@@ -378,7 +378,8 @@ class Dn(object):
             """
             firstRn = None
             for eachDn in allDns:
-                currentRn = eachDn.__rns[idx]  #pylint:disable=protected-access
+                # pylint:disable=protected-access
+                currentRn = eachDn.__rns[idx]
                 if firstRn is None:
                     firstRn = currentRn
                 else:
@@ -406,7 +407,7 @@ class Dn(object):
         return Dn(rns[:index])
 
     def rn(self, index=None):
-        """Get a Rn at a specified index
+        """Get a Rn at a specified index.
 
         If index is None, then the Rn of the target Mo is returned
 
@@ -422,7 +423,7 @@ class Dn(object):
         return self.__rns[index]
 
     def getAncestor(self, level):
-        """Get the ancestor Dn based on the number of levels
+        """Get the ancestor Dn based on the number of levels.
 
         Args:
           level (int): number of levels
@@ -435,7 +436,7 @@ class Dn(object):
         return Dn(rns)
 
     def getParent(self):
-        """Get the parent Dn of the current Dn
+        """Get the parent Dn of the current Dn.
 
         Same as:
 
@@ -447,7 +448,7 @@ class Dn(object):
         return self.getAncestor(1)
 
     def clone(self):
-        """Get a new copy of this Dn
+        """Get a new copy of this Dn.
 
         Returns:
           cobra.mit.naming.Dn: Copy of this Dn
@@ -458,7 +459,7 @@ class Dn(object):
         return newDn
 
     def appendRn(self, rn):
-        """ Append an Rn to this Dn
+        """Append an Rn to this Dn.
 
         Note:
           This changes the target MO
@@ -482,7 +483,7 @@ class Dn(object):
         self.__dnStr = None
 
     def isDescendantOf(self, ancestorDn):
-        """Check if a Dn is a descendant of this Dn
+        """Check if a Dn is a descendant of this Dn.
 
         Args:
           ancestorDn (cobra.mit.naming.Dn): Dn being compared for descendants
@@ -496,7 +497,7 @@ class Dn(object):
                 dnStr.startswith(ansDnStr))
 
     def isAncestorOf(self, descendantDn):
-        """ Check if a Dn is an ancestor of this Dn
+        """ Check if a Dn is an ancestor of this Dn.
 
         Args:
           descendantDn (cobra.mit.naming.Dn): Dn being compared for ancestary
@@ -507,7 +508,7 @@ class Dn(object):
         return descendantDn.isDescendantOf(self)
 
     def __len__(self):
-        """ Get the length of the Dn
+        """ Get the length of the Dn.
 
         The length is the number of Rns in this Dn
 
@@ -517,7 +518,7 @@ class Dn(object):
         return len(self.__rns)
 
     def __str__(self):
-        """Get the string form of this Dn
+        """Get the string form of this Dn.
 
         Returns:
           str: string form of the Dn
@@ -545,7 +546,7 @@ class Dn(object):
         return str(self) >= str(other)
 
     def __hash__(self):
-        """Get the hash code for the Dn
+        """Get the hash code for the Dn.
 
         Returns:
           int: hash code for the Dn

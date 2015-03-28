@@ -44,14 +44,16 @@ class AbstractRequest(object):
 
     @classmethod
     def makeOptions(cls, options):
-        """
+        """Make the request options.
+
         Returns a string containing the concatenated values of all key/value
         pairs for the options defined in dict options
 
-        :param list options: A list of options to turn into an option string
+        Args:
+          options (list): A list of options to turn into an option string
 
-        :returns: The options string
-        :rtype: str
+        Returns:
+          str: The options strings
         """
         optionStr = ''
         if options:
@@ -61,17 +63,17 @@ class AbstractRequest(object):
         return optionStr
 
     def getUriPathAndOptions(self, session):
-        """
+        """Get the uri path and options.
+
         Returns the full URI path and options portion of the URL that will be
         used in a query
 
-        :param session: The session object which contains information needed
-            to build the URI
-        :type session: :py:class:`cobra.mit.session.LoginSession` or
-            :py:class:`cobra.mit.session.CertSession`
-
-        :returns: The URI and options string
-        :rtype: str
+        Args:
+          session (cobra.mit.session.AbstractSession): The session object which
+            contains information needed to build the URI
+        
+        Returns:
+          str: The URI and options strings
         """
         return "%s.%s%s%s" % (self.uriBase, session.formatStr,
                               '?' if self.options else '', self.options)
@@ -221,6 +223,7 @@ class AbstractQuery(AbstractRequest):
     """
 
     def __init__(self):
+        """Instantiate an AbstractQuery instance."""
         super(AbstractQuery, self).__init__()
         self.__options = {}
 
@@ -310,7 +313,7 @@ class AbstractQuery(AbstractRequest):
 
     @property
     def subtreeInclude(self):
-        """Get the subtree include
+        """Get the subtree include.
 
         Returns:
           str: The subtree include (rsp-subtree-include) value.
@@ -319,7 +322,7 @@ class AbstractQuery(AbstractRequest):
 
     @subtreeInclude.setter
     def subtreeInclude(self, value):
-        """Set the subtree include
+        """Set the subtree include.
 
         Args:
           value (str):  The subtree include value.  Valid values are:
@@ -363,7 +366,7 @@ class AbstractQuery(AbstractRequest):
 
     @queryTarget.setter
     def queryTarget(self, value):
-        """Set the query target
+        """Set the query target.
 
         Args:
           value (str): The query target value.  The valid values are:
@@ -454,7 +457,7 @@ class AbstractQuery(AbstractRequest):
 
     @property
     def replica(self):
-        """Get the replica
+        """Get the replica.
 
         Returns:
           int: The replica option to be set on this query (replica).
@@ -463,7 +466,7 @@ class AbstractQuery(AbstractRequest):
 
     @replica.setter
     def replica(self, value):
-        """Set the replica value
+        """Set the replica value.
 
         Args:
           value (int): The replica value to set.  Valid values are: 1, 2 or 3.
@@ -479,11 +482,11 @@ class AbstractQuery(AbstractRequest):
 
 
 class LoginRequest(AbstractRequest):
-    """
-    LoginRequest for standard user/password based authentication
-    """
+
+    """LoginRequest for standard user/password based authentication."""
 
     def __init__(self, user, password):
+        """Instantiate a LoginRequest instance."""
         super(LoginRequest, self).__init__()
         self.user = user
         self.password = password
@@ -491,7 +494,7 @@ class LoginRequest(AbstractRequest):
 
     @property
     def data(self):
-        """Get the data
+        """Get the data.
 
         Currently only JSON is supported.
 
@@ -511,7 +514,7 @@ class LoginRequest(AbstractRequest):
         return json.dumps(userJson, sort_keys=True)
 
     def requestargs(self, session):
-        """Get the arguments to be used by the HTTP request
+        """Get the arguments to be used by the HTTP request.
 
         session (cobra.mit.session.AbstractSession): The session to be used to
           build the the request arguments
@@ -529,7 +532,7 @@ class LoginRequest(AbstractRequest):
         return kwargs
 
     def getUrl(self, session):
-        """Get the URL containing all the query options
+        """Get the URL containing all the query options.
 
         Args:
           session (cobra.mit.session.AbstractSession): The session to use for
@@ -544,16 +547,17 @@ class LoginRequest(AbstractRequest):
 class RefreshRequest(AbstractRequest):
 
     """
-    Session refresh request for standard user/password based authentication
+    Session refresh request for standard user/password based authentication.
     """
 
     def __init__(self, cookie):
+        """Instantiate a RefreshRequest instance."""
         super(RefreshRequest, self).__init__()
         self.cookie = cookie
         self.uriBase = '/api/aaaRefresh.json'
 
     def getUrl(self, session):
-        """Get the URL containing all the query options
+        """Get the URL containing all the query options.
 
         Args:
           session (cobra.mit.session.AbstractSession): The session to use for
@@ -648,7 +652,7 @@ class DnQuery(AbstractQuery):
     """
 
     def __init__(self, dn):
-        """Initialize a DnQuery object
+        """Initialize a DnQuery object.
 
         Args:
           dn (str or cobra.mit.naming.Dn): The Dn to query
@@ -679,7 +683,7 @@ class DnQuery(AbstractQuery):
         return self.__dnStr
 
     def getUrl(self, session):
-        """Get the URL containing all the query options
+        """Get the URL containing all the query options.
 
         Args:
           session (cobra.mit.session.AbstractSession): The session to use for
@@ -692,7 +696,7 @@ class DnQuery(AbstractQuery):
 
 
 class ClassQuery(AbstractQuery):
-    """Query based on class name
+    """Query based on class name.
 
     Attributes:
       options (str): The HTTP request query string string for this DnQuery
@@ -773,7 +777,7 @@ class ClassQuery(AbstractQuery):
     """
 
     def __init__(self, className):
-        """Initialize a ClassQuery instance
+        """Initialize a ClassQuery instance.
 
         Args:
           className (str): The className to query for
@@ -804,7 +808,7 @@ class ClassQuery(AbstractQuery):
         return self.__className
 
     def getUrl(self, session):
-        """Get the URL containing all the query options
+        """Get the URL containing all the query options.
 
         Args:
           session (cobra.mit.session.AbstractSession): The session to use for
@@ -817,7 +821,7 @@ class ClassQuery(AbstractQuery):
 
 
 class TraceQuery(AbstractQuery):
-    """Trace Query using a base Dn and a target class
+    """Trace Query using a base Dn and a target class.
 
     Attributes:
       options (str): The HTTP request query string string for this DnQuery
@@ -900,7 +904,7 @@ class TraceQuery(AbstractQuery):
     """
 
     def __init__(self, dn, targetClass):
-        """Initialize a TraceQuery instance
+        """Initialize a TraceQuery instance.
 
         Args:
           dn (str or cobra.mit.naming.Dn): The base Dn for this query
@@ -953,7 +957,7 @@ class TraceQuery(AbstractQuery):
         return self.__dnStr
 
     def getUrl(self, session):
-        """Get the URL containing all the query options
+        """Get the URL containing all the query options.
 
         Args:
           session (cobra.mit.session.AbstractSession): The session to use for
@@ -966,7 +970,7 @@ class TraceQuery(AbstractQuery):
 
 
 class TagsRequest(AbstractRequest):
-    """Hybrid query and request for tags
+    """Hybrid query and request for tags.
 
     This class does both setting of tags (request) and retrieving of tags
     (query).
@@ -991,7 +995,7 @@ class TagsRequest(AbstractRequest):
     """
 
     def __init__(self, dn, add=None, remove=None):
-        """Initialize a tags query/request object
+        """Initialize a tags query/request object.
 
         Args:
           dn (str or cobra.mit.naming.Dn): The base Dn for this request/query
@@ -1008,7 +1012,7 @@ class TagsRequest(AbstractRequest):
 
     @property
     def data(self):  # pylint:disable=no-self-use
-        """Get the data
+        """Get the data.
 
         Currently only JSON is supported
 
@@ -1049,7 +1053,7 @@ class TagsRequest(AbstractRequest):
 
     @remove.setter
     def remove(self, tags):
-        """Set the remove string
+        """Set the remove string.
 
         Args:
           tags (list or str): The tags to remove via this tags request as a
@@ -1069,7 +1073,7 @@ class TagsRequest(AbstractRequest):
 
     @add.setter
     def add(self, tags):
-        """Set the add string
+        """Set the add string.
 
         Args:
           tags (list or str): The tags to add via this tags request as a list
@@ -1079,7 +1083,7 @@ class TagsRequest(AbstractRequest):
         self.__options['add'] = tags
 
     def requestargs(self, session):
-        """Get the arguments to be used by the HTTP request
+        """Get the arguments to be used by the HTTP request.
 
         session (cobra.mit.session.AbstractSession): The session to be used to
           build the the request arguments
@@ -1096,7 +1100,7 @@ class TagsRequest(AbstractRequest):
         return kwargs
 
     def getUrl(self, session):
-        """Get the URL containing all the query options
+        """Get the URL containing all the query options.
 
         Args:
           session (cobra.mit.session.AbstractSession): The session to use for
@@ -1130,7 +1134,7 @@ class TagsRequest(AbstractRequest):
 
 
 class AliasRequest(AbstractRequest):
-    """Hybrid query and request for alias support
+    """Hybrid query and request for alias support.
 
     This class does both setting of aliases (request) and retrieving of aliases
     (query).
@@ -1153,6 +1157,7 @@ class AliasRequest(AbstractRequest):
         requests
     """
     def __init__(self, dn, alias=None):
+        """Instantiate an AliasRequest instance."""
         self.__options = {}
         super(AliasRequest, self).__init__()
         self.__dnStr = str(dn)
@@ -1161,7 +1166,7 @@ class AliasRequest(AbstractRequest):
 
     @property
     def data(self):  # pylint:disable=no-self-use
-        """Get the data
+        """Get the data.
 
         Currently only JSON is supported.
 
@@ -1183,7 +1188,7 @@ class AliasRequest(AbstractRequest):
 
     @property
     def dnStr(self):
-        """Get the dnStr
+        """Get the dnStr.
 
         Returns:
           str: The dn string for this alias request.
@@ -1192,7 +1197,7 @@ class AliasRequest(AbstractRequest):
 
     @property
     def alias(self):
-        """Get the alias
+        """Get the alias.
 
         Returns:
           str: The alias if it is set, otherwise an empty string.
@@ -1201,7 +1206,7 @@ class AliasRequest(AbstractRequest):
 
     @alias.setter
     def alias(self, value):
-        """Set the alias
+        """Set the alias.
 
         Args:
           value (str): The value to set the alias to.  If the value is None or
@@ -1214,7 +1219,7 @@ class AliasRequest(AbstractRequest):
         self.__options['set'] = value
 
     def requestargs(self, session):
-        """Get the arguments to be used by the HTTP request
+        """Get the arguments to be used by the HTTP request.
 
         session (cobra.mit.session.AbstractSession): The session to be used to
           build the the request arguments
@@ -1249,7 +1254,7 @@ class AliasRequest(AbstractRequest):
 
 
 class ConfigRequest(AbstractRequest):
-    """Change the configuration
+    """Change the configuration.
 
     :py:func:`cobra.mit.access.MoDirectory.commit` function uses this class.
 
@@ -1276,7 +1281,7 @@ class ConfigRequest(AbstractRequest):
     """
 
     def __init__(self):
-        """Initialize a ConfigRequest instance"""
+        """Initialize a ConfigRequest instance."""
         super(ConfigRequest, self).__init__()
         self.__options = {}
         self.__ctxRoot = None
@@ -1297,7 +1302,7 @@ class ConfigRequest(AbstractRequest):
 
     @property
     def data(self):
-        """Get the data as JSON
+        """Get the data as JSON.
 
         Raises:
           CommitError: If no Mo's have been added to this config request.
@@ -1312,7 +1317,7 @@ class ConfigRequest(AbstractRequest):
 
     @property
     def xmldata(self):
-        """Get the data as XML
+        """Get the data as XML.
 
         Raises:
           CommitError: If no Mo's ahve been added to this config request.
@@ -1355,7 +1360,7 @@ class ConfigRequest(AbstractRequest):
         self.__options['rsp-subtree'] = value
 
     def requestargs(self, session):
-        """Get the arguments to be used by the HTTP request
+        """Get the arguments to be used by the HTTP request.
 
         session (cobra.mit.session.AbstractSession): The session to be used to
           build the the request arguments
@@ -1373,7 +1378,7 @@ class ConfigRequest(AbstractRequest):
         return kwargs
 
     def addMo(self, mo):
-        """Add a managed object (MO) to the configuration request
+        """Add a managed object (MO) to the configuration request.
 
         Args
           mo (cobra.mit.mo.Mo): The managed object to add
@@ -1397,7 +1402,7 @@ class ConfigRequest(AbstractRequest):
         self.__rootMo = None
 
     def removeMo(self, mo):
-        """Remove a managed object (MO) from the configuration request
+        """Remove a managed object (MO) from the configuration request.
 
         Args:
           mo (cobra.mit.mo.Mo): The managed object to add
@@ -1408,7 +1413,7 @@ class ConfigRequest(AbstractRequest):
             self.__ctxRoot = None
 
     def hasMo(self, dn):
-        """Check if the configuration request has a specific MO
+        """Check if the configuration request has a specific MO.
 
         Args:
         dn (str): The distinguished name of the mo to check
@@ -1419,13 +1424,13 @@ class ConfigRequest(AbstractRequest):
         return dn in self.__configMos
 
     def getRootMo(self):
-        """Get the Root Mo for this configuration request
+        """Get the Root Mo for this configuration request.
 
         Returns:
           None or cobra.mit.mo.Mo: The root Mo for the config request
         """
         def addDescendantMo(rMo, descendantMo):
-            """Add a descendant to a root Mo (rMo)
+            """Add a descendant to a root Mo (rMo).
 
             Args:
               rMo (cobra.mit.mo.Mo): The root Mo to add the descendant to.
@@ -1473,7 +1478,7 @@ class ConfigRequest(AbstractRequest):
         return rootMo
 
     def getUriPathAndOptions(self, session):
-        """Get the full URI path and options portion of the URL
+        """Get the full URI path and options portion of the URL.
 
         Args:
           session (cobra.mit.session.AbstractSession): The session object which
@@ -1490,7 +1495,7 @@ class ConfigRequest(AbstractRequest):
                                  '?' if self.options else '', self.options)
 
     def getUrl(self, session):
-        """Get the URL containing all the query options
+        """Get the URL containing all the query options.
 
         Args:
           session (cobra.mit.session.AbstractSession): The session to use for
@@ -1528,7 +1533,7 @@ class ConfigRequest(AbstractRequest):
 
 
 class MultiQuery(AbstractQuery):
-    """Perform a multiquery
+    """Perform a multiquery.
 
     Attributes:
       options (str): The HTTP request query string string for this DnQuery
@@ -1609,7 +1614,7 @@ class MultiQuery(AbstractQuery):
     """
 
     def __init__(self, target):
-        """Initialize a MultiQuery instance
+        """Initialize a MultiQuery instance.
 
         Args:
         target (str): The target for this MultiQuery
@@ -1632,7 +1637,7 @@ class MultiQuery(AbstractQuery):
 
     @property
     def target(self):
-        """Get the target
+        """Get the target.
 
         Returns:
           str: The target for this MultiQuery request.
@@ -1640,7 +1645,7 @@ class MultiQuery(AbstractQuery):
         return self.__target
 
     def getUrl(self, session):
-        """Get the URL containing all the query options
+        """Get the URL containing all the query options.
 
         Args:
           session (cobra.mit.session.AbstractSession): The session to use for
@@ -1653,7 +1658,7 @@ class MultiQuery(AbstractQuery):
 
 
 class TroubleshootingQuery(MultiQuery):
-    """Setup a troubleshooting query
+    """Setup a troubleshooting query.
 
     Attributes:
       mode (str): The troubleshooting mode for this TroubleshootingQuery
@@ -1692,12 +1697,12 @@ class TroubleshootingQuery(MultiQuery):
     """
 
     def __init__(self, target):
-        """
-        :param target: The target for this TroubleshootingQuery
-        :type target: str
+        """Initialize a TroubleshootingQuery instance.
+   
+        Args:
+          target (str) : The target for this TroubleshootingQuery
         """
         super(TroubleshootingQuery, self).__init__('troubleshoot.%s' % target)
-
 
     @property
     def mode(self):
@@ -1731,7 +1736,7 @@ class TroubleshootingQuery(MultiQuery):
 
     @property
     def format(self):
-        """Get the format
+        """Get the format.
 
         Returns:
           str: The format for this troubleshooting request.
@@ -1763,7 +1768,7 @@ class TroubleshootingQuery(MultiQuery):
 
     @property
     def include(self):
-        """Get the include value
+        """Get the include value.
 
         Returns:
           str: The include value for this troubleshooting request.
@@ -1772,7 +1777,7 @@ class TroubleshootingQuery(MultiQuery):
 
     @include.setter
     def include(self, value):
-        """Set the include property
+        """Set the include property.
 
         Args:
           value (str): The include value.  Valid values are:
@@ -1848,7 +1853,6 @@ class TroubleshootingQuery(MultiQuery):
         """
         self.__options['dstep'] = value
 
-
     @property
     def starttime(self):
         """Get the start time.
@@ -1860,13 +1864,12 @@ class TroubleshootingQuery(MultiQuery):
 
     @starttime.setter
     def starttime(self, value):
-        """Set the start time
+        """Set the start time.
 
         Args:
           value (str): The start time for the troubleshooting request.
         """
         self.__options['starttime'] = value
-
 
     @property
     def endtime(self):
@@ -1889,7 +1892,7 @@ class TroubleshootingQuery(MultiQuery):
 
 
 class RestError(Exception):
-    """Exceptions that occur due to REST API errors
+    """Exceptions that occur due to REST API errors.
 
     Attributes:
       reason (str): The reason string for the exception
@@ -1899,7 +1902,7 @@ class RestError(Exception):
       httpCode (int): The HTTP response code
     """
     def __init__(self, errorCode, reasonStr, httpCode):
-        """Initialize a RestError instance
+        """Initialize a RestError instance.
 
         Args:
           errorCode (int): The REST error code for the exception
@@ -1918,7 +1921,7 @@ class RestError(Exception):
 
 
 class CommitError(RestError):
-    """Exceptions that occur when trying to commit changes
+    """Exceptions that occur when trying to commit changes.
 
     Attributes:
       reason (str): The reason string for the exception
@@ -1928,7 +1931,7 @@ class CommitError(RestError):
       httpCode (int): The HTTP response code
     """
     def __init__(self, errorCode, reasonStr, httpCode=None):
-        """Initialize a CommitError instance
+        """Initialize a CommitError instance.
 
         Args:
           errorCode (int): The REST error code for the exception
@@ -1941,7 +1944,7 @@ class CommitError(RestError):
 
 
 class QueryError(RestError):
-    """Exceptions that occur during queries
+    """Exceptions that occur during queries.
 
     Attributes:
       reason (str): The reason string for the exception
@@ -1951,7 +1954,7 @@ class QueryError(RestError):
       httpCode (int): The HTTP response code
     """
     def __init__(self, errorCode, reasonStr, httpCode=None):
-        """Initialize a QueryError instance
+        """Initialize a QueryError instance.
 
         Args:
           errorCode (int): The REST error code for the exception
