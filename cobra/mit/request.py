@@ -548,7 +548,7 @@ class LoginRequest(AbstractRequest):
 
 class ListDomainsRequest(AbstractRequest):
 
-    """A class to get the possible security domains prior to login"""
+    """A class to get the possible security domains prior to login."""
 
     def __init__(self):
         """Instantiate a ListDomainsRequest instance."""

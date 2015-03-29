@@ -232,6 +232,7 @@ class LoginError(Exception):
         return self.reason
 
 
+# pylint:disable=too-many-instance-attributes
 class LoginSession(AbstractSession):
 
     """A login session with a username and password.
@@ -314,7 +315,7 @@ class LoginSession(AbstractSession):
 
     @property
     def user(self):
-        """Get the username being used for this session.
+        r"""Get the username being used for this session.
 
         This can not be changed.  If you need to change the session username,
         instantiate a new session object.
@@ -441,7 +442,7 @@ class LoginSession(AbstractSession):
 
     @loginDomain.setter
     def loginDomain(self, domain):
-        """Set the loginDomain.
+        r"""Set the loginDomain.
 
         When the loginDomain is not an empty string or 'DefaultAuth', the
         username of the session will be modified to:
@@ -546,7 +547,7 @@ class LoginSession(AbstractSession):
             # Handle aaaLoginDomain response which has an odd format.
             self._domains = []
             for domain in data:
-                self._domains.append( domain['name'])
+                self._domains.append(domain['name'])
                 if domain['name'] == 'DefaultAuth':
                     self._banner = domain['guiBanner']
         else:
@@ -660,7 +661,7 @@ class CertSession(AbstractSession):
         pass
 
     def getLoginDomains(self):
-        """getLoginDomains method.
+        """The getLoginDomains method.
 
         Not (yet) relevant for CertSession but is included for consistency.
         """
