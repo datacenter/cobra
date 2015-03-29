@@ -57,7 +57,7 @@ class MoDirectory(object):
         the server side. If this method fails, the user must login again to
         authenticate and effectively create a new session.
         """
-        self._session.refreshSession()
+        self._session.refresh()
 
     def query(self, queryObject):
         """Query the Model Information Tree.
