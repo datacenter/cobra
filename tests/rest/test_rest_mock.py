@@ -134,6 +134,13 @@ def getResponseMock(tenantname, apic):
                 'adding_headers': HEADERS
             }
         }),
+        ('{0}/api/aaaRefresh.json'.format(url), {
+            'args': [responses.POST],
+            'kwargs': {
+                'body': CONTENT['aaaLogin'],
+                'adding_headers': HEADERS
+            }
+        }),
         ('{0}/api/mo/uni/tn-{1}.json'.format(url, tenantname), {
             'args': [responses.GET],
             'kwargs': {
@@ -217,6 +224,28 @@ class Test_rest_login(object):
         assert moDir._session._cookie
         if apic[0] == 'http://mock':
             getResponseMock.stop()
+
+
+class Test_rest_reauth(object):
+
+    def test_reauth(self, apic, getResponseMock):
+        """Verify that the reauth function works."""
+        if apic[0] == 'http://mock':
+            getResponseMock.start()
+        url, user, password, secure = apic
+
+        secure = False if secure == 'False' else True
+        session = cobra.mit.session.LoginSession(url, user, password,
+                                                 secure=secure,
+                                                 requestFormat='json')
+        moDir = cobra.mit.access.MoDirectory(session)
+        moDir.login()
+
+        logger.debug(
+            'refresh token: {0}'.format(moDir._session._cookie))
+        assert moDir._session._cookie
+        if apic[0] == 'http://mock':
+          getResponseMock.stop()
 
 
 class Test_rest_configrequest(object):
