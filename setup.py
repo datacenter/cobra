@@ -12,25 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
+"""The setup.py for the ACI Python SDK (cobra)."""
+
 import sys
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 
 class PyTest(TestCommand):
+
+    """A class to add a command to setup.py for tests."""
+
     def finalize_options(self):
+        """Finalize any testing options."""
         TestCommand.finalize_options(self)
+        # pylint:disable=attribute-defined-outside-init
         self.test_args = ['--junitxml=unittests.xml']
+        # pylint:disable=attribute-defined-outside-init
         self.test_suite = True
 
     def run_tests(self):
-        #import here, because outside the eggs aren't loaded
+        """Run the tests."""
+        # import here, because outside the eggs aren't loaded
         import pytest
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
-install_requires = ['requests', 'future']
+INSTALL_REQUIRES = ['requests', 'future']
 
 # Doc build instructions:
 # Clone the repo
@@ -39,9 +47,9 @@ install_requires = ['requests', 'future']
 # cd into the docs directory
 # do a make html
 # Built docs are in docs/build/html
-docs_requires = install_requires + ['sphinx<1.3', 'sphinxcontrib-napoleon']
+DOCS_REQUIRES = INSTALL_REQUIRES + ['sphinx<1.3', 'sphinxcontrib-napoleon']
 
-tests_requires = install_requires + ['pytest', 'responses']
+TESTS_REQUIRES = INSTALL_REQUIRES + ['pytest', 'responses']
 
 setup(
     name='acicobra',
@@ -51,7 +59,7 @@ setup(
     author_email='acicobra@external.cisco.com',
     url='https://github.com/datacenter/cobra',
     packages=find_packages(exclude=['examples']),
-    namespace_packages = ['cobra'],
+    namespace_packages=['cobra'],
     long_description="""\
         Access API for the Management Information Tree.
         """,
@@ -74,11 +82,11 @@ setup(
     ],
     keywords='data center networking configuration management',
     license='http://www.apache.org/licenses/LICENSE-2.0',
-    install_requires=install_requires,
+    install_requires=INSTALL_REQUIRES,
     extras_require={
         'ssl': ['pyOpenSSL',],
-        'docs': docs_requires,
+        'docs': DOCS_REQUIRES,
     },
-    tests_require=tests_requires,
-    cmdclass = {'test': PyTest},
+    tests_require=TESTS_REQUIRES,
+    cmdclass={'test': PyTest},
 )

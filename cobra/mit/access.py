@@ -18,7 +18,7 @@ This module ties together the session object and requests to allow a single
 interface by which requests are made.
 """
 
-from builtins import object
+from builtins import object  # pylint:disable=redefined-builtin
 from future.utils import viewitems
 
 from cobra.mit.request import (DnQuery, ClassQuery, CommitError, QueryError,
