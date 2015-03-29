@@ -17,7 +17,8 @@ from builtins import object
 
 import pytest
 cobra = pytest.importorskip('cobra')
-from cobra.mit.request import (AbstractRequest, AbstractQuery, DnQuery,
+from cobra.mit.request import (AbstractRequest, AbstractQuery, LoginRequest,
+                               RefreshRequest, ListDomainsRequest, DnQuery,
                                ClassQuery, TraceQuery, TagsRequest,
                                AliasRequest, ConfigRequest, MultiQuery,
                                TroubleshootingQuery, CommitError)
@@ -175,6 +176,100 @@ class Test_mit_request_AbstractQuery(object):
         aq = AbstractQuery()
         with pytest.raises(errorType):
             setattr(aq, prop, value)
+
+@pytest.mark.mit_request_LoginRequest
+class Test_mit_request_LoginRequest(object):
+
+    def test_LoginRequest_init(self):
+        assert isinstance(LoginRequest('user', 'password'),
+                          LoginRequest)
+
+    @pytest.mark.parametrize("user,password, prop", [
+        ('user1', '1234567890', 'user'),
+        ('user2', 'abcdefghijklmnopqrstuvwxyz0123456789', 'password'),
+    ])
+    def test_LoginRequest_individual_properties(self, user, password, prop):
+        lr = LoginRequest(user, password)
+        if prop == 'user':
+            assert lr.user == user
+        elif prop == 'password':
+            assert lr.password == password
+        else:
+            raise NotImplementedError("Unexpected property name")
+
+    def test_LoginRequest_requestargs(self):
+        expected = {
+                       'headers': {
+                           'Cookie': 'APIC-cookie=None'
+                        },
+                        'allow_redirects': False,
+                        'data': '{"aaaUser": {"attributes": ' +
+                                '{"name": "admin", "pwd": "password"}}}',
+                        'timeout': 90,
+                        'verify': False
+                   }
+        session = LoginSession('http://1.1.1.1', 'admin', 'password')
+        lr = LoginRequest('admin', 'password')
+        assert lr.requestargs(session) == expected
+
+    @pytest.mark.parametrize("sessionUrl", [
+        ("http://1.1.1.1"),
+        ("http://2.2.2.2"),
+        ("http://3.3.3.3"),
+        ("http://4.4.4.4"),
+    ])  
+    def test_LoginRequest_getUrl(self, sessionUrl):
+        session = LoginSession(sessionUrl, 'admin', 'password')
+        expected = sessionUrl + '/api/aaaLogin.json'
+        lr = LoginRequest('admin', 'password')
+        assert lr.getUrl(session) == expected
+
+
+@pytest.mark.mit_request_RefreshRequest
+class Test_mit_request_RefreshRequest(object):
+
+    def test_RefreshRequest_init(self):
+        assert isinstance(RefreshRequest('cookie'), RefreshRequest)
+
+    @pytest.mark.parametrize("cookie", [
+        ('cookie1'),
+        ('cookie2'),
+    ])  
+    def test_RefreshRequest_individual_properties(self, cookie):
+        rr = RefreshRequest(cookie)
+        assert rr.cookie == cookie
+
+    @pytest.mark.parametrize("sessionUrl,cookie", [
+        ("http://1.1.1.1", 'cookie1'),
+        ("http://2.2.2.2", 'cookie2'),
+        ("http://3.3.3.3", 'cookie3'),
+        ("http://4.4.4.4", 'cookie4'),
+    ])  
+    def test_RefreshRequest_getUrl(self, sessionUrl, cookie):
+        session = LoginSession(sessionUrl, 'admin', 'password')
+        expected = sessionUrl + '/api/aaaRefresh.json'
+        rr = RefreshRequest(cookie)
+        assert rr.getUrl(session) == expected
+
+
+@pytest.mark.mit_request_ListDomainsRequest
+class Test_mit_request_ListDomainsRequest(object):
+
+    def test_ListDomainsRequest_init(self):
+        assert isinstance(ListDomainsRequest(), ListDomainsRequest)
+
+    @pytest.mark.parametrize("sessionUrl", [
+        ("http://1.1.1.1"),
+        ("http://2.2.2.2"),
+        ("http://3.3.3.3"),
+        ("http://4.4.4.4"),
+    ])  
+    def test_ListDomainsRequest_getUrl(self, sessionUrl):
+        session = LoginSession(sessionUrl, 'admin', 'password')
+        expected = sessionUrl + '/api/aaaListDomains.json'
+        ldr = ListDomainsRequest()
+        assert ldr.getUrl(session) == expected
+
 
 @pytest.mark.mit_request_DnQuery
 class Test_mit_request_DnQuery(object):

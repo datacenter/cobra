@@ -546,11 +546,33 @@ class LoginRequest(AbstractRequest):
         return session.url + self.uriBase
 
 
+class ListDomainsRequest(AbstractRequest):
+
+    """A class to get the possible security domains prior to login."""
+
+    def __init__(self):
+        """Instantiate a ListDomainsRequest instance."""
+        super(ListDomainsRequest, self).__init__()
+        self.uriBase = '/api/aaaListDomains.json'
+
+    def getUrl(self, session):
+        """Get the URL containing all the options if any.
+
+        Args:
+          session (cobra.mit.session.AbstractSession): The session to use for
+            this request.
+
+        Returns:
+          str: The url
+        """
+        return session.url + self.uriBase
+
+
 class RefreshRequest(AbstractRequest):
 
     """Session refresh request.
 
-    Does standard user/password based authentication.
+    Does standard user/password based re-authentication.
     """
 
     def __init__(self, cookie):
@@ -560,11 +582,11 @@ class RefreshRequest(AbstractRequest):
         self.uriBase = '/api/aaaRefresh.json'
 
     def getUrl(self, session):
-        """Get the URL containing all the query options.
+        """Get the URL containing all the  options if any.
 
         Args:
           session (cobra.mit.session.AbstractSession): The session to use for
-            this query.
+            this request.
 
         Returns:
           str: The url
