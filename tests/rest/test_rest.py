@@ -287,6 +287,19 @@ class Test_rest_login(object):
         assert moDir._session.refreshTime > int(time.time())
         assert moDir._session.refreshTimeoutSeconds > 0
 
+    def test_rest_login_reauth(self, apic):
+        """Verify that the reauth call returns a different session cookie."""
+        url, user, password, secure = apic
+        secure = False if secure == 'False' else True
+        session = cobra.mit.session.LoginSession(url, user, password,
+                                                 secure=secure)
+        moDir = cobra.mit.access.MoDirectory(session)
+        moDir.login()
+        orig_cookie = session.cookie
+        # sleep for 5 seconds to ensure we get a different cookie.
+        time.sleep(5)
+        moDir.reauth()
+        assert orig_cookie != session.cookie
 
 class Test_rest_tracequery(object):
 
