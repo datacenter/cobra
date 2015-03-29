@@ -217,6 +217,13 @@ class AbstractQuery(AbstractRequest):
         * 2
         * 3
 
+      orderBy (list or str): Request that the results be ordered in a certain
+        way.  This can be a list of property sort specifiers or a comma
+        separated string. An example sort specifier: 'aaaUser.name|desc'.
+
+      pageSize (int): Request that the results that are returned are limited
+        to a certain number, the pageSize.
+
       id (None or int): An internal troubleshooting value useful for tracing
         the processing of a request within the cluster
 
@@ -482,6 +489,45 @@ class AbstractQuery(AbstractRequest):
                              (value, str(allowedValues)))
         self.__options['replica'] = value
 
+    @property
+    def orderBy(self):
+        """Get the orderBy sort specifiers string.
+
+        Returns:
+          str: The order-by string of sort specifiers.
+        """
+        return self.__options.get('order-by', None)
+
+    @orderBy.setter
+    def orderBy(self, sortSpecifiers):
+        """Set the orderBy sort specifiers.
+
+        Args:
+          sortSpecifiers (str or list of str): A list of sort specifier strings
+            or a comma separated string of sort specifiers.
+        """
+        if isinstance(sortSpecifiers, list):
+            sortSpecifiers = ','.join(sortSpecifiers)
+        self.__options['order-by'] = sortSpecifiers
+
+    @property
+    def pageSize(self):
+        """Get the pageSize value.
+
+        Returns:
+          int: The number of results to be returned by a query.
+        """
+        return self.__options.get('page-size', None)
+
+    @pageSize.setter
+    def pageSize(self, pageSize):
+        """Set the pageSize value.
+
+        Args:
+          pageSize (int): The number of results to be returned by a query.
+        """
+        self.__options['page-size'] = str(pageSize)
+
 
 class LoginRequest(AbstractRequest):
 
@@ -546,11 +592,33 @@ class LoginRequest(AbstractRequest):
         return session.url + self.uriBase
 
 
+class ListDomainsRequest(AbstractRequest):
+
+    """A class to get the possible security domains prior to login."""
+
+    def __init__(self):
+        """Instantiate a ListDomainsRequest instance."""
+        super(ListDomainsRequest, self).__init__()
+        self.uriBase = '/api/aaaListDomains.json'
+
+    def getUrl(self, session):
+        """Get the URL containing all the options if any.
+
+        Args:
+          session (cobra.mit.session.AbstractSession): The session to use for
+            this request.
+
+        Returns:
+          str: The url
+        """
+        return session.url + self.uriBase
+
+
 class RefreshRequest(AbstractRequest):
 
     """Session refresh request.
 
-    Does standard user/password based authentication.
+    Does standard user/password based re-authentication.
     """
 
     def __init__(self, cookie):
@@ -560,11 +628,11 @@ class RefreshRequest(AbstractRequest):
         self.uriBase = '/api/aaaRefresh.json'
 
     def getUrl(self, session):
-        """Get the URL containing all the query options.
+        """Get the URL containing all the  options if any.
 
         Args:
           session (cobra.mit.session.AbstractSession): The session to use for
-            this query.
+            this request.
 
         Returns:
           str: The url
@@ -639,6 +707,13 @@ class DnQuery(AbstractQuery):
         * no - No subtree requested
         * children - Only the children objects
         * full - A full subtree
+
+      orderBy (list or str): Request that the results be ordered in a certain
+        way.  This can be a list of property sort specifiers or a comma
+        separated string. An example sort specifier: 'aaaUser.name|desc'.
+
+      pageSize (int): Request that the results that are returned are limited
+        to a certain number, the pageSize.
 
       replica (int): The replica option can direct a query to a specific
         replica.  The possible values are:
@@ -765,6 +840,13 @@ class ClassQuery(AbstractQuery):
         * no - No subtree requested
         * children - Only the children objects
         * full - A full subtree
+
+      orderBy (list or str): Request that the results be ordered in a certain
+        way.  This can be a list of property sort specifiers or a comma
+        separated string. An example sort specifier: 'aaaUser.name|desc'.
+
+      pageSize (int): Request that the results that are returned are limited
+        to a certain number, the pageSize.
 
       replica (int): The replica option can direct a query to a specific
         replica.  The possible values are:
@@ -893,6 +975,13 @@ class TraceQuery(AbstractQuery):
         * no - No subtree requested
         * children - Only the children objects
         * full - A full subtree
+
+      orderBy (list or str): Request that the results be ordered in a certain
+        way.  This can be a list of property sort specifiers or a comma
+        separated string. An example sort specifier: 'aaaUser.name|desc'.
+
+      pageSize (int): Request that the results that are returned are limited
+        to a certain number, the pageSize.
 
       replica (int): The replica option can direct a query to a specific
         replica.  The possible values are:
@@ -1607,6 +1696,13 @@ class MultiQuery(AbstractQuery):
         * no - No subtree requested
         * children - Only the children objects
         * full - A full subtree
+
+      orderBy (list or str): Request that the results be ordered in a certain
+        way.  This can be a list of property sort specifiers or a comma
+        separated string. An example sort specifier: 'aaaUser.name|desc'.
+
+      pageSize (int): Request that the results that are returned are limited
+        to a certain number, the pageSize.
 
       replica (int): The replica option can direct a query to a specific
         replica.  The possible values are:

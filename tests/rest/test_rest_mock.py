@@ -85,6 +85,19 @@ def getResponseMock(tenantname, apic):
                 ]
             }
         ),
+        'aaaListDomains': json.dumps(
+            {
+                'imdata': [
+                    {
+                        'name': 'fakeDomain'
+                    },
+                    {
+                        'name': 'DefaultAuth',
+                        'guiBanner': 'fakeBanner'
+                    }
+                ]
+            }
+        ),
         'tenant': json.dumps(
             {
                 'imdata': [
@@ -138,6 +151,13 @@ def getResponseMock(tenantname, apic):
             'args': [responses.POST],
             'kwargs': {
                 'body': CONTENT['aaaLogin'],
+                'adding_headers': HEADERS
+            }
+        }),
+        ('{0}/api/aaaListDomains.json'.format(url), {
+            'args': [responses.GET],
+            'kwargs': {
+                'body': CONTENT['aaaListDomains'],
                 'adding_headers': HEADERS
             }
         }),
@@ -200,6 +220,36 @@ def moDir(getResponseMock, apic):
     if apic[0] == 'http://mock':
         getResponseMock.stop()
     return md
+
+
+class Test_rest_getLoginDomains(object):
+
+    def test_getLoginDomains_domains_islist(self, apic, getResponseMock):
+        """Verify that the getLoginDomains method works."""
+        if apic[0] == 'http://mock':
+            getResponseMock.start()
+        url, user, password, secure = apic
+
+        secure = False if secure == 'False' else True
+        session = cobra.mit.session.LoginSession(url, user, password,
+                                                 secure=secure,
+                                                 requestFormat='json')
+        session.getLoginDomains()
+        assert isinstance(session.domains, list)
+
+    def test_getLoginDomains_domains(self, apic, getResponseMock):
+        """Verify that the getLoginDomains method works."""
+        if apic[0] == 'http://mock':
+            getResponseMock.start()
+        url, user, password, secure = apic
+
+        secure = False if secure == 'False' else True
+        session = cobra.mit.session.LoginSession(url, user, password,
+                                                 secure=secure,
+                                                 requestFormat='json')
+        session.getLoginDomains()
+        # Currently the APIC ALWAYS returns DefaultAuth in the results
+        assert len(session.domains) > 0
 
 
 class Test_rest_login(object):
