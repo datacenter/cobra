@@ -224,6 +224,29 @@ class Test_rest_dnquery(object):
         assert str(commonTn.dn) == str(dn)
 
 
+class Test_rest_getLoginDomains(object):
+
+    def test_getDomains(self, apic):
+        """Verify that the getLoginDomains() method works.
+        """
+        url, user, password, secure = apic
+        secure = False if secure == 'False' else True
+        session = cobra.mit.session.LoginSession(url, user, password,
+                                                 secure=secure)
+        session.getLoginDomains()
+        assert session.domains != []
+
+    def test_loginDomains_setting(self, apic):
+        """Verify that the loginDomain can be set."""
+        url, user, password, secure = apic
+        secure = False if secure == 'False' else True
+        session = cobra.mit.session.LoginSession(url, user, password,
+                                                 secure=secure)
+        session.getLoginDomains()
+        session.loginDomain = session.domains[0]
+        assert session.loginDomain == session.domains[0]
+
+
 class Test_rest_login(object):
 
     def test_login_positive(self, apic):

@@ -30,6 +30,10 @@ class MoDirectory(object):
     """Creates a connection to the APIC and the MIT.
 
     MoDirectory requires an existing session.
+
+    Attributes:
+      session (cobra.mit.session.AbstractSession): The session tied to this
+        MoDirectory instance.
     """
 
     def __init__(self, session):
@@ -41,13 +45,23 @@ class MoDirectory(object):
         """
         self._session = session
 
+    @property
+    def session(self):
+        """Get the session for this MoDirectory instance.
+
+        Returns:
+          cobra.mit.session.AbstractSession: The session tied to this
+          MoDirectory instance.
+        """
+        return self._session
+
     def login(self):
         """Create a session to an APIC."""
-        self._session.login()
+        self.session.login()
 
     def logout(self):
         """End a session to an APIC."""
-        self._session.logout()
+        self.session.logout()
 
     def reauth(self):
         """Re-authenticate the session with the current authentication cookie.
@@ -57,7 +71,7 @@ class MoDirectory(object):
         the server side. If this method fails, the user must login again to
         authenticate and effectively create a new session.
         """
-        self._session.refresh()
+        self.session.refresh()
 
     def query(self, queryObject):
         """Query the Model Information Tree.
@@ -72,7 +86,7 @@ class MoDirectory(object):
           list: A list of Managed Objects (MOs) returned from the query
         """
         try:
-            rsp = self._session.get(queryObject)
+            rsp = self.session.get(queryObject)
             return self.__parseResponse(rsp)
         except RestError as ex:
             self.__parseError(ex.reason, QueryError, ex.httpCode)
@@ -94,7 +108,7 @@ class MoDirectory(object):
           CommitError: If no MOs have been added to the config request
         """
         try:
-            rsp = self._session.post(configObject)
+            rsp = self.session.post(configObject)
             return self.__parseResponse(rsp)
         except RestError as ex:
             self.__parseError(ex.reason, CommitError, ex.httpCode)
@@ -166,7 +180,7 @@ class MoDirectory(object):
           Exception: The errorClass.
 
         """
-        self._session.codec.error(rsp, errorClass, httpCode)
+        self.session.codec.error(rsp, errorClass, httpCode)
 
     def __parseResponse(self, rsp):
         """Parse a response.
@@ -177,7 +191,7 @@ class MoDirectory(object):
         Returns:
           cobra.mit.mo.Mo: The response parsed into a managed object.
         """
-        return self._session.codec.fromStr(rsp)
+        return self.session.codec.fromStr(rsp)
 
     @staticmethod
     def __setQueryParams(query, queryParams):

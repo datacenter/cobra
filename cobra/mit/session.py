@@ -36,7 +36,8 @@ import json
 
 from .codec import XMLMoCodec, JSONMoCodec
 from cobra.internal.rest.accessimpl import RestAccess
-from cobra.mit.request import LoginRequest, RefreshRequest, RestError
+from cobra.mit.request import (LoginRequest, ListDomainsRequest, RefreshRequest,
+                               RestError)
 
 
 class AbstractSession(object):
@@ -257,6 +258,17 @@ class LoginSession(AbstractSession):
       refreshTimeoutSeconds (str or None): The number of seconds for which this
         session is valid - readonly
 
+      domains (list): A list of possible login domains.  The list is only
+        populated once getLoginDomains() is called and this method can be
+        called prior to logging in.
+
+      loginDomain (str): The login domain that should be used to login to the
+        remote device.  This is used to build a username that uses the
+        loginDomain.
+
+      banner (str): The banner set on the APIC.  This is set when the
+        getLoginDomains() method is called.
+
       secure (bool): Only used for https. If True the remote server will be
         verified for authenticity.  If False the remote server will not be
         verified for authenticity - readonly
@@ -296,6 +308,9 @@ class LoginSession(AbstractSession):
         self._version = None
         self._refreshTime = None
         self._refreshTimeoutSeconds = None
+        self._domains = []
+        self._banner = ''
+        self._loginDomain = ''
 
     @property
     def user(self):
@@ -304,22 +319,34 @@ class LoginSession(AbstractSession):
         This can not be changed.  If you need to change the session username,
         instantiate a new session object.
 
+        If the loginDomain is set, the username is set to:
+
+          apic:<loginDomain>\\<user>
+
         Returns:
           str: The username for this session.
         """
+        if self.loginDomain != '' and self.loginDomain != 'DefaultAuth':
+            return 'apic:' + str(self.loginDomain) + '\\' + self._user
         return self._user
 
     @property
     def password(self):
         """Get the password being used for this session.
 
-        This can not be changed. if you need to change the session password,
-        instantiate a new session object.
-
         Returns:
           str: The session password.
         """
         return self._password
+
+    @password.setter
+    def password(self, password):
+        """Set the password being used for this session.
+
+        Args:
+          password (str): The password to use for this session.
+        """
+        self._password = password
 
     @property
     def cookie(self):
@@ -384,6 +411,48 @@ class LoginSession(AbstractSession):
         """
         return self._refreshTimeoutSeconds
 
+    @property
+    def domains(self):
+        """Get the session login domains.
+
+        Returns:
+          list: The list of login domains.
+        """
+        return self._domains
+
+    @property
+    def banner(self):
+        """Get the banner.
+
+        Returns:
+          str: The banner or an empty string if the getLoginDomains method has
+            not been called.
+        """
+        return self._banner
+
+    @property
+    def loginDomain(self):
+        """Get the loginDomain.
+
+        Returns:
+          str: The loginDomain.
+        """
+        return self._loginDomain
+
+    @loginDomain.setter
+    def loginDomain(self, domain):
+        """Set the loginDomain.
+
+        When the loginDomain is not an empty string or 'DefaultAuth', the
+        username of the session will be modified to:
+
+            apic:<loginDomain>\\<user>
+
+        Args:
+          domain (str): The loginDomain to use when logging in.
+        """
+        self._loginDomain = domain
+
     # pylint:disable=unused-argument
     def getHeaders(self, uriPathAndOptions, data):
         """Get the HTTP headers for a given URI path and options string.
@@ -421,6 +490,15 @@ class LoginSession(AbstractSession):
         Currently this method does nothing
         """
         pass
+
+    def getLoginDomains(self):
+        """Get the possible login domains prior to login.
+
+        The domains are returned as a list.
+        """
+        domainsRequest = ListDomainsRequest()
+        rsp = self._accessimpl.get(domainsRequest)
+        self._parseResponse(rsp)
 
     def refresh(self):
         """Refresh a session with the remote server (APIC or Fabric Node).
@@ -464,6 +542,13 @@ class LoginSession(AbstractSession):
             self._refreshTime = (int(refreshTimeoutSeconds) +
                                  math.trunc(time.time()))
             self._refreshTimeoutSeconds = int(refreshTimeoutSeconds)
+        elif 'name' in firstRecord:
+            # Handle aaaLoginDomain response which has an odd format.
+            self._domains = []
+            for domain in data:
+                self._domains.append( domain['name'])
+                if domain['name'] == 'DefaultAuth':
+                    self._banner = domain['guiBanner']
         else:
             raise LoginError(0, 'Bad Response: ' + str(rsp.text))
 
@@ -571,6 +656,13 @@ class CertSession(AbstractSession):
         """logout method.
 
         Not relevant for CertSession but is included for consistency.
+        """
+        pass
+
+    def getLoginDomains(self):
+        """getLoginDomains method.
+
+        Not (yet) relevant for CertSession but is included for consistency.
         """
         pass
 
