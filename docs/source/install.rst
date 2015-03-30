@@ -227,14 +227,18 @@ For example:
        Location: /local/lib/python2.7/site-packages/acimodel-1.0.1_219-py2.7.egg
        Requires: acicobra
 
-When you install the SDK without SSL support it will depend only on the
-requests module.
+When you install the SDK without SSL support it will depend on the following
+modules:
+
+1. requests
+2. future
 
 When you install the SDK with SSL support it will depend on the following
 modules:
 
 1. requests
-2. pyOpenSSL
+2. future
+3. pyOpenSSL
 
 These dependancies may have their own dependancies and may require a compiler
 depending on your platform and method of installation.
