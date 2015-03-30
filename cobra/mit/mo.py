@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""The mo module for the ACI Python SDK (cobra)."""
+
 from cobra.internal.base.moimpl import BaseMo
 
 
 class Mo(BaseMo):
-    """Represents managed objects (MOs)
+
+    """Represents managed objects (MOs).
 
     Managed objects (MOs) represent a physical or logical entity with a set of
     configurations and properties.
@@ -48,12 +51,13 @@ class Mo(BaseMo):
       contextRoot (None or cobra.mit.mo.Mo): The managed object that is the
         context root for this managed object
     """
+
     def __init__(self, parentMoOrDn, markDirty, *namingVals, **creationProps):
-        """Initialize a managed object (MO)
-        
+        """Initialize a managed object (MO).
+
         This should not be called directly.  Instead initialize the Mo from
         the model that you need.
-        
+
         Args:
           parentMoOrDn (str or cobra.mit.naming.Dn or cobra.mit.mo.Mo): The
             parent managed object (MO) or distinguished name (Dn).
@@ -65,7 +69,7 @@ class Mo(BaseMo):
           **creationProps: Properties to be set at the time the MO is created,
             these properties can also be set after the property is created if
             needed.
-        
+
         Raises:
           NotImplementedError: If this class is called directly
         """
@@ -75,70 +79,119 @@ class Mo(BaseMo):
                         **creationProps)
 
     def delete(self):
-        """
-        Marks the mo as deleted. If this mo is committed, the corresponding mo
-        in the backend will be deleted.
+        """ Mark the Mo ad deleted.
+
+        If this mo is committed, the corresponding mo in the backend will be
+        deleted.
         """
         BaseMo._delete(self)
 
     @property
-    def dn(self): 
+    def dn(self):  # pylint:disable=invalid-name
+        """Get the distinguished name.
+
+        Returns:
+          cobra.mit.naming.Dn: The Dn for this Mo.
+        """
         return BaseMo._dn(self)
 
     @property
-    def rn(self):
+    def rn(self):  # pylint:disable=invalid-name
+        """Get the relative name.
+
+        Returns:
+          cobra.mit.naming.Rn: The relative name for this Mo.
+        """
         return BaseMo._rn(self)
 
     @property
     def status(self):
+        """Get the status.
+
+        Returns:
+          cobra.internal.base.moimpl.MoStatus: The status for this Mo.
+        """
         return BaseMo._status(self)
 
     @property
     def parentDn(self):
+        """Get the parent distinguished name.
+
+        Returns:
+          cobra.mit.naming.Dn: The parent Dn.
+        """
         return BaseMo._parentDn(self)
 
     @property
     def parent(self):
+        """Get the parent Mo.
+
+        Returns:
+          cobra.mit.mo.Mo: The parent Mo.
+        """
         return BaseMo._parent(self)
 
     @property
     def dirtyProps(self):
+        """Get the properties that are marked as dirty.
+
+        Returns:
+          set: The set of properties that are dirty.
+        """
         return BaseMo._dirtyProps(self)
 
     @property
     def children(self):
+        """Get the children iterator.
+
+        Returns:
+          iterator: An iterator for the children of this Mo.
+        """
         return BaseMo._children(self)
 
     @property
     def numChildren(self):
+        """Get the number of children.
+
+        Returns:
+          int: The number of children that this Mo has.
+        """
         return BaseMo._numChildren(self)
 
     @property
     def contextRoot(self):
+        """Get the context root of the distinguished name.
+
+        Returns:
+          None: If the Dn has no context root.
+          cobra.mit.mo.Mo: The managed object that is the context root for
+            this managed object if the Dn has a context root.
+        """
         return self.dn.contextRoot
 
     def isPropDirty(self, propName):
-        """Check if a property has been modified on this managed object
-        
+        """Check if a property has been modified on this managed object.
+
         Args:
           propName (str): The property name as a string
 
         Returns:
           bool: True if the property has been modified and not commited, False
             otherwise
-        """    
+        """
         return BaseMo._isPropDirty(self, propName)
 
     def resetProps(self):
-        """Resets managed object (MO) properties
-        
+        """Reset the managed object (MO) properties.
+
         This will discard uncommitted changes.
-        """    
+        """
         BaseMo._resetProps(self)
 
     def __getattr__(self, propName):
+        """Implement getattr()."""
         return BaseMo.__getattr__(self, propName)
 
     def __setattr__(self, propName, propValue):
+        """Implement setattr()."""
         BaseMo.__setattr__(self, propName, propValue)
-
