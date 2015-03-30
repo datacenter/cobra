@@ -119,7 +119,7 @@ Committing a Configuration
 
 Use the **MoDirectory.commit** function to save a new configuration to the mit:
 
-.. code-block::
+.. code-block:: python
 
    from cobra.mit.request import ConfigRequest
    cfgRequest = ConfigRequest()
