@@ -51,8 +51,7 @@ environment variable to append a directory to your Python path.
 Python Version Error
 ====================
 
-The APIC Python API supports Python version 2.7.5 and later 2.7 versions;
-other versions of Python are not currently supported.
+The APIC Python API is supported with versions 2.7 and 3.4 of Python.
 
 WindowsError
 ============
