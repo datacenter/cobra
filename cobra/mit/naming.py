@@ -471,9 +471,10 @@ class Dn(object):
         Raises:
           ValueError: If the Dn can not contain the Rn
         """
-        rnClassName = rn.meta.className
-        if rnClassName == 'cobra.model.top.Root':
+        if len(self.__rns) == 0 and str(rn) == '':
+            # ignore addition of topRoot to topRoot its just a clone side-effect
             return
+        rnClassName = rn.meta.className
         if rnClassName not in self.__meta.childClasses:
             className = str(self.meta.className)
             raise ValueError("'%s' cannot contain '%s'" % (className,
