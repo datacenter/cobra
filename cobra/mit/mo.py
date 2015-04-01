@@ -79,7 +79,7 @@ class Mo(BaseMo):
                         **creationProps)
 
     def delete(self):
-        """ Mark the Mo ad deleted.
+        """Mark the Mo ad deleted.
 
         If this mo is committed, the corresponding mo in the backend will be
         deleted.
