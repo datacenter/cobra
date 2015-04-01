@@ -9,7 +9,7 @@ The following sections describe the classes in the access module.
 	
 
 MoDirectory
-------------------
+-----------
 
 Class that creates a connection to the APIC and manage the MIT configuration.
 MoDirectory enables you to create queries based on the object class,
