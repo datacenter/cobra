@@ -42,6 +42,15 @@ session classes.
    :special-members:
    :exclude-members: __weakref__
 
+LoginError
+----------
+
+Class that handles errors during the login process.
+
+.. autoclass:: cobra.mit.session.LoginError
+   :members:
+   :special-members:
+
 LoginSession
 ------------
 
