@@ -9,11 +9,12 @@ The available packages are as follows:
 .. toctree::
     :maxdepth: 1
 
+    access
+    codec
+    meta
+    mo
     naming
+    services
     session
     request
-    services
-    access
-    mo
-    meta
 
