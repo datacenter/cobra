@@ -52,12 +52,14 @@ Example of using a LoginSession:
 .. code-block:: python
 
    from cobra.mit.access import MoDirectory
-   from cobra.mit.access import LoginSession
+   from cobra.mit.session import LoginSession
 
    session = LoginSession('http://10.1.1.1', 'user', 'password', secure=False)
    moDir = MoDirectory(session)
+   moDir.login()
    allTenants = moDir.lookupByClass('fvTenant')
-   print(allTenants)
+   for tenant in allTenants:
+       print(tenant.name)
 
 .. autoclass:: cobra.mit.session.LoginSession
    :members:
