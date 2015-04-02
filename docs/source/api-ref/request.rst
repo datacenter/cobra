@@ -88,6 +88,34 @@ this class.
    :members:
    :special-members:
 
+LoginRequest
+------------
+
+Class that represents a login request.
+
+.. autoclass:: cobra.mit.request.LoginRequest
+   :members:
+   :special-members:
+
+ListDomainsRequest
+------------------
+
+Class that represents a request for login/security domains.  This can be done
+prior to login.
+
+.. autoclass:: cobra.mit.request.ListDomainsRequest
+   :members:
+   :special-members:
+
+RefreshRequest
+--------------
+
+Class that represents a request to refresh a session.
+
+.. autoclass:: cobra.mit.request.RefreshRequest
+   :members:
+   :special-members:
+
 DnQuery
 -------
 
@@ -178,6 +206,15 @@ Example Usage:
    :members:
    :special-members:
 
+AliasRequest
+------------
+
+A class that represents a request to add/remove aliases.
+
+.. autoclass:: cobra.mit.request.AliasRequest
+   :members:
+   :special-members:
+
 TraceQuery
 ----------
 
@@ -187,3 +224,49 @@ A class that creates a trace query
    :members:
    :special-members:
 
+
+MultiQuery
+----------
+
+Class that represents a multi-query request.
+
+.. autoclass:: cobra.mit.request.MultiQuery
+   :members:
+   :special-members:
+
+TroubleshootingQuery
+--------------------
+
+Class that represents a Troubleshooting Query.
+
+.. autoclass:: cobra.mit.request.TroubleshootingQuery
+   :members:
+   :special-members:
+
+RestError
+---------
+
+A class that handles errors from the REST API.  This is a base class for all
+query/request exceptions.
+
+.. autoclass:: cobra.mit.request.RestError
+   :members:
+   :special-members:
+
+CommitError
+-----------
+
+A class that handles errors that occur when a change is being committed.
+
+.. autoclass:: cobra.mit.request.CommitError
+   :members:
+   :special-members:
+
+QueryError
+----------
+
+A class that handles errors during queries.
+
+.. autoclass:: cobra.mit.request.QueryError
+   :members:
+   :special-members:
