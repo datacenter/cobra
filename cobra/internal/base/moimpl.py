@@ -399,8 +399,11 @@ class BaseMo(object):
 
         # pylint:disable=no-member
         self.__dict__['_BaseMo__meta'] = self.__class__.meta
-        self.__dict__['_BaseMo__status'] = MoStatus(MoStatus.CREATED |
-                                                    MoStatus.MODIFIED)
+        if 'status' in creationProps:
+            self.__dict__['_BaseMo__status'] = MoStatus.fromString(creationProps['status'])
+            del creationProps['status']
+        else:
+            self.__dict__['_BaseMo__status'] = MoStatus(MoStatus.CREATED | MoStatus.MODIFIED)
         self.__dict__['_BaseMo__dirtyProps'] = set()
         self.__dict__['_BaseMo__children'] = BaseMo._ChildContainer(self.__meta)
         self.__dict__['_BaseMo__rn'] = Rn(self.__meta, *namingVals)
