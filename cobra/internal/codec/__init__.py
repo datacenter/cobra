@@ -22,7 +22,7 @@ def getParentDn(dnStr):
       dnStr (str): The Dn string to use to find the parent for.
 
     Returns:
-      str: An empty strin if dnStr is None, otherwise the parent Dn as a string
+      str: An empty string if dnStr is None, otherwise the parent Dn as a string
     """
     if dnStr is None:
         return ''
@@ -69,10 +69,10 @@ def parseMoClassName(className):
     else:
         pkg = className
         klass = ""
-    return (pkg, klass)
+    return pkg, klass
 
 
-def buildMo(pyClass, moProps, parentMo, parentDnStr):
+def buildMo(pyClass, moProps, parentMoOrDn):
     """Build a Mo by calling pyClass.
 
     The naming properties are determined from pyClass.meta and set to
@@ -83,10 +83,8 @@ def buildMo(pyClass, moProps, parentMo, parentDnStr):
         class must be imported first usually by calling
         cobra.mit.meta.ClassLoader.
       moProps (dict): A dictionary representing the instance properties.
-      parentMo (cobra.mit.mo.Mo): The parent Mo for the Mo that will be
-        built.
-      parentDnStr (str): A string representing the parent Mo for the Mo that
-        will be built.
+      parentMoOrDn (cobra.mit.mo.Mo or str): The parent Mo for the Mo that will be
+        built or parentDn.
 
     Returns:
       cobra.mit.mo.Mo: The built managed object.
@@ -97,7 +95,6 @@ def buildMo(pyClass, moProps, parentMo, parentDnStr):
         namingVals.append(moProps[propName])
         del moProps[propName]
 
-    parentMoOrDn = parentMo if parentMo else parentDnStr
     mo = pyClass(parentMoOrDn, *namingVals, markDirty=False, **moProps)
     mo.resetProps()
     return mo

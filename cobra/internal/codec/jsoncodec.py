@@ -107,19 +107,26 @@ def _createMo(moClassName, moData, parentMo):
     pkgName, className = parseMoClassName(moClassName)
     fqClassName = "cobra.model." + pkgName + "." + className
     pyClass = ClassLoader.loadClass(fqClassName)
-    parentDnStr = None
+    parentMoOrDn = parentMo
     moProps = moData['attributes']
+
     if 'dn' in moProps:
-        parentDnStr = getParentDn(moProps['dn'])
+        # No parentMo, use the dn of this MO from the data returned by server
+        if parentMoOrDn is None:
+            parentMoOrDn = getParentDn(moProps['dn'])
         del moProps['dn']
+
+    # Ignore Rn and InstanceId
     if 'rn' in moProps:
         del moProps['rn']
     if 'instanceId' in moProps:
         del moProps['instanceId']
-    if 'status' in moProps:
+
+    if 'status' in moProps and not moProps['status']:
+        # Ignore empty status
         del moProps['status']
 
-    mo = buildMo(pyClass, moProps, parentMo, parentDnStr)
+    mo = buildMo(pyClass, moProps, parentMoOrDn)
 
     children = moData.get('children', [])
     for childNode in children:
