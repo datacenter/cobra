@@ -499,7 +499,7 @@ class Dn(object):
                 dnStr.startswith(ansDnStr))
 
     def isAncestorOf(self, descendantDn):
-        """ Check if a Dn is an ancestor of this Dn.
+        """Check if a Dn is an ancestor of this Dn.
 
         Args:
           descendantDn (cobra.mit.naming.Dn): Dn being compared for ancestary
