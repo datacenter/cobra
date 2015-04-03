@@ -1471,7 +1471,7 @@ class ConfigRequest(AbstractRequest):
             'headers': self.getHeaders(session, data),
             'verify': session.secure,
             'timeout': session.timeout,
-            'data': str(data)
+            'data': data
         }
         return kwargs
 
