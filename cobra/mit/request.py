@@ -640,6 +640,76 @@ class RefreshRequest(AbstractRequest):
         return session.url + self.uriBase
 
 
+class FwUploadRequest(AbstractRequest):
+
+    """Directly upload firmware to the APIC from the localhost.
+
+    This requires MoDirectory.commit() to be called on the instance of this
+    class.  For example:
+
+        >>> from cobra.mit.access import MoDirectory
+        >>> from cobra.mit.session import LoginSession
+        >>> from cobra.mit.request import FwUploadRequest
+        >>> session = LoginSession('https://10.1.1.1', 'admin', 'pas$w0rd')
+        >>> modir = MoDirectory(session)
+        >>> firmware = '/users/username/aci-apic-dk9.1.1.0e.iso'
+        >>> fwReq = FwUploadRequest(firware)
+        >>> modir.commit(fwReq)
+
+    .. note::
+       This is likely to be very slow due to an issue with httplib in Python.
+       The httplib library has hardset the block size to 8192 bytes.
+    """
+
+    def __init__(self, uploadFile):
+        super(FwUploadRequest, self).__init__()
+        self._uploadFile = uploadFile
+        self.uriBase = '/fwupload/'
+
+    @property
+    def uploadFile(self):
+        """Get the uploadFile attribute."""
+        return self._uploadFile
+
+    @property
+    def data(self):
+        """Get the data.
+
+        Returns:
+          str: The data that will be committed.
+        """
+        return open(self.uploadFile, 'rb')
+
+    def requestargs(self, session):
+        """Get the arguments to be used by the HTTP request.
+
+        session (cobra.mit.session.AbstractSession): The session to be used to
+          build the the request arguments
+
+        Returns:
+          dict: The arguments
+        """
+        kwargs = {
+            'headers': self.getHeaders(session),
+            'verify': session.secure,
+            'files': {
+                'file': self.data
+            }
+        }
+        return kwargs
+
+    def getUrl(self, session):
+        """Get the URL containing all the query options.
+
+        Args:
+          session (cobra.mit.session.AbstractSession): The session to use for
+            this query.
+
+        Returns:
+          str: The url
+        """
+        return session.url + self.getUriPathAndOptions(session)
+
 class DnQuery(AbstractQuery):
 
     """Query based on distinguished name (Dn).
@@ -2002,10 +2072,8 @@ class RestError(Exception):
     """Exceptions that occur due to REST API errors.
 
     Attributes:
-      reason (str): The reason string for the exception
-
       error (int): The REST error code for the exception
-
+      reason (str): The reason string for the exception
       httpCode (int): The HTTP response code
     """
 
@@ -2020,8 +2088,8 @@ class RestError(Exception):
           httpCode (int): The HTTP response code
         """
         super(RestError, self).__init__(reasonStr)
-        self.reason = reasonStr
         self.error = errorCode
+        self.reason = reasonStr
         self.httpCode = httpCode
 
     def __str__(self):

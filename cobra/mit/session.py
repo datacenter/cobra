@@ -498,7 +498,10 @@ class LoginSession(AbstractSession):
         The domains are returned as a list.
         """
         domainsRequest = ListDomainsRequest()
-        rsp = self._accessimpl.get(domainsRequest)
+        try:
+            rsp = self._accessimpl.get(domainsRequest)
+        except RestError as ex:
+            self._parseResponse(ex.reason)
         self._parseResponse(rsp)
 
     def refresh(self):
@@ -509,7 +512,10 @@ class LoginSession(AbstractSession):
             the response could not be parsed.
         """
         refreshRequest = RefreshRequest(self.cookie)
-        rsp = self._accessimpl.get(refreshRequest)
+        try:
+            rsp = self._accessimpl.get(refreshRequest)
+        except:
+            self._parseResponse(ex.reason)
         self._parseResponse(rsp)
 
     def _parseResponse(self, rsp):
@@ -525,7 +531,7 @@ class LoginSession(AbstractSession):
         rspDict = json.loads(rsp)
         data = rspDict.get('imdata', None)
         if not data:
-            raise LoginError(0, 'Bad Response: ' + str(rsp.text))
+            raise LoginError(0, 'Bad Response: ' + str(rsp))
 
         firstRecord = data[0]
         if 'error' in firstRecord:
@@ -551,7 +557,7 @@ class LoginSession(AbstractSession):
                 if domain['name'] == 'DefaultAuth':
                     self._banner = domain['guiBanner']
         else:
-            raise LoginError(0, 'Bad Response: ' + str(rsp.text))
+            raise LoginError(0, 'Bad Response: ' + str(rsp))
 
 
 class CertSession(AbstractSession):
