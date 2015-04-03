@@ -6,15 +6,21 @@ This module provides an interface to uploading L4-7 device packages to the
 controller. Refer to the **Developing L4-L7 Device Packages** document for more
 information on creating device packages.
 
-Example::
+Example Usage:
 
-    session = cobra.mit.session.LoginSession('https://apic', 'admin',
-                                             'password', secure=False)
-    moDir = cobra.mit.access.MoDirectory(session)
-    moDir.login()
+.. code-block:: python
 
-    packageUpload = cobra.services.UploadPackage('asa-device-pkg.zip')
-    response = moDir.commit(packageUpload)
+    >>> from cobra.mit.session import LoginSession
+    >>> from cobra.mit.access import MoDirectory
+    >>> from cobra.services import UploadPackage
+    >>> 
+    >>> session = LoginSession('https://10.10.10.100', 'user', 'password')
+    >>> moDir = MoDirectory(session)
+    >>> moDir.login()
+    >>> 
+    >>> packageUpload = UploadPackage('asa-device-pkg.zip')
+    >>> response = moDir.commit(packageUpload)
+    >>> 
 
 The following sections describe the classes in the services module.
 

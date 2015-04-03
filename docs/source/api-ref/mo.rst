@@ -13,11 +13,13 @@ profiles, and policies are logical entities represented as MOs.
 
 Accessing Properties
 ---------------------
-When you create a managed object (MO), you can access properties as follows::
+When you create a managed object (MO), you can access properties as follows:
 
-    userMo = User('uni/userext', 'george')
-    userMo.firstName = 'George'
-    userMo.lastName = 'Washington'
+.. code-block:: python
+
+    >>> userMo = User('uni/userext', 'george')
+    >>> userMo.firstName = 'George'
+    >>> userMo.lastName = 'Washington'
 
 Managing Properties
 ---------------------
