@@ -95,6 +95,7 @@ can be used for that user.
     >>> # Generation of a certificate and private key using the subprocess module to
     ... # make direct calls to openssl at the shell level.  This assumes that
     ... # openssl is installed on the system.
+    ...
     >>>
     >>> from subprocess import Popen, CalledProcessError, PIPE
     >>> 
