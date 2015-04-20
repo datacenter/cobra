@@ -15,6 +15,7 @@
 """The mo module for the ACI Python SDK (cobra)."""
 
 from cobra.internal.base.moimpl import BaseMo
+from cobra.internal.codec.jsoncodec import toJSONStr
 
 
 class Mo(BaseMo):
@@ -195,3 +196,6 @@ class Mo(BaseMo):
     def __setattr__(self, propName, propValue):
         """Implement setattr()."""
         BaseMo.__setattr__(self, propName, propValue)
+
+    def __str__(self):
+        return toJSONStr(self, prettyPrint=True, includeAllProps=True)
