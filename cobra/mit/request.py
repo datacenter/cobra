@@ -224,6 +224,12 @@ class AbstractQuery(AbstractRequest):
       pageSize (int): Request that the results that are returned are limited
         to a certain number, the pageSize.
 
+      page (int): Return a given 'page' from a paginated result. Pages
+        starts from 0
+        Example:
+          # returns the second sets of MO of 10 entries.
+          pageSize=10, page=1
+
       id (None or int): An internal troubleshooting value useful for tracing
         the processing of a request within the cluster
 
@@ -526,7 +532,33 @@ class AbstractQuery(AbstractRequest):
         Args:
           pageSize (int): The number of results to be returned by a query.
         """
-        self.__options['page-size'] = str(pageSize)
+        try:
+            numVal = int(pageSize)
+        except:
+            raise ValueError('{} pageSize needs to be an integer'.format(pageSize))
+        self.__options['page-size'] = str(numVal)
+
+    @property
+    def page(self):
+        """Get the page value.
+
+        Returns:
+          int: The number of the page returned in the query.
+        """
+        return self.__options.get('page', None)
+
+    @page.setter
+    def page(self, value):
+        """Set the page value.
+
+        Args:
+          page (int): The position in the query which should be retrieved.
+        """
+        try:
+            numVal = int(value)
+        except:
+            raise ValueError('{} page needs to be an integer'.format(value))
+        self.__options['page'] = str(numVal)
 
 
 class LoginRequest(AbstractRequest):
