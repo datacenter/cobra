@@ -528,6 +528,18 @@ class AbstractQuery(AbstractRequest):
         """
         self.__options['page-size'] = str(pageSize)
 
+    @property
+    def subscription(self):
+        return self.__options.get('subscription', None)
+
+    @subscription.setter
+    def subscription(self, value):
+        if type(value) == bool:
+            self.__options['subscription'] = 'yes' if value else 'no'
+        elif value not in {'yes', 'no'}:
+            raise ValueError('value should be one of: %s' % {'yes', 'no'})
+        self.__options['subscription'] = value
+
 
 class LoginRequest(AbstractRequest):
 
@@ -1471,7 +1483,7 @@ class ConfigRequest(AbstractRequest):
             'headers': self.getHeaders(session, data),
             'verify': session.secure,
             'timeout': session.timeout,
-            'data': str(data)
+            'data': data
         }
         return kwargs
 
