@@ -38,7 +38,7 @@ class PyTest(TestCommand):
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
-INSTALL_REQUIRES = ['requests', 'future']
+INSTALL_REQUIRES = ['requests', 'future', 'websocket']
 
 # Doc build instructions:
 # Clone the repo
