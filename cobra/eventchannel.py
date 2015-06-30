@@ -20,6 +20,9 @@ from cobra.mit.request import AbstractQuery, AbstractRequest
 from cobra.mit.session import AbstractSession
 from cobra.mit.naming import Dn
 
+if not hasattr(websocket, 'create_connection'):
+    raise Exception('Incompatible websocket library. please install websocket-client')
+
 class RefreshSubRequest(AbstractQuery):
 
     """
