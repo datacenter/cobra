@@ -17,4 +17,5 @@ The available packages are as follows:
     services
     session
     request
+    eventchannel
 
