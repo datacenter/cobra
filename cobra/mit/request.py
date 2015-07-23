@@ -224,6 +224,12 @@ class AbstractQuery(AbstractRequest):
       pageSize (int): Request that the results that are returned are limited
         to a certain number, the pageSize.
 
+      page (int): Return a given 'page' from a paginated result. Pages
+        starts from 0
+        Example:
+          # returns the second sets of MO of 10 entries.
+          pageSize=10, page=1
+
       id (None or int): An internal troubleshooting value useful for tracing
         the processing of a request within the cluster
 
@@ -526,7 +532,33 @@ class AbstractQuery(AbstractRequest):
         Args:
           pageSize (int): The number of results to be returned by a query.
         """
-        self.__options['page-size'] = str(pageSize)
+        try:
+            numVal = int(pageSize)
+        except:
+            raise ValueError('{} pageSize needs to be an integer'.format(pageSize))
+        self.__options['page-size'] = str(numVal)
+
+    @property
+    def page(self):
+        """Get the page value.
+
+        Returns:
+          int: The number of the page returned in the query.
+        """
+        return self.__options.get('page', None)
+
+    @page.setter
+    def page(self, value):
+        """Set the page value.
+
+        Args:
+          page (int): The position in the query which should be retrieved.
+        """
+        try:
+            numVal = int(value)
+        except:
+            raise ValueError('{} page needs to be an integer'.format(value))
+        self.__options['page'] = str(numVal)
 
     @property
     def subscription(self):
@@ -651,6 +683,76 @@ class RefreshRequest(AbstractRequest):
         """
         return session.url + self.uriBase
 
+
+class FwUploadRequest(AbstractRequest):
+
+    """Directly upload firmware to the APIC from the localhost.
+
+    This requires MoDirectory.commit() to be called on the instance of this
+    class.  For example:
+
+        >>> from cobra.mit.access import MoDirectory
+        >>> from cobra.mit.session import LoginSession
+        >>> from cobra.mit.request import FwUploadRequest
+        >>> session = LoginSession('https://10.1.1.1', 'admin', 'pas$w0rd')
+        >>> modir = MoDirectory(session)
+        >>> firmware = '/users/username/aci-apic-dk9.1.1.0e.iso'
+        >>> fwReq = FwUploadRequest(firware)
+        >>> modir.commit(fwReq)
+
+    .. note::
+       This is likely to be very slow due to an issue with httplib in Python.
+       The httplib library has hardset the block size to 8192 bytes.
+    """
+
+    def __init__(self, uploadFile):
+        super(FwUploadRequest, self).__init__()
+        self._uploadFile = uploadFile
+        self.uriBase = '/fwupload/'
+
+    @property
+    def uploadFile(self):
+        """Get the uploadFile attribute."""
+        return self._uploadFile
+
+    @property
+    def data(self):
+        """Get the data.
+
+        Returns:
+          str: The data that will be committed.
+        """
+        return open(self.uploadFile, 'rb')
+
+    def requestargs(self, session):
+        """Get the arguments to be used by the HTTP request.
+
+        session (cobra.mit.session.AbstractSession): The session to be used to
+          build the the request arguments
+
+        Returns:
+          dict: The arguments
+        """
+        kwargs = {
+            'headers': self.getHeaders(session),
+            'verify': session.secure,
+            'files': {
+                'file': self.data
+            }
+        }
+        return kwargs
+
+    def getUrl(self, session):
+        """Get the URL containing all the query options.
+
+        Args:
+          session (cobra.mit.session.AbstractSession): The session to use for
+            this query.
+
+        Returns:
+          str: The url
+        """
+        return session.url + self.getUriPathAndOptions(session)
 
 class DnQuery(AbstractQuery):
 
@@ -2014,10 +2116,8 @@ class RestError(Exception):
     """Exceptions that occur due to REST API errors.
 
     Attributes:
-      reason (str): The reason string for the exception
-
       error (int): The REST error code for the exception
-
+      reason (str): The reason string for the exception
       httpCode (int): The HTTP response code
     """
 
@@ -2032,8 +2132,8 @@ class RestError(Exception):
           httpCode (int): The HTTP response code
         """
         super(RestError, self).__init__(reasonStr)
-        self.reason = reasonStr
         self.error = errorCode
+        self.reason = reasonStr
         self.httpCode = httpCode
 
     def __str__(self):

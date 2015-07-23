@@ -41,12 +41,16 @@ def parseXMLError(rspStr, errorClass, httpCode=None):
           to will be raised.
         ValueError: If the response can not be parsed.
     """
-    errorNode = ET.fromstring(rspStr).find('error')
+    try:
+        errorNode = ET.fromstring(rspStr).find('error')
+    except ET.ParseError as ex:
+        # 404 error can end up here, however since the response is html it is
+        # partially parsed, then the xml parser fails
+        raise ValueError(rspStr)
     if errorNode is not None:
         errorStr = errorNode.attrib['text']
         errorCode = errorNode.attrib['code']
         raise errorClass(int(errorCode), errorStr, httpCode)
-
     raise ValueError(rspStr)
 
 

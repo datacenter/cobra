@@ -21,7 +21,8 @@ from cobra.mit.request import (AbstractRequest, AbstractQuery, LoginRequest,
                                RefreshRequest, ListDomainsRequest, DnQuery,
                                ClassQuery, TraceQuery, TagsRequest,
                                AliasRequest, ConfigRequest, MultiQuery,
-                               TroubleshootingQuery, CommitError)
+                               TroubleshootingQuery, CommitError,
+                               FwUploadRequest)
 from cobra.mit.session import LoginSession
 cobra.model = pytest.importorskip('cobra.model')
 from cobra.model.pol import Uni
@@ -274,6 +275,26 @@ class Test_mit_request_ListDomainsRequest(object):
         expected = sessionUrl + '/api/aaaListDomains.json'
         ldr = ListDomainsRequest()
         assert ldr.getUrl(session) == expected
+
+
+@pytest.mark.mit_request_FwUploadRequest
+class Test_mit_request_FwUploadRequest(object):
+
+    def test_FwUploadRequest_init(self):
+        assert isinstance(FwUploadRequest('dummy'), FwUploadRequest)
+
+    @pytest.mark.parametrize("sessionUrl, requestType", [
+        ("http://1.1.1.1", 'xml'),
+        ("http://2.2.2.2", 'json'),
+        ("http://3.3.3.3", 'xml'),
+        ("http://4.4.4.4", 'json'),
+   ])
+    def test_FwUploadRequest_getUrl(self, sessionUrl, requestType):
+        session = LoginSession(sessionUrl, 'admin', 'password',
+                               requestFormat=requestType)
+        expected = sessionUrl + '/fwupload/.' + requestType
+        fur = FwUploadRequest('dummy')
+        assert fur.getUrl(session) == expected
 
 
 @pytest.mark.mit_request_DnQuery

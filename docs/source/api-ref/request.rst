@@ -116,6 +116,15 @@ Class that represents a request to refresh a session.
    :members:
    :special-members:
 
+FwUploadRequest
+---------------
+
+Class that represents a request to upload firmware to an APIC.
+
+.. autoclass:: cobra.mit.request.RefreshRequest
+   :members:
+   :special-members:
+
 DnQuery
 -------
 
