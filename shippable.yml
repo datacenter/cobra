@@ -3,7 +3,6 @@ python:
   - "2.7"
   - "3.4"
   - "pypy"
-cache: true
 
 before_install:
    - mkdir -p shippable/testresults
