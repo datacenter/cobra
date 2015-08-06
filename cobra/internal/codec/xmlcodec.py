@@ -221,7 +221,9 @@ def _toXMLStr(mo, includeAllProps, excludeChildren=False):
 
     xmlStr = ""
     if attrStr or childXml:
-        xmlStr = "<{0}{1}>{2}</{3}>".format(className, attrStr, childXml,
-                                            className)
+        xmlStr = "<{0}{1}>{2}</{0}>".format(className, attrStr, childXml)
+    else:
+        xmlStr = "<{0}></{0}>".format(className)
+
 
     return xmlStr
