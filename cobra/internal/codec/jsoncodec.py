@@ -159,6 +159,8 @@ def __toJSONDict(mo, includeAllProps=False, excludeChildren=False):
 
     if len(attrDict) > 0:
         moDict['attributes'] = attrDict
+    else:
+        moDict['attributes'] = {}
 
     if not excludeChildren:
         childrenArray = []
