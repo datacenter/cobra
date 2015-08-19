@@ -1693,6 +1693,8 @@ class ConfigRequest(AbstractRequest):
             rDn = rMo.dn
             descendantDn = descendantMo.dn
             parentDn = descendantDn.getParent()
+            parentMo = ConfigRequest.__getMoForDnInFlatTree(parentDn,
+                                                            flatTreeDict)
             while rDn != parentDn:
                 # This is a descendant.  Make the parent mo.
                 parentMo = ConfigRequest.__getMoForDnInFlatTree(parentDn,
