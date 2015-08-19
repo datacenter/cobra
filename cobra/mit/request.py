@@ -2082,6 +2082,44 @@ class TroubleshootingQuery(MultiQuery):
         self.__options['dstep'] = value
 
     @property
+    def srcextip(self):
+        """Return the source external ip address.
+
+        Returns:
+          str: The source external ip address.
+        """
+        return self.__options.get('srcextip', None)
+
+    @srcextip.setter
+    def srcextip(self, value):
+        """Sets the source external ip address.
+
+        Args:
+          value (str): The source external ip address.
+        """
+
+        self.__options['srcextip'] = value
+
+    @property
+    def dstextip(self):
+        """Return the destination external ip address.
+
+        Returns:
+          str: The destination external ip address.
+        """
+        return self.__options.get('dstextip', None)
+
+    @dstextip.setter
+    def dstextip(self, value):
+        """Set the destination external ip address.
+
+        Args:
+          value (str): The destination external ip address.
+        """
+
+        self.__options['dstextip'] = value
+
+    @property
     def starttime(self):
         """Get the start time.
 
