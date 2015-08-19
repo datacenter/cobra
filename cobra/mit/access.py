@@ -181,6 +181,19 @@ class MoDirectory(object):
         """
         return self._session.codec.fromStr(rsp)
 
+    def exists(self, dnStrOrDn):
+        """Check if a managed object with given Dn is present or not.
+
+        Args:
+          dnStrOrDn (str or cobra.mit.naming.Dn): A distinguished name as a
+            :class:`cobra.mit.naming.Dn` or string
+
+        Returns:
+          bool: True, if MO is present, else False.
+        """
+        mo = self.lookupByDn(dnStrOrDn, subtreeInclude='count')
+        return mo is not None and int(mo.count) > 0
+
     @staticmethod
     def __setQueryParams(query, queryParams):
         """Utility function to set the query parameters.
