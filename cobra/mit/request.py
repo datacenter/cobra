@@ -1946,6 +1946,16 @@ class TroubleshootingQuery(MultiQuery):
             * createsession
             * interactive
             * generatereport
+            * getsessiondetail
+            * getsessionslist
+            * getreportstatus
+            * getreportslist
+            * atomiccounter
+            * deletesession
+            * modifysession
+            * clearreports
+            * traceroute
+            * span
 
         Raises:
           ValueError: If the value is not a valid value.
@@ -2015,11 +2025,19 @@ class TroubleshootingQuery(MultiQuery):
             * stats
             * faults
             * events
+            * audits
+            * deployment-records
+            * fault-records
+            * contracts
 
         Raises:
           ValueError: If the value is not a valid value.
         """
-        allowedValues = {'topo', 'services', 'stats', 'faults', 'events'}
+        allowedValues = {
+            'deployment-records', 'services', 'audits',
+            'fault-records',      'events',   'stats',
+            'contracts',          'faults',   'topo',
+        }
         allValues = value.split(',')
         for val in allValues:
             if val not in allowedValues:
