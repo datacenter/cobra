@@ -2104,6 +2104,30 @@ class TroubleshootingQuery(MultiQuery):
         self.__options['include'] = value
 
     @property
+    def action(self):
+        """Return the action flag.
+
+        Returns:
+          str: The action flag.
+        """
+        return self.__options.get('action', None)
+
+    @include.setter
+    def action(self, value):
+        """Set the action flag.
+        
+        Args:
+          value (str): The action flag value, valid values are start
+                       stop and status.
+        """
+
+        allowedValues = {'start', 'stop', 'status'}
+        if value not in allowedValues:
+            raise ValueError('"%s" is invalid, valid values are "%s"' %
+                             (value, str(allowedValues)))
+        self.__options['action'] = value
+
+    @property
     def session(self):
         """Get the session.
 
