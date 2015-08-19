@@ -459,7 +459,7 @@ class BaseMo(object):
         if attrName in self.meta.props:
             # need to do lazy initialization of this prop to default value
             propMeta = self.meta.props[attrName]
-            defValue = propMeta.defaultValue
+            defValue = propMeta.defaultValueStr
             self.__setprop(propMeta, attrName, defValue, markDirty=False,
                            forced=True)
             return defValue
