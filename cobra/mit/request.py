@@ -2136,6 +2136,24 @@ class TroubleshootingQuery(MultiQuery):
         """
         self.__options['sessionurl'] = value
 
+    @property
+    def scheduler(self):
+        """Return the scheduler name.
+
+        Returns:
+          str: The session name.
+        """
+        return self.__options.get('scheduler', None)
+
+    @scheduler.setter
+    def scheduler(self, value):
+        """Set the scheduler name.
+
+        Args:
+          value (str): The session name.
+        """
+        self.__options['scheduler'] = value
+
     def setCustomArgument(self, option, value):
         """Set a custom option to a specific value.
 
