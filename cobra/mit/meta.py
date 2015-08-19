@@ -582,6 +582,7 @@ class PropMeta(object):
         self.label = None
         self.unit = None
         self.defaultValue = None
+        self.range = None
         # A field without a default value, when reported in the XML
         # format if present, will anyway be represented with '', this
         # field needs to match that representation, hence an empty
