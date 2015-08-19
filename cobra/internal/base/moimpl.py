@@ -671,8 +671,8 @@ class BaseMo(object):
           ValueError: If the parent of the child Mo is not this Mo.
         """
         if childMo.parent != self:
-            raise ValueError('{0} is not attached '.format(str(self.dn) +
-                             ' to {1}'.format(str(childMo.dn)))
+            raise ValueError('{0} is not attached '.format(str(self.dn)) +
+                             ' to {0}'.format(str(childMo.dn)))
         self.__modifyChild(childMo, False)
         # pylint:disable=protected-access
         childMo._setParent(None)
