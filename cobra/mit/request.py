@@ -1950,7 +1950,13 @@ class TroubleshootingQuery(MultiQuery):
         Raises:
           ValueError: If the value is not a valid value.
         """
-        allowedValues = {'createsession', 'interactive', 'generatereport'}
+        allowedValues = {
+            'getsessiondetail', 'createsession', 'interactive',
+            'getsessionslist',  'atomiccounter', 'traceroute',
+            'getreportstatus',  'deletesession', 'span',
+            'generatereport',   'modifysession',
+            'getreportslist',   'clearreports'
+        }
         if value not in allowedValues:
             raise ValueError('"%s" is invalid, valid values are "%s"' %
                              (value, str(allowedValues)))
