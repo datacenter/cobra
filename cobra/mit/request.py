@@ -880,7 +880,7 @@ class ClassQuery(AbstractQuery):
     """Query based on class name.
 
     Attributes:
-      options (str): The HTTP request query string string for this DnQuery
+      options (str): The HTTP request query string string for this ClassQuery
         object - readonly
 
       className (str): The className to query for - readonly
@@ -1013,7 +1013,7 @@ class TraceQuery(AbstractQuery):
     """Trace Query using a base Dn and a target class.
 
     Attributes:
-      options (str): The HTTP request query string string for this DnQuery
+      options (str): The HTTP request query string string for this TraceQuery
         object - readonly
 
       targetClass (str): The targetClass for this trace query
@@ -1173,7 +1173,7 @@ class TagsRequest(AbstractRequest):
     (query).
 
     Attributes:
-      options (str): The HTTP request query string string for this DnQuery
+      options (str): The HTTP request query string string for this TagsRequest
         object - readonly
 
       data (str): The payload for this request in JSON format - readonly
@@ -1338,7 +1338,7 @@ class AliasRequest(AbstractRequest):
     (query).
 
     Attributes:
-      options (str): The HTTP request query string string for this DnQuery
+      options (str): The HTTP request query string string for this AliasRequest
         object - readonly
 
       data (str): The payload for this request in JSON format - readonly
@@ -1459,8 +1459,8 @@ class ConfigRequest(AbstractRequest):
     :py:func:`cobra.mit.access.MoDirectory.commit` function uses this class.
 
     Attributes:
-      options (str): The HTTP request query string string for this DnQuery
-        object - readonly
+      options (str): The HTTP request query string string for this
+        ConfigRequest object - readonly
 
       data (str): The payload for this request in JSON format - readonly
 
@@ -1736,7 +1736,7 @@ class MultiQuery(AbstractQuery):
     """Perform a multiquery.
 
     Attributes:
-      options (str): The HTTP request query string string for this DnQuery
+      options (str): The HTTP request query string string for this MultiQuery
         object - readonly
 
       target (str): The target for this MultiQuery - readonly
@@ -1876,6 +1876,9 @@ class TroubleshootingQuery(MultiQuery):
         * interactive
         * generatereport
 
+      options (str): The HTTP request query string for this
+        TroubleshootingQuery object - readonly
+
       format (str): The output format.  Valid values are:
 
         * xml
@@ -1911,6 +1914,17 @@ class TroubleshootingQuery(MultiQuery):
           target (str) : The target for this TroubleshootingQuery
         """
         super(TroubleshootingQuery, self).__init__('troubleshoot.%s' % target)
+
+    @property
+    def options(self):
+        """Get the options.
+
+        Returns:
+          str: All the options for this abstract request as a string
+            joined by &'s.
+        """
+        return '&'.join(filter(None, [AbstractRequest.makeOptions(
+            self.__options), super(TroubleshootingQuery, self).options]))
 
     @property
     def mode(self):
