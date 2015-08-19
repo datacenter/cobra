@@ -562,6 +562,55 @@ class AbstractQuery(AbstractRequest):
             raise ValueError('{} page needs to be an integer'.format(value))
         self.__options['page'] = str(numVal)
 
+    @property
+    def cacheId(self):
+        """Get cacheId value.
+
+        Returns:
+          int: The cacheId value.
+        """
+        return self.__options.get('cache-session', None)
+
+    @cacheId.setter
+    def cacheId(self, value):
+        """Set cacheId value
+
+        Args:
+          value (int): The cacheId
+        """
+        if value is None and 'cache-session' in self.__options:
+            del self.__options['cache-session']
+            return
+        try:
+            numVal = int(value)
+        except:
+            raise ValueError('{} cache id needs to be '.format(value) +
+                             'an integer')
+        self.__options['cache-session'] = str(numVal)
+
+    @property
+    def deleteCacheId(self):
+        """Get the delete-session value.
+
+        Returns:
+          str or None: The value of delete-session or None.
+        """
+        return self.__options.get('delete-session', None)
+
+    @deleteCacheId.setter
+    def deleteCacheId(self, value):
+        """Set the delete-session value
+
+        Args:
+          value (int): The cacheId to delete.
+        """
+        try:
+            numVal = int(value)
+        except:
+            raise ValueError('{} delete cache id needs to be '.format(value) +
+                             'an integer')
+        self.__options['delete-session'] = str(numVal)
+
 
 class LoginRequest(AbstractRequest):
 
@@ -1920,6 +1969,7 @@ class TroubleshootingQuery(MultiQuery):
           target (str) : The target for this TroubleshootingQuery
         """
         super(TroubleshootingQuery, self).__init__('troubleshoot.%s' % target)
+        self.__options = {}
 
     @property
     def options(self):
