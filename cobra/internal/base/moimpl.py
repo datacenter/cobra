@@ -251,6 +251,24 @@ class BaseMo(object):
                         raise ValueError("'%s' must be '%s' for mo '%s'" %
                                          (keyVal, moVal, str(mo.rn)))
 
+            def clone(self, parentMo):
+                """Clone a class container instance
+
+                Args:
+                  parentMo (cobra.mit.mo.Mo): The parent Mo for the container.
+
+                Returns:
+                  cobra.mit.internal.base.moimpl.BaseMo._ClassContainer: Then
+                    cloned class container
+                """
+                newChildContainer = BaseMo._ChildContainer._ClassContainer(
+                                        self._childClass)
+                for key, value in self._childObjects.iteritems():
+                    newChildContainer._childObjects[key] = value.clone(
+                                                               parentMo)
+                return newChildContainer
+
+
         class _ChildIter(object):
 
             """Internal class to iterate over child objects."""
@@ -303,6 +321,21 @@ class BaseMo(object):
 
             # Key is the first rn prefix with the leading '-' if any
             self._classContainers = {}
+
+        def clone(self, parentMo):
+            """Clone a _ChildContainer instance.
+
+            Args:
+              parentMo: (cobra.mit.mo.Mo): The parent Mo for the container.
+
+            Returns:
+              cobra.internal.base.moimpl.BaseMo._ChildContainer: The cloned
+                _ChildContainer instance.
+            """
+            newChildContainer = BaseMo._ChildContainer(self._classMeta)
+            for key, value in self._classContainers.iteritems():
+                newChildContainer._classContainers[key] = value.clone(parentMo)
+            return newChildContainer
 
         def _getChildContainer(self, childPrefix, lookup=False):
             """Get a child container based on prefix.
@@ -400,12 +433,15 @@ class BaseMo(object):
         # pylint:disable=no-member
         self.__dict__['_BaseMo__meta'] = self.__class__.meta
         if 'status' in creationProps:
-            self.__dict__['_BaseMo__status'] = MoStatus.fromString(creationProps['status'])
+            self.__dict__['_BaseMo__status'] = MoStatus.fromString(
+                                                   creationProps['status'])
             del creationProps['status']
         else:
-            self.__dict__['_BaseMo__status'] = MoStatus(MoStatus.CREATED | MoStatus.MODIFIED)
+            self.__dict__['_BaseMo__status'] = MoStatus(MoStatus.CREATED |
+                                                        MoStatus.MODIFIED)
         self.__dict__['_BaseMo__dirtyProps'] = set()
-        self.__dict__['_BaseMo__children'] = BaseMo._ChildContainer(self.__meta)
+        self.__dict__['_BaseMo__children'] = BaseMo._ChildContainer(
+                                                 self.__meta)
         self.__dict__['_BaseMo__rn'] = Rn(self.__meta, *namingVals)
         self.__dict__['_BaseMo__dn'] = None
 
@@ -447,6 +483,31 @@ class BaseMo(object):
             # pylint:disable=protected-access
             self.__parentMo.__modifyChild(self, attach=True)
 
+    def clone(self, parentMo=None):
+        """Clone a BaseMo instance.
+
+        Args:
+            parentMo: (cobra.mit.mo.Mo): The parent Mo for the container.
+
+          Returns:
+            cobra.internal.base.moimpl.BaseMo: The cloned BaseMo instance.
+        """
+        namingVals = self.__rn.namingValueList
+        if parentMo is None:
+            parentMo = self._parentDn()
+        newMo = self.__class__(parentMo, *namingVals, markDirty=False)
+
+        # Copy the properties based on the meta
+        for prop in self.__meta.props:
+            name = prop.name
+            val = getattr(self, name)
+            newMo.__dict__[name] = val
+
+        # Clone the containers to form the subtree recursively
+        newMo.__dict__['_BaseMo__children'] = self.__children.clone(
+                                                  parentMo=newMo)
+        return newMo
+
     def __getattr__(self, attrName):
         """Get an attribute.
 
@@ -459,7 +520,7 @@ class BaseMo(object):
         if attrName in self.meta.props:
             # need to do lazy initialization of this prop to default value
             propMeta = self.meta.props[attrName]
-            defValue = propMeta.defaultValue
+            defValue = propMeta.defaultValueStr
             self.__setprop(propMeta, attrName, defValue, markDirty=False,
                            forced=True)
             return defValue
@@ -610,8 +671,8 @@ class BaseMo(object):
           ValueError: If the parent of the child Mo is not this Mo.
         """
         if childMo.parent != self:
-            raise ValueError('%s is not attached to %s' % (str(self.dn),
-                                                           str(childMo.dn)))
+            raise ValueError('{0} is not attached '.format(str(self.dn)) +
+                             ' to {0}'.format(str(childMo.dn)))
         self.__modifyChild(childMo, False)
         # pylint:disable=protected-access
         childMo._setParent(None)
