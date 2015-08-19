@@ -187,6 +187,7 @@ class AbstractQuery(AbstractRequest):
         * count
         * no-scoped
         * required
+        * subtree
 
       queryTarget (str): The query target filter can be used to specify what
         part of the MIT to query.  You can query:
@@ -355,6 +356,7 @@ class AbstractQuery(AbstractRequest):
             * count
             * no-scoped
             * required
+            * subtree
 
         Raises:
           ValueError: If the value is not a valid value.
@@ -362,7 +364,7 @@ class AbstractQuery(AbstractRequest):
         allowedValues = {'audit-logs', 'event-logs', 'faults', 'fault-records',
                          'health', 'health-records', 'deployment-records',
                          'relations', 'stats', 'tasks', 'count', 'no-scoped',
-                         'required'}
+                         'required', 'subtree'}
         allValues = value.split(',')
         for val in allValues:
             if val not in allowedValues:
@@ -787,6 +789,7 @@ class DnQuery(AbstractQuery):
         * count
         * no-scoped
         * required
+        * subtree
 
       queryTarget (str): The query target filter can be used to specify what
         part of the MIT to query.  You can query:
@@ -920,6 +923,7 @@ class ClassQuery(AbstractQuery):
         * count
         * no-scoped
         * required
+        * subtree
 
       queryTarget (str): The query target filter can be used to specify what
         part of the MIT to query.  You can query:
@@ -1055,6 +1059,7 @@ class TraceQuery(AbstractQuery):
         * count
         * no-scoped
         * required
+        * subtree
 
       queryTarget (str): The query target filter can be used to specify what
         part of the MIT to query.  You can query:
@@ -1776,6 +1781,7 @@ class MultiQuery(AbstractQuery):
         * count
         * no-scoped
         * required
+        * subtree
 
       queryTarget (str): The query target filter can be used to specify what
         part of the MIT to query.  You can query:
