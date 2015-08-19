@@ -93,6 +93,8 @@ class MoDirectory(object):
         Raises:
           CommitError: If no MOs have been added to the config request
         """
+        if configObject.getRootMo() is None:
+            raise CommitError(0, "No mos in config request")
         try:
             rsp = self._session.post(configObject)
             return self.__parseResponse(rsp)
