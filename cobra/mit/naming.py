@@ -180,6 +180,10 @@ class Rn(object):
         return iter(self.__namingVals)
 
     @property
+    def namingValueList(self):
+        return list(self.__namingVals)
+
+    @property
     def meta(self):
         """Get the meta object for this Rn.
 
