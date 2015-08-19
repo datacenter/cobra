@@ -2081,15 +2081,6 @@ class TroubleshootingQuery(MultiQuery):
         """
         self.__options['dstep'] = value
 
-    def setCustomArgument(self, option, value):
-        """Set a custom option to a specific value.
-        
-        Args:
-          option (str): The option to set.
-          value (str): The value to set the option to.
-        """
-        self.__options[arg] = value
-
     @property
     def starttime(self):
         """Get the start time.
@@ -2127,6 +2118,33 @@ class TroubleshootingQuery(MultiQuery):
         """
         self.__options['endtime'] = value
 
+    @property
+    def sessionurl(self):
+        """Return the sessionurl.
+
+        Returns:
+          str: The session URL.
+        """
+        return self.__options.get('sessionurl', None)
+
+    @sessionurl.setter
+    def sessionurl(self, value):
+        """Set the sessionurl.
+
+        Args:
+          value (str): The session url.
+        """
+        self.__options['sessionurl'] = value
+
+    def setCustomArgument(self, option, value):
+        """Set a custom option to a specific value.
+
+        Args:
+          option (str): The option to set.
+          value (str): The value to set the option to.
+        """
+        self.__options[arg] = value
+        
 
 class RestError(Exception):
 
