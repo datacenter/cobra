@@ -128,7 +128,7 @@ def _createMo(node, parentMo):
         elif attr == 'rn' or attr == 'instanceId':
             # Ignore Rn and InstanceId
             pass
-        elif attr == 'status' and not val:
+        elif attr == 'status' and val == '':
             # Ignore the empty status
             pass
         else:
