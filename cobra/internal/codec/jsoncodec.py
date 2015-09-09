@@ -18,7 +18,7 @@ from builtins import str  # pylint:disable=redefined-builtin
 import json
 from cobra.mit.meta import ClassLoader
 from cobra.internal.codec import (parseMoClassName, getParentDn, buildMo,
-                                  getPropValue, listWithTotalCount)
+                                  getPropValue)
 
 
 def parseJSONError(rspText, errorClass, httpCode=None):
@@ -83,9 +83,7 @@ def fromJSONDict(moDict):
     """
     rootNode = moDict["imdata"]
 
-    allMos = listWithTotalCount()
-    if 'totalCount' in moDict:
-        allMos.totalCount = int(moDict["totalCount"])
+    allMos = []
     for moNode in rootNode:
         className = list(moNode.keys())[0]
         moData = moNode[className]

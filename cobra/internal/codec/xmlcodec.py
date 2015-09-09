@@ -20,7 +20,7 @@ import xml.etree.cElementTree as ET
 import xml.dom.minidom
 from cobra.mit.meta import ClassLoader
 from cobra.internal.codec import (parseMoClassName, getParentDn, buildMo,
-                                  getPropValue, listWithTotalCount)
+                                  getPropValue)
 
 
 def parseXMLError(rspStr, errorClass, httpCode=None):
@@ -65,9 +65,7 @@ def _fromXMLRootNode(xmlRootNode):
       cobra.mit.mo.Mo: The Mo parsed from the XML Element object.
 
     """
-    allMos = listWithTotalCount()
-    if 'totalCount' in xmlRootNode.attrib:
-        allMos.totalCount = int(xmlRootNode.attrib['totalCount'])
+    allMos = []
     for moNode in xmlRootNode:
         mo = _createMo(moNode, None)
         allMos.append(mo)
