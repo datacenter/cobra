@@ -14,6 +14,25 @@
 
 """ACI Python SDK codecs module."""
 
+class listWithTotalCount(list):
+
+    """REST query result object.
+
+    Attributes:
+      totalCount (int): Total number of MOs matching the query
+    """
+
+    @property
+    def totalCount(self):
+        if '_totalCount' in self.__dict__:
+            return self._totalCount
+        else:
+            return len(self)
+
+    @totalCount.setter
+    def totalCount(self, value):
+        self._totalCount = value
+
 
 def getParentDn(dnStr):
     """Get the parent Dn.

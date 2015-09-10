@@ -74,6 +74,7 @@ def getResponseMock(tenantname, apic):
     CONTENT = {
         'aaaLogin': json.dumps(
             {
+                'totalCount' : '1',
                 'imdata': [
                     {
                         'aaaLogin': {
@@ -87,6 +88,7 @@ def getResponseMock(tenantname, apic):
         ),
         'aaaListDomains': json.dumps(
             {
+                'totalCount' : '2',
                 'imdata': [
                     {
                         'name': 'fakeDomain'
@@ -100,6 +102,7 @@ def getResponseMock(tenantname, apic):
         ),
         'tenant': json.dumps(
             {
+                'totalCount' : '1',
                 'imdata': [
                     {
                         'fvTenant': {
@@ -122,6 +125,7 @@ def getResponseMock(tenantname, apic):
         ),
         'tenants': json.dumps(
             {
+                'totalCount' : '3',
                 'imdata': [
                     {
                         'fvTenant': {
@@ -415,5 +419,20 @@ class Test_rest_classquery(object):
         assert findtn(commonTn, 'common')
         assert findtn(commonTn, 'infra')
         assert findtn(commonTn, 'mgmt')
+        if apic[0] == 'http://mock':
+            getResponseMock.stop()
+
+class Test_rest_totalCount(object):
+
+    def test_classquery(self, moDir, apic, getResponseMock):
+        """
+        checks that totalCount is present in class query responses
+        """
+        if apic[0] == 'http://mock':
+            getResponseMock.start()
+        classQuery = cobra.mit.request.ClassQuery('fvTenant')
+        mos = moDir.query(classQuery)
+
+        assert mos.totalCount == len(mos)
         if apic[0] == 'http://mock':
             getResponseMock.stop()
