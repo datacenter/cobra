@@ -31,46 +31,12 @@ It provides a pythonic library that allows developers to quickly develop and tes
 * Works with multiple versions of ACI model
 * Provides unit testing capability against a mock APIC Server
 * Python 2.7, Python 3.3/3.4 and PyPy support
-* 20% speed boost when Cython is available
 
 ### Benefits ###
 
 * Stable production ready code supported by the ACI team
 * Full feature coverage with examples
 * Tools for unit testing and debugging
-
-
-### Install ###
-
-
-```bash
-$ pip install --upgrade cython acicobra
-```
-
-**Installing on OS X Mavericks with Xcode 5.1**
-
-Xcode Command Line Tools are required to compile Cython. Install them with
-this command:
-
-```bash
-$ xcode-select --install
-```
-
-The Xcode 5.1 CLang compiler treats unrecognized command-line options as
-errors; this can cause problems under Python 2.6, for example:
-
-```bash
-clang: error: unknown argument: '-mno-fused-madd' [-Wunused-command-line-argument-hard-error-in-future]
-```
-
-You can work around errors caused by unused arguments by setting some
-environment variables:
-
-```bash
-$ export CFLAGS=-Qunused-arguments
-$ export CPPFLAGS=-Qunused-arguments
-$ pip install cython acicobra
-```
 
 ### Documentation ###
 
@@ -80,6 +46,11 @@ The docstrings in the Cobra code base are quite extensive, and we recommend keep
 
 Please file issues [here][issues]. Please mail your questions to the cobra support team at acicobra@external.cisco.com.
 
+### Install ###
+
+[Installation instructions][install] are available in the documenation.
+
+[install]: http://cobra.readthedocs.org/en/latest/install.html
 
 ### Contributing ###
 
