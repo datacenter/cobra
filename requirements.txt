@@ -1,0 +1,4 @@
+requests
+pyOpenSSL
+responses
+pytest-cov

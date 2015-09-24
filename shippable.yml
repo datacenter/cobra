@@ -7,14 +7,21 @@ python:
 before_install:
    - mkdir -p shippable/testresults
    - mkdir -p shippable/codecoverage
+   - echo "============ removing old pypy symlink =============="
+   - sudo rm -f /usr/local/bin/pypy
+   - echo "============ downloading pypy =============="
+   - OLDDIR=`pwd` && cd /opt && sudo wget https://bitbucket.org/pypy/pypy/downloads/pypy-2.6.1-linux64.tar.bz2 && sudo tar -xjvf pypy-2.6.1-linux64.tar.bz2 && cd $OLDDIR
+   - echo "============== creating symlink for pypy ==============="
+   - sudo ln -sf /opt/pypy-2.6.1-linux64/bin/pypy /usr/local/bin/pypy
+   - mkdir -p $HOME/bldve/
+   - virtualenv -p $SHIPPABLE_PYTHON  $HOME/bldve/
+   - source $HOME/bldve/bin/activate
+   - python --version
+   - which python
 
 install: 
-  - "pip install requests"
-  - "pip install pyOpenSSL"
-  - "pip install responses"
-  - "pip install pytest-cov"
-  - "python setup.py -q install"
-  - "pip install sphinxcontrib-napoleon"
+  - pip install -r requirements.txt
+  - python setup.py -q install
 
 script:
   - coverage run --source cobra --branch setup.py test
