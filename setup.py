@@ -47,7 +47,7 @@ INSTALL_REQUIRES = ['requests', 'future<=0.14.3']
 # cd into the docs directory
 # do a make html
 # Built docs are in docs/build/html
-DOCS_REQUIRES = INSTALL_REQUIRES + ['sphinx<1.3', 'sphinxcontrib-napoleon']
+DOCS_REQUIRES = INSTALL_REQUIRES + ['sphinx>=1.3']
 
 TESTS_REQUIRES = INSTALL_REQUIRES + ['pytest', 'responses']
 
