@@ -93,6 +93,8 @@ class MoDirectory(object):
         Raises:
           CommitError: If no MOs have been added to the config request
         """
+        if configObject.getRootMo() is None:
+            raise CommitError(0, "No mos in config request")
         try:
             rsp = self._session.post(configObject)
             return self.__parseResponse(rsp)
@@ -178,6 +180,19 @@ class MoDirectory(object):
           cobra.mit.mo.Mo: The response parsed into a managed object.
         """
         return self._session.codec.fromStr(rsp)
+
+    def exists(self, dnStrOrDn):
+        """Check if a managed object with given Dn is present or not.
+
+        Args:
+          dnStrOrDn (str or cobra.mit.naming.Dn): A distinguished name as a
+            :class:`cobra.mit.naming.Dn` or string
+
+        Returns:
+          bool: True, if MO is present, else False.
+        """
+        mo = self.lookupByDn(dnStrOrDn, subtreeInclude='count')
+        return mo is not None and int(mo.count) > 0
 
     @staticmethod
     def __setQueryParams(query, queryParams):

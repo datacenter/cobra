@@ -152,6 +152,8 @@ class ClassMeta(object):
       isNamed (bool): True if the object is a named source relationship object,
         False otherwise
 
+      isStats (bool): True if the object is a stats object, False otherwise.
+
       writeAccessMask (long): The write permissions for this class
 
       readAccessMask (long): The read permissions for this class
@@ -214,6 +216,7 @@ class ClassMeta(object):
         self.isSource = False
         self.isExplicit = False
         self.isNamed = False
+        self.isStats = False
 
         self.writeAccessMask = 0
         self.readAccessMask = 0
@@ -376,6 +379,116 @@ class ClassMeta(object):
             if propName not in self._props:
                 raise AttributeError('No property %s' % propName)
             return self._props[propName]
+
+
+class StatsClassMeta(ClassMeta):
+
+    """Represents a stats Mo metadata.
+
+    Attributes:
+      className (str): The class name for the meta
+
+      moClassName (None or str): The class name for the MO
+
+      label (str): The label for the class meta
+
+      category (None or cobra.mit.meta.Category): The class category
+
+      isAbstract (bool): True if the class is abstract, False otherwise
+
+      isRelation (bool): True if the class is a relationship object, False
+        otherwise
+
+      isSource (bool): True if the class is a source relationship object, False
+        otherwise
+
+      isExplicit (bool): True if the object is an explicit relationship, False
+        if the object forms an indirect named relationship
+
+      isNamed (bool): True if the object is a named source relationship object,
+        False otherwise
+
+      isStats (bool): True if the object is a stats object, False otherwise.
+
+      writeAccessMask (long): The write permissions for this class
+
+      readAccessMask (long): The read permissions for this class
+
+      isDomainable (bool): True if the MO is domainable, False otherwise
+
+      isReadOnly (bool): True if the MO is readonly, False otherwise
+
+      isConfigurable (bool): True if the MO can be configured, False
+        otherwise
+
+      isDeletable (bool): True if the MO can be deleted
+
+      isContextRoot (bool): True if the MO is the context root
+
+      concreteSubClasses (cobra.mit.meta.ClassMeta._ClassContainer): A
+        container that keeps track of all the subclasses that are concrete
+
+      superClasses (cobra.mit.meta.ClassMeta._ClassContainer): A container
+        that keeps track of all the super classes
+
+      childClasses (cobra.mit.meta.ClassMeta._ClassContainer): A container
+        that keeps track of the actual child classes
+
+      childNamesAndRnPrefix (list of tuples): A list containing tuples where
+        the first element is the child name and the second element is the rn
+        prefix
+
+      parentClasses (cobra.mit.meta.ClassMeta._ClassContainer): A container
+        that keeps track of the actual parent classes
+
+      props (cobra.mit.meta._PropContainer): A container that keeps track of
+        all of the classes properties
+
+      namingProps (list): A list containing :class:`cobra.mit.meta.PropMeta`
+        for each property that is a naming property.
+
+      rnFormat (None or str): A string representing the relative name format
+
+      rnPrefixes (list of tuples): The relative name prefixes where the first
+        element in the tuple is the rn prefix and the second element is a bool
+        where True means the prefix has naming properties and False otherwise.
+
+      ctxRoot (None or cobra.mit.mo.Mo): The context root for this class.
+
+      statsLabel (str): The stats label
+
+      counters (list): A list of stats counters.
+    """
+
+    def __init__(self, className, statsLabel):
+        """"""
+        super(StatsClassMeta, self).__init__(className)
+        self._counters = list()
+        self.statsLabel = statsLabel
+        self.isStats = True
+
+    @property
+    def counters(self):
+        return list(self._counters)
+
+
+class CounterMeta(object):
+
+    """Counter specific meta."""
+
+    def __init__(self, name, category, unit, label):
+        self.name = name
+        self.category = category
+        self.unit = unit
+        self.label = label
+        self._propRefs = dict()
+
+    @property
+    def props(self):
+        return self._propRefs.values()
+
+    def __getitem__(self, category):
+        return self._propRefs[category]
 
 
 class SourceRelationMeta(ClassMeta):
@@ -582,6 +695,12 @@ class PropMeta(object):
         self.label = None
         self.unit = None
         self.defaultValue = None
+        self.range = None
+        # A field without a default value, when reported in the XML
+        # format if present, will anyway be represented with '', this
+        # field needs to match that representation, hence an empty
+        # string is used
+        self.defaultValueStr = ''
 
         self.isDn = False
         self.isRn = False

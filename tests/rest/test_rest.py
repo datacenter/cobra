@@ -203,6 +203,16 @@ class Test_rest_classquery(object):
             'fvTenant', propFilter='eq(fvTenant.name, "{0}")'.format(tenantName))
         assert len(tenant) == 0
 
+class Test_rest_totalCount(object):
+
+    def test_classquery(self, moDir):
+        """
+        checks that totalCount is present in class query responses
+        """
+        classQuery = cobra.mit.request.ClassQuery('fvTenant')
+        mos = moDir.query(classQuery)
+
+        assert mos.totalCount == len(mos)
 
 class Test_rest_dnquery(object):
 

@@ -187,6 +187,7 @@ class AbstractQuery(AbstractRequest):
         * count
         * no-scoped
         * required
+        * subtree
 
       queryTarget (str): The query target filter can be used to specify what
         part of the MIT to query.  You can query:
@@ -355,6 +356,7 @@ class AbstractQuery(AbstractRequest):
             * count
             * no-scoped
             * required
+            * subtree
 
         Raises:
           ValueError: If the value is not a valid value.
@@ -362,7 +364,7 @@ class AbstractQuery(AbstractRequest):
         allowedValues = {'audit-logs', 'event-logs', 'faults', 'fault-records',
                          'health', 'health-records', 'deployment-records',
                          'relations', 'stats', 'tasks', 'count', 'no-scoped',
-                         'required'}
+                         'required', 'subtree'}
         allValues = value.split(',')
         for val in allValues:
             if val not in allowedValues:
@@ -559,6 +561,55 @@ class AbstractQuery(AbstractRequest):
         except:
             raise ValueError('{} page needs to be an integer'.format(value))
         self.__options['page'] = str(numVal)
+
+    @property
+    def cacheId(self):
+        """Get cacheId value.
+
+        Returns:
+          int: The cacheId value.
+        """
+        return self.__options.get('cache-session', None)
+
+    @cacheId.setter
+    def cacheId(self, value):
+        """Set cacheId value
+
+        Args:
+          value (int): The cacheId
+        """
+        if value is None and 'cache-session' in self.__options:
+            del self.__options['cache-session']
+            return
+        try:
+            numVal = int(value)
+        except:
+            raise ValueError('{} cache id needs to be '.format(value) +
+                             'an integer')
+        self.__options['cache-session'] = str(numVal)
+
+    @property
+    def deleteCacheId(self):
+        """Get the delete-session value.
+
+        Returns:
+          str or None: The value of delete-session or None.
+        """
+        return self.__options.get('delete-session', None)
+
+    @deleteCacheId.setter
+    def deleteCacheId(self, value):
+        """Set the delete-session value
+
+        Args:
+          value (int): The cacheId to delete.
+        """
+        try:
+            numVal = int(value)
+        except:
+            raise ValueError('{} delete cache id needs to be '.format(value) +
+                             'an integer')
+        self.__options['delete-session'] = str(numVal)
 
 
 class LoginRequest(AbstractRequest):
@@ -787,6 +838,7 @@ class DnQuery(AbstractQuery):
         * count
         * no-scoped
         * required
+        * subtree
 
       queryTarget (str): The query target filter can be used to specify what
         part of the MIT to query.  You can query:
@@ -880,7 +932,7 @@ class ClassQuery(AbstractQuery):
     """Query based on class name.
 
     Attributes:
-      options (str): The HTTP request query string string for this DnQuery
+      options (str): The HTTP request query string string for this ClassQuery
         object - readonly
 
       className (str): The className to query for - readonly
@@ -920,6 +972,7 @@ class ClassQuery(AbstractQuery):
         * count
         * no-scoped
         * required
+        * subtree
 
       queryTarget (str): The query target filter can be used to specify what
         part of the MIT to query.  You can query:
@@ -1013,7 +1066,7 @@ class TraceQuery(AbstractQuery):
     """Trace Query using a base Dn and a target class.
 
     Attributes:
-      options (str): The HTTP request query string string for this DnQuery
+      options (str): The HTTP request query string string for this TraceQuery
         object - readonly
 
       targetClass (str): The targetClass for this trace query
@@ -1055,6 +1108,7 @@ class TraceQuery(AbstractQuery):
         * count
         * no-scoped
         * required
+        * subtree
 
       queryTarget (str): The query target filter can be used to specify what
         part of the MIT to query.  You can query:
@@ -1173,7 +1227,7 @@ class TagsRequest(AbstractRequest):
     (query).
 
     Attributes:
-      options (str): The HTTP request query string string for this DnQuery
+      options (str): The HTTP request query string string for this TagsRequest
         object - readonly
 
       data (str): The payload for this request in JSON format - readonly
@@ -1338,7 +1392,7 @@ class AliasRequest(AbstractRequest):
     (query).
 
     Attributes:
-      options (str): The HTTP request query string string for this DnQuery
+      options (str): The HTTP request query string string for this AliasRequest
         object - readonly
 
       data (str): The payload for this request in JSON format - readonly
@@ -1459,8 +1513,8 @@ class ConfigRequest(AbstractRequest):
     :py:func:`cobra.mit.access.MoDirectory.commit` function uses this class.
 
     Attributes:
-      options (str): The HTTP request query string string for this DnQuery
-        object - readonly
+      options (str): The HTTP request query string string for this
+        ConfigRequest object - readonly
 
       data (str): The payload for this request in JSON format - readonly
 
@@ -1639,6 +1693,8 @@ class ConfigRequest(AbstractRequest):
             rDn = rMo.dn
             descendantDn = descendantMo.dn
             parentDn = descendantDn.getParent()
+            parentMo = ConfigRequest.__getMoForDnInFlatTree(parentDn,
+                                                            flatTreeDict)
             while rDn != parentDn:
                 # This is a descendant.  Make the parent mo.
                 parentMo = ConfigRequest.__getMoForDnInFlatTree(parentDn,
@@ -1736,7 +1792,7 @@ class MultiQuery(AbstractQuery):
     """Perform a multiquery.
 
     Attributes:
-      options (str): The HTTP request query string string for this DnQuery
+      options (str): The HTTP request query string string for this MultiQuery
         object - readonly
 
       target (str): The target for this MultiQuery - readonly
@@ -1776,6 +1832,7 @@ class MultiQuery(AbstractQuery):
         * count
         * no-scoped
         * required
+        * subtree
 
       queryTarget (str): The query target filter can be used to specify what
         part of the MIT to query.  You can query:
@@ -1876,6 +1933,9 @@ class TroubleshootingQuery(MultiQuery):
         * interactive
         * generatereport
 
+      options (str): The HTTP request query string for this
+        TroubleshootingQuery object - readonly
+
       format (str): The output format.  Valid values are:
 
         * xml
@@ -1911,6 +1971,18 @@ class TroubleshootingQuery(MultiQuery):
           target (str) : The target for this TroubleshootingQuery
         """
         super(TroubleshootingQuery, self).__init__('troubleshoot.%s' % target)
+        self.__options = {}
+
+    @property
+    def options(self):
+        """Get the options.
+
+        Returns:
+          str: All the options for this abstract request as a string
+            joined by &'s.
+        """
+        return '&'.join(filter(None, [AbstractRequest.makeOptions(
+            self.__options), super(TroubleshootingQuery, self).options]))
 
     @property
     def mode(self):
@@ -1932,11 +2004,27 @@ class TroubleshootingQuery(MultiQuery):
             * createsession
             * interactive
             * generatereport
+            * getsessiondetail
+            * getsessionslist
+            * getreportstatus
+            * getreportslist
+            * atomiccounter
+            * deletesession
+            * modifysession
+            * clearreports
+            * traceroute
+            * span
 
         Raises:
           ValueError: If the value is not a valid value.
         """
-        allowedValues = {'createsession', 'interactive', 'generatereport'}
+        allowedValues = {
+            'getsessiondetail', 'createsession', 'interactive',
+            'getsessionslist',  'atomiccounter', 'traceroute',
+            'getreportstatus',  'deletesession', 'span',
+            'generatereport',   'modifysession',
+            'getreportslist',   'clearreports'
+        }
         if value not in allowedValues:
             raise ValueError('"%s" is invalid, valid values are "%s"' %
                              (value, str(allowedValues)))
@@ -1995,17 +2083,49 @@ class TroubleshootingQuery(MultiQuery):
             * stats
             * faults
             * events
+            * audits
+            * deployment-records
+            * fault-records
+            * contracts
 
         Raises:
           ValueError: If the value is not a valid value.
         """
-        allowedValues = {'topo', 'services', 'stats', 'faults', 'events'}
+        allowedValues = {
+            'deployment-records', 'services', 'audits',
+            'fault-records',      'events',   'stats',
+            'contracts',          'faults',   'topo',
+        }
         allValues = value.split(',')
         for val in allValues:
             if val not in allowedValues:
                 raise ValueError('"%s" is invalid, valid values are "%s"' %
                                  (value, str(allowedValues)))
         self.__options['include'] = value
+
+    @property
+    def action(self):
+        """Return the action flag.
+
+        Returns:
+          str: The action flag.
+        """
+        return self.__options.get('action', None)
+
+    @include.setter
+    def action(self, value):
+        """Set the action flag.
+        
+        Args:
+          value (str): The action flag value, valid values are start
+                       stop and status.
+        """
+
+        allowedValues = {'start', 'stop', 'status'}
+        if value not in allowedValues:
+            raise ValueError('"%s" is invalid, valid values are "%s"' %
+                             (value, str(allowedValues)))
+        self.__options['action'] = value
 
     @property
     def session(self):
@@ -2062,6 +2182,44 @@ class TroubleshootingQuery(MultiQuery):
         self.__options['dstep'] = value
 
     @property
+    def srcextip(self):
+        """Return the source external ip address.
+
+        Returns:
+          str: The source external ip address.
+        """
+        return self.__options.get('srcextip', None)
+
+    @srcextip.setter
+    def srcextip(self, value):
+        """Sets the source external ip address.
+
+        Args:
+          value (str): The source external ip address.
+        """
+
+        self.__options['srcextip'] = value
+
+    @property
+    def dstextip(self):
+        """Return the destination external ip address.
+
+        Returns:
+          str: The destination external ip address.
+        """
+        return self.__options.get('dstextip', None)
+
+    @dstextip.setter
+    def dstextip(self, value):
+        """Set the destination external ip address.
+
+        Args:
+          value (str): The destination external ip address.
+        """
+
+        self.__options['dstextip'] = value
+
+    @property
     def starttime(self):
         """Get the start time.
 
@@ -2097,6 +2255,184 @@ class TroubleshootingQuery(MultiQuery):
           value (str): The end time for a troubleshooting request.
         """
         self.__options['endtime'] = value
+
+    @property
+    def sessionurl(self):
+        """Return the sessionurl.
+
+        Returns:
+          str: The session URL.
+        """
+        return self.__options.get('sessionurl', None)
+
+    @sessionurl.setter
+    def sessionurl(self, value):
+        """Set the sessionurl.
+
+        Args:
+          value (str): The session url.
+        """
+        self.__options['sessionurl'] = value
+
+    @property
+    def scheduler(self):
+        """Return the scheduler name.
+
+        Returns:
+          str: The session name.
+        """
+        return self.__options.get('scheduler', None)
+
+    @scheduler.setter
+    def scheduler(self, value):
+        """Set the scheduler name.
+
+        Args:
+          value (str): The session name.
+        """
+        self.__options['scheduler'] = value
+
+    def setCustomArgument(self, option, value):
+        """Set a custom option to a specific value.
+
+        Args:
+          option (str): The option to set.
+          value (str): The value to set the option to.
+        """
+        self.__options[arg] = value
+
+
+class Deployment(MultiQuery):
+    """Perform a deployment query.
+
+    Attributes:
+      options (str): The HTTP request query string string for this MultiQuery
+        object - readonly
+
+      target (str): The target for this MultiQuery - readonly
+
+      propInclude (str): the current response property include filter.
+        This filter can be used to specify the properties that should be
+        included in the response.  Valid values are:
+
+        * _all_
+        * naming-only
+        * config-explicit
+        * config-all
+        * config-only
+        * oper
+
+      subtreePropFilter (str): The response subtree filter can be used to limit
+        what is returned in a subtree response by property values
+
+      subtreeClassFilter (str): The response subtree class filter can be used
+        to filter a subtree response down to one or more classes.  Setting this
+        can be done with either a list or a string, the value is always stored
+        as a comma separated string.
+
+      subtreeInclude (str): The response subtree include filter can be used to
+        limit the response to a specific type of information from the subtree,
+        these include:
+
+        * audit-logs
+        * event-logs
+        * faults
+        * fault-records
+        * health
+        * health-records
+        * relations
+        * stats
+        * tasks
+        * count
+        * no-scoped
+        * required
+        * subtree
+
+      queryTarget (str): The query target filter can be used to specify what
+        part of the MIT to query.  You can query:
+
+        * self - The object itself
+        * children - The children of the object
+        * subtree - All the objects lower in the heirarchy
+
+      classFilter (str): The target subtree class filter can be used to specify
+        which subtree class to filter by.  You can set this using a list or
+        a string.  The value is always stored as a comma separated string.
+
+      propFilter (str): The query target property filter can be used to limit
+        which objects are returned based on the value that is set in the
+        specific property within those objects.
+
+      subtree (str): The response subtree filter can be used to define what
+        objects you want in the response.  The possible values are:
+
+        * no - No subtree requested
+        * children - Only the children objects
+        * full - A full subtree
+
+      orderBy (list or str): Request that the results be ordered in a certain
+        way.  This can be a list of property sort specifiers or a comma
+        separated string. An example sort specifier: 'aaaUser.name|desc'.
+
+      pageSize (int): Request that the results that are returned are limited
+        to a certain number, the pageSize.
+
+      replica (int): The replica option can direct a query to a specific
+        replica.  The possible values are:
+
+        * 1
+        * 2
+        * 3
+
+      id (None or int): An internal troubleshooting value useful for tracing
+        the processing of a request within the cluster
+
+      uriBase (str): The base URI used to build the URL for queries and
+        requests
+    """
+    def __init__(self, target):
+        super(Deployment, self).__init__('deployment.%s' % target)
+        self.__options = {}
+
+    @property
+    def options(self):
+        """
+        Returns the concatenation of the class and base class options for HTTP
+        request query string
+        """
+        return '&'.join(filter(None, [AbstractRequest.makeOptions(
+            self.__options), super(Deployment, self).options]))
+
+    @property
+    def mode(self):
+        """
+        Returns the deployment query mode.
+        """
+        return self.__options.get('mode', None)
+
+    @mode.setter
+    def mode(self, value):
+        """
+        Sets the deployment query mode.
+        """
+        """
+        allowedValues = {}
+        if value not in allowedValues:
+            raise ValueError('"%s" is invalid, valid values are "%s"' %
+                             (value, str(allowedValues)))
+        """
+        self.__options['mode'] = value
+
+    def setCustomArgument(self, arg, val):
+        self.__options[arg] = val
+
+
+    def getUrl(self, session):
+        """
+        Returns the URL containing all the query options defined on
+        this object
+        """
+        return session.url + self.getUriPathAndOptions(session)
 
 
 class RestError(Exception):
