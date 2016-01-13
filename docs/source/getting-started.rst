@@ -53,8 +53,15 @@ to authenticate to the APIC as shown in this example:
    # Use the connected moDir queries and configuration...
    moDir.logout()
 
+If multiple AAA login domains are configured, you must prepend the username 
+with "apic:*domain*\\\\" as in this example:
+
+.. code-block:: python
+
+	loginSession = LoginSession(apicUrl, 'apic:CiscoDomain\\admin', 'mypassword')
+
 A successful login returns a reference to a directory object that you will use
-for further operations. In the implementation of the of the management
+for further operations. In the implementation of the management
 information tree (MIT), managed objects (MOs) are represented as directories.
 
 Object Lookup
@@ -71,13 +78,19 @@ tree by its distinguished name (DN). This example looks for an object called
 A successful lookup operation returns a reference to the object that has the
 specified DN.
 
-You can also look up an object by class:
+You can also look up an object by class. This example returns a list of all 
+objects of the class 'polUni':
 
 .. code-block:: python
 
    uniMo = moDir.lookupByClass('polUni')
 
-This option returns a list of all objects of the class.
+You can add a filter to a lookup to find specific objects. This example returns 
+an object of class 'fvTenant' whose name is 'Tenant1':
+
+.. code-block:: python
+
+   tenant1Mo = moDir.lookupByClass("fvTenant", propFilter='and(eq(fvTenant.name, "Tenant1"))')
 
 You can also look up an object using the dnquery class or the class query
 class. For more information, see the Request module.
