@@ -147,11 +147,14 @@ ConfigRequest
 -------------
 
 Class that handles configuration requests. The
-:func:`cobra.mit.access.MoDirectory.commit` function uses this class.::
+:func:`cobra.mit.access.MoDirectory.commit` function uses this class.
 
-    # Import the config request
-    from cobra.mit.request import ConfigRequest
-    configReq = ConfigRequest()
+.. code-block:: python
+
+    >>> # Import the config request
+    ...
+    >>> from cobra.mit.request import ConfigRequest
+    >>> configReq = ConfigRequest()
 
 .. autoclass:: cobra.mit.request.ConfigRequest
    :members:
@@ -182,32 +185,42 @@ cobra.mit.request.TagRequest instance provided as the query object.
 
 Example Usage:
 
+.. code-block:: python
+
     >>> from cobra.mit.session import LoginSession
     >>> from cobra.mit.access import MoDirectory
     >>> from cobra.mit.request import TagsRequest
-    >>> session = LoginSession('https://192.168.10.10', 'george', 'pa$sW0rd!', secure=False)
-    >>> modir = MoDirectory(session)
-    >>> modir.login()
+    >>> 
+    >>> session = LoginSession('https://10.10.10.100', 'user', 'password')
+    >>> moDir = MoDirectory(session)
+    >>> moDir.login()
+    >>> 
     >>> tags = TagsRequest('uni/tn-common/ap-default')
-    >>> q = modir.query(tags)
-    >>> print q[0].name
+    >>> q = moDir.query(tags)
+    >>> print(q[0].name)
     pregnantSnake
-    >>> tags.remove = "pregnantSnake"
-    >>> modir.commit(tags)
+    >>> 
+    >>> tags.remove = 'pregnantSnake'
+    >>> moDir.commit(tags)
     <Response [200]>
+    >>> 
     >>> tags.add = ['That','is','1','dead','bird']
-    >>> modir.commit(tags)
+    >>> moDir.commit(tags)
     <Response [200]>
+    >>> 
     >>> tags.add = "" ; tags.remove = []
-    >>> q = modir.query(tags)
+    >>> q = moDir.query(tags)
+    >>> 
     >>> tags.remove = ','.join([rem.name for rem in q])
-    >>> print tags.remove
-    u'is,That,dead,bird,1'
-    >>> print tags.getUrl(session)
-    https://192.168.10.10/api/tag/mo/uni/tn-common/ap-default.json?remove=bird,1,is,That,dead
-    >>> modir.commit(tags)
+    >>> print(tags.remove)
+    That,dead,bird,1,is
+    >>> 
+    >>> print(tags.getUrl(session))
+    https://10.10.10.100/api/tag/mo/uni/tn-common/ap-default.xml?remove=That,dead,bird,1,is
+    >>>             
+    >>> moDir.commit(tags)
     <Response [200]>
-    >>> modir.query(tags)
+    >>> moDir.query(tags)
     []
     >>>
 

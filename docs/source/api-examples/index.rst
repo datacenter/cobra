@@ -25,12 +25,13 @@ in any APIC Python API program using these code examples.
 
 .. code-block:: python
 
-   from cobra.mit.access import MoDirectory
-   from cobra.mit.session import LoginSession
-   session = LoginSession('https://sample-host.coolapi.com', 'admin',
-                          'xxx?xxx?xxx')
-   moDir = MoDirectory(session)
-   moDir.login()
+    >>> from cobra.mit.session import LoginSession
+    >>> from cobra.mit.access import MoDirectory
+    >>> 
+    >>> session = LoginSession('https://10.10.10.100', 'user', 'password')
+    >>> moDir = MoDirectory(session) 
+    >>> moDir.login()
+    >>> 
 
 The above code snippet creates an **MoDirectory**, connects it to the endpoint
 and then performs authentication. The **moDir** can be used to query,
@@ -50,18 +51,24 @@ resolution universe ('uni') class. This example creates a tenant named
 
 .. code-block:: python
 
-   # Import the config request
-   from cobra.mit.request import ConfigRequest
-   configReq = ConfigRequest()
 
-   # Import the tenant class from the model
-   from cobra.model.fv import Tenant
-
-   # Get the top level policy universe directory
-   uniMo = moDir.lookupByDn('uni')
-
-   # create the tenant object
-   fvTenantMo = Tenant(uniMo, 'ExampleCorp')
+    >>> # Import the config request class
+    ... 
+    >>> from cobra.mit.request import ConfigRequest
+    >>> configReq = ConfigRequest()
+    >>> 
+    >>> # Import the tenant class from the model
+    ... 
+    >>> from cobra.model.fv import Tenant
+    >>> 
+    >>> # Get the top level policy universe directory
+    ... 
+    >>> uniMo = moDir.lookupByDn('uni')
+    >>> 
+    >>> # Create the tenant object
+    ... 
+    >>> fvTenantMo = Tenant(uniMo, 'ExampleCorp')
+    >>> 
 
 The command creates an object of the fv.Tenant class and returns a reference
 to the object. A tenant contains primary elements such as filters, contracts,
@@ -80,11 +87,11 @@ tenant.
 
 .. code-block:: python
 
-   # Import the Ap class from the model
-   from cobra.model.fv import Ap
-
-   fvApMo = Ap(fvTenantMo, 'WebApp')
-
+    >>> # Import the Ap class from the model
+    ...
+    >>> from cobra.model.fv import Ap
+    >>> fvApMo = Ap(fvTenantMo, 'WebApp')
+    >>> 
 
 Endpoint Groups
 ================
@@ -96,11 +103,11 @@ an application profile under the tenant.
 
 .. code-block:: python
 
-   # Import the AEPg class from the model
-   from cobra.model.fv import AEPg
-
-   fvAEPgMoWeb = AEPg(fvApMo, 'WebEPG')
-
+    >>> # Import the AEPg class from the model
+    ... 
+    >>> from cobra.model.fv import AEPg
+    >>> fvAEPgMoWeb = AEPg(fvApMo, 'WebEPG')
+    >>> 
 
 Physical Domains
 ================
@@ -110,21 +117,26 @@ domain.
 
 .. code-block:: python
 
-   # Import the related classes from the model
-   from cobra.model.fv import RsBd, Ctx, Bd, RsCtx
-
-   # create a private network
-   fvCtxMo = Ctx(fvTenantMo, 'private-net1')
-
-   # create a bridge domain
-   fvBDMo = BD(fvTenantMo, 'bridge-domain1')
-
-   # create an association of the bridge domain to the private network
-   fvRsCtx = RsCtx(fvBDMo, tnFvCtxName=fvCtxMo.name)
-
-   # create a physical domain associated with the endpoint group
-   fvRsBd1 = RsBd(fvAEPgMoWeb, fvBDMo.name)
-
+    >>> # Import the related classes from the model    
+    ... 
+    >>> from cobra.model.fv import RsBd, Ctx, BD, RsCtx 
+    >>> 
+    >>> # Create a private network
+    ... 
+    >>> fvCtxMo = Ctx(fvTenantMo, 'private-net1')
+    >>> 
+    >>> # Create a bridge domain
+    ... 
+    >>> fvBDMo = BD(fvTenantMo, 'bridge-domain1')
+    >>> 
+    >>> # Create an association of the bridge domain to the private network
+    ... 
+    >>> fvRsCtx = RsCtx(fvBDMo, tnFvCtxName=fvCtxMo.name)
+    >>> 
+    >>> # Create a physical domain associated with the end point group
+    ... 
+    >>> fvRsBd1 = RsBd(fvAEPgMoWeb, fvBDMo.name)
+    >>> 
 
 Contracts and Filters
 ======================
@@ -138,29 +150,36 @@ This example creates a Web filter for HTTP (TCP port 80) traffic.
 
 .. code-block:: python
 
-   # Import the Filter and related classes from model
-   from cobra.model.vz import Filter, Entry, BrCP, Subj, RsSubjFiltAtt
-
-   # create a filter container (vz.Filter object) within the tenant
-   filterMo = Filter(fvTenantMo, 'WebFilter')
-
-   # create a filter entry (vz.Entry object) that specifies bidirectional
-   # HTTP (TCP/80) traffic
-   entryMo = Entry(filterMo, 'HttpPort')
-   entryMo.dFromPort = 80    # HTTP port
-   entryMo.dToPort = 80
-   entryMo.prot = 6          # TCP protocol number
-   entryMo.etherT = "ip"     # EtherType
-
-   # create a binary contract (vz.BrCP object) container within the
-   # tenant
-   vzBrCPMoHTTP = BrCP(fvTenantMo, 'WebContract')
-
-   # create a subject container for associating the filter with the
-   # contract
-   vzSubjMo = Subj(vzBrCPMoHTTP, 'WebSubject')
-   RsSubjFiltAtt(vzSubjMo, tnVzFilterName=filterMo.name)
-
+    >>> # Import the Filter and related classes from model
+    ... 
+    >>> from cobra.model.vz import Filter, Entry, BrCP, Subj, RsSubjFiltAtt
+    >>> 
+    >>> # Create a filter container (vz.Filter object) within the tenant
+    ... 
+    >>> filterMo = Filter(fvTenantMo, 'WebFilter')
+    >>> 
+    >>> # Create a filter entry (vz.Entry object) that specifies bidirectional
+    ... # HTTP (tcp/80) traffic
+    ... 
+    >>> entryMo = Entry(filterMo, 'HttpPort')
+    >>> entryMo.dfromPort = 80      # HTTP port
+    >>> entryMo.dFromPort = 80      # HTTP port
+    >>> entryMo.dToPort = 80
+    >>> entryMo.prot = 6            # TCP protocol number
+    >>> entryMo.etherT = 'ip'       # EtherType
+    >>> 
+    >>> # Create a binary contract (vz.BrCP object) container within the
+    ... # tenant
+    ... 
+    >>> vzBrCPMoHTTP = BrCP(fvTenantMo, 'WebContract')
+    >>> 
+    >>> # Create a subject container for assiciating the filter with the
+    ... # contract
+    ... 
+    >>> vzSubjMo = Subj(vzBrCPMoHTTP, 'WebSubject')  
+    >>> RsSubjFiltAtt(vzSubjMo, tnVzFilterName=filterMo.name)
+    <cobra.model.vz.RsSubjFiltAtt object at 0x7fad1fce16d0>
+    >>> 
 
 Namespaces
 ==========
@@ -172,16 +191,18 @@ creates and assigns properties to a VLAN namespace.
 
 .. code-block:: python
 
-   # Import the namespaces related classes from model
-   from cobra.model.fvns import VlanInstP, EncapBlk
-
-   fvnsVlanInstP = VlanInstP('uni/infra', 'namespace1', 'dynamic')
-   fvnsEncapBlk = EncapBlk(fvnsVlanInstP, 'vlan-5', 'vlan-20',
-                               name='encap')
-   nsCfg = ConfigRequest()
-   nsCfg.addMo(fvnsVlanInstP)
-   moDir.commit(nsCfg)
-
+    >>> # Import the namespaces related classes from model
+    ... 
+    >>> from cobra.model.fvns import VlanInstP, EncapBlk
+    >>> 
+    >>> fvnsVlanInstP = VlanInstP('uni/infra', 'namespace1', 'dynamic')
+    >>> fvnsEncapBlk = EncapBlk(fvnsVlanInstP, 'vlan-5', 'vlan-20',
+    ...                             name='encap')
+    >>> nsCfg = ConfigRequest()
+    >>> nsCfg.addMo(fvnsVlanInstP)
+    >>> moDir.commit(nsCfg)
+    <Response [200]>
+    >>> 
 
 VM Networking
 =============
@@ -190,21 +211,24 @@ This example creates a virtual machine manager (VMM) and configuration.
 
 .. code-block:: python
 
-   # Import the namespaces related classes from model
-   from cobra.model.vmm import ProvP, DomP, UsrAccP, CtrlrP, RsAcc
-   from cobra.model.infra import RsVlanNs
-
-   vmmProvP = ProvP('uni', 'VMWare')
-   vmmDomP = DomP(vmmProvP, 'Datacenter')
-   vmmUsrAccP = UsrAccP(vmmDomP, 'default', pwd='password', usr='administrator')
-   vmmRsVlanNs = RsVlanNs(vmmDomP, fvnsVlanInstP.dn)
-   vmmCtrlrP = CtrlrP(vmmDomP, 'vserver-01', hostOrIp='192.168.64.9')
-   vmmRsAcc = RsAcc(vmmCtrlrP, tDn=vmmUsrAccp.dn)
-
-   # Add the tenant object to the config request and commit
-   confgReq.addMo(fvTenantMo)
-   moDir.commit(configReq)
-
+    >>> # Import the namespaces related classes from model
+    ... 
+    >>> from cobra.model.vmm import ProvP, DomP, UsrAccP, CtrlrP, RsAcc
+    >>> from cobra.model.infra import RsVlanNs
+    >>> 
+    >>> vmmProvP = ProvP('uni', 'VMware')
+    >>> vmmDomP = DomP(vmmProvP, 'Datacenter')
+    >>> vmmUsrAccP = UsrAccP(vmmDomP, 'default', pwd='password', usr='user') 
+    >>> vmmRsVlanNs = RsVlanNs(vmmDomP, fvnsVlanInstP.dn)  
+    >>> vmmCtrlrP = CtrlrP(vmmDomP, 'vserver-01', hostOrIp='192.168.64.9')
+    >>> vmmRsAcc = RsAcc(vmmCtrlrP, tDn=vmmUsrAccP.dn)
+    >>> 
+    >>> # Add the tenant object to the config request and commit
+    ... 
+    >>> configReq.addMo(fvTenantMo) 
+    >>> moDir.commit(configReq)
+    <Response [200]>
+    >>> 
 
 Creating a Complete Tenant Configuration
 ========================================
@@ -226,11 +250,15 @@ whose nodeId property is 101.
 
 .. code-block:: python
 
-   # Import the related classes from model
-   from cobra.model.fabric import PathEpCont
-
-   nodeId = 101
-   myClassQuery.propFilter = 'eq(fabricPathEpCont.nodeId, "{0}")'.format(nodeId)
+    >>> from cobra.mit.request import ClassQuery
+    >>> 
+    >>> from cobra.model.fabric import PathEpCont 
+    >>> 
+    >>> nodeId = 101
+    >>> myClassQuery = ClassQuery('fabricPathEpCont')
+    >>> myClassQuery.propFilter = 'eq(fabricPathEpCont.nodeId,
+                                    "{0}")'.format(nodeId)
+    >>> 
 
 The basic filter syntax is 'condition(item1, "value")'.  To filter on the
 property of a class, the first item of the filter is of the form
@@ -246,22 +274,18 @@ a child object of a tenant MO.
 
 .. code-block:: python
 
-   dnQuery = DnQuery('uni/tn-coke')
-   dnQuery.subtree = 'children'
-   tenantMo = moDir.query(dnQuery)
-   defaultBDMo = tenantMo.BD['default']
-
-
-Iteration for a Child MO
-========================
-
-This example shows how to user iteration for a child MO.
-
-.. code-block:: python
-
-   dnQuery = DnQuery('uni/tn-coke')
-   dnQuery.subtree = 'children'
-   tenantMo = moDir.query(dnQuery)
-   for bdMo in tenantMo.BD:
-       print str(bdMo.dn)
-
+    >>> from cobra.mit.request import DnQuery
+    >>> 
+    >>> dnQuery = DnQuery('uni/tn-common')
+    >>> dnQuery.queryTarget = 'children' 
+    >>> dnQuery.classFilter = 'fvBD' 
+    >>>         
+    >>> tenantMo = moDir.query(dnQuery)
+    >>> 
+    >>> for t in tenantMo:
+    ...     print(t.dn)
+    ... 
+    uni/tn-common/BD-default
+    uni/tn-common/BD-common-BD1-test
+    uni/tn-common/BD-bd-commonShared
+    >>>
