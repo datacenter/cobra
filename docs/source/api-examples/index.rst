@@ -111,7 +111,7 @@ domain.
 .. code-block:: python
 
    # Import the related classes from the model
-   from cobra.model.fv import RsBd, Ctx, Bd, RsCtx
+   from cobra.model.fv import RsBd, Ctx, BD, RsCtx
 
    # create a private network
    fvCtxMo = Ctx(fvTenantMo, 'private-net1')
