@@ -435,6 +435,11 @@ class BaseMo(object):
         props = self.__meta.props
         for name, value in list(creationProps.items()):
             propMeta = props[name]
+            # Ideally, we should be raising an Exception to let the upper layers
+            # handle it. But there's a user-case where the props that are provided
+            # are part of an upgraded meta and hence need to be ignored.
+            if not propMeta:
+                continue
             value = propMeta.makeValue(value)
             self.__dict__[name] = value
             if markDirty:
