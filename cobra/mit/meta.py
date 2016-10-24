@@ -361,7 +361,7 @@ class ClassMeta(object):
             return list(self._props.keys())
 
         def __getitem__(self, propName):
-            return self._props[propName]
+            return self._props.get(propName, None)
 
         def __contains__(self, propName):
             return propName in self._props
