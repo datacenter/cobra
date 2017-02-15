@@ -40,7 +40,7 @@ It provides a pythonic library that allows developers to quickly develop and tes
 
 ### Documentation ###
 
-We have started documenting the library at http://cobra.readthedocs.org and we would of course greatly appreciate pull requests to help imporve the documentation.
+We have started documenting the library at http://cobra.readthedocs.org and we would of course greatly appreciate pull requests to help improve the documentation.
 
 The docstrings in the Cobra code base are quite extensive, and we recommend keeping a REPL running while learning the library so that you can query the various modules and classes as you have questions.
 
