@@ -817,7 +817,7 @@ class CertSession(AbstractSession):
                 except:   # pylint:disable=bare-except
                     pass  # pylint:disable=pointless-except
 
-        cookieFmt = ("  APIC-Request-Signature=%s;" +
+        cookieFmt = ("APIC-Request-Signature=%s;" +
                      " APIC-Certificate-Algorithm=v1.0;" +
                      " APIC-Certificate-Fingerprint=fingerprint;" +
                      " APIC-Certificate-DN=%s")
