@@ -53,7 +53,7 @@ TESTS_REQUIRES = INSTALL_REQUIRES + ['pytest', 'responses']
 
 setup(
     name='acicobra',
-    version='0.1',
+    version='1.0',
     description='Rest API client for the Cisco ACI',
     author='Cisco Systems Inc',
     author_email='acicobra@external.cisco.com',
