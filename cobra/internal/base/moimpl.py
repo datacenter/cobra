@@ -1,4 +1,4 @@
-# Copyright 2015 Cisco Systems, Inc.
+# Copyright 2019 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,38 +18,30 @@ The internal implementation of managed objects.
 """
 
 from __future__ import unicode_literals
-from builtins import next    # pylint:disable=redefined-builtin
-from builtins import str     # pylint:disable=redefined-builtin
-from builtins import object  # pylint:disable=redefined-builtin
+
+
+import sys
+if sys.version_info[0] == 3:
+    from builtins import str
+
+from builtins import object
+from builtins import next
+from future.utils import iteritems
 
 from cobra.mit.naming import Dn
 from cobra.mit.naming import Rn
 
 
 class MoStatus(object):
-
-    """Managed object status.
-
-    Implements a bitmask to represent managed object status.
-    """
-
     # Status Constants
-    DEFAULT = 0
+    CLEAR = 1
     CREATED = 2
     MODIFIED = 4
     DELETED = 8
 
     @classmethod
     def fromString(cls, statusStr):
-        """Constructor to create a MoStatus from a string.
-
-        Args:
-          statusStr (str): A status string, example: created,modified
-
-        Returns:
-          MoStatus: The MoStatus instance
-        """
-        status = MoStatus(1)
+        status = MoStatus(0)
         if statusStr:
             codes = statusStr.split(',')
             for code in codes:
@@ -63,67 +55,41 @@ class MoStatus(object):
         return status
 
     def __init__(self, status):
-        """Initialize a MoStatus instance.
-
-        Args:
-          status (int): The status as an integer.
-        """
         self.__status = status
 
     @property
-    def status(self):
-        """Return the status."""
-        return self.__status
-
-    @property
     def created(self):
-        """Check the status for created.
-
-        Returns:
-          bool: Returns True if the status has the created bit set.
-        """
         return (self.__status & MoStatus.CREATED) != 0
 
     @property
     def deleted(self):
-        """Check the status for deleted.
-
-        Returns:
-          bool: Returns True if the status has the deleted bit set.
-        """
         return (self.__status & MoStatus.DELETED) != 0
 
     @property
     def modified(self):
-        """Check the status for modified.
-
-        Returns:
-          bool: Returns True if the status has the modified bit set.
-        """
         return (self.__status & MoStatus.MODIFIED) != 0
 
-    def onBit(self, status):
-        """Turn a bit on.
+    @property
+    def value(self):
+        return self.__status
 
-        Args:
-          status (int): The bit to turn on.
-        """
+    @property
+    def status(self):
+        return self.__status
+
+    def update(self, newStatus):
+        self.__status = newStatus.value
+
+    def onBit(self, status):
         self.__status |= status
 
     def offBit(self, status):
-        """Turn a bit off.
-
-        Args:
-          status (int): The bit to turn off.
-        """
         self.__status &= ~status
 
     def clear(self):
-        """Clear the status to 0."""
         self.__status = 0
 
     def __str__(self):
-        """Return the status as a string."""
         if self.deleted:
             return 'deleted'
         status = ''
@@ -135,6 +101,11 @@ class MoStatus(object):
             else:
                 status += 'modified'
         return status
+
+    # def __cmp__(self, other):
+    #     if other is None:
+    #         return -1
+    #     return self.__status, other.status
 
     def __lt__(self, other):
         """Implement the < operator for status objects."""
@@ -174,24 +145,9 @@ class MoStatus(object):
 
 
 class BaseMo(object):
-
-    """The internal Base Managed Object."""
-
-    # pylint:disable=too-few-public-methods
     class _ChildContainer(object):
-
-        """An internal container object for child objects."""
-
         class _ClassContainer(object):
-
-            """An internal container objects for child classes."""
-
             def __init__(self, childClass):
-                """Initialize a _ClassContainer instance.
-
-                Args:
-                  childClass (object): The child class.
-                """
                 self._childClass = childClass
 
                 # Key is the tuple of naming props and value is the child Mo
@@ -216,15 +172,11 @@ class BaseMo(object):
             def __iter__(self):
                 return iter(list(self._childObjects.values()))
 
-            def _checkKey(self, key, mo):
-                """Check if a key is valid.
+            @property
+            def childClass(self):
+                return self._childClass
 
-                Args:
-                  key (str): The key to check for validity for this
-                    child container.
-                  mo (cobra.mit.mo.Mo): The mo to verify that the key is
-                    correct.
-                """
+            def _checkKey(self, key, mo):
                 meta = self._childClass.meta
                 numNamingProps = len(meta.namingProps)
                 namingVals = []
@@ -251,26 +203,18 @@ class BaseMo(object):
                         raise ValueError("'%s' must be '%s' for mo '%s'" %
                                          (keyVal, moVal, str(mo.rn)))
 
+            def clone(self, parentMo, depth):
+                newChildContainer = BaseMo._ChildContainer._ClassContainer(self._childClass)
+                for nameTuple, childMo in iteritems(self._childObjects):
+                    newChildContainer._childObjects[nameTuple] = childMo.clone(parentMo=parentMo, depth=depth)
+                return newChildContainer
+
         class _ChildIter(object):
-
-            """Internal class to iterate over child objects."""
-
             def __init__(self, classContainers):
-                """Initialize a _ChildIter instance.
-
-                Args:
-                  classContainers (list): A list of _ClassContainer instances.
-                """
                 self._containers = iter(list(classContainers.values()))
                 self._currentContainer = None
 
             def __next__(self):
-                """Implement next().
-
-                Returns:
-                  cobra.mit.internal.base.moimpl.BaseMo._ChildContainer: The
-                  next child container.
-                """
                 if self._currentContainer is None:
                     # If no more containers this statement will throw an
                     # StopIteration exception and we exit else we move on
@@ -284,72 +228,42 @@ class BaseMo(object):
                     return next(self)
 
             def __iter__(self):
-                """Implement iter().
-
-                Returns:
-                  iterator: The child iterator.
-                """
-                # pylint:disable=non-iterator-returned
                 return self
 
         def __init__(self, classMeta):
-            """Initialize a _ChildContainer instance.
-
-            Args:
-              classMeta (cobra.mit.meta.ClassMeta): The class meta for the
-                child class.
-            """
             self._classMeta = classMeta
 
-            # Key is the first rn prefix with the leading '-' if any
+            # Key is the first rn prefix without the leading '-' if any
             self._classContainers = {}
 
-        def _getChildContainer(self, childPrefix, lookup=False):
-            """Get a child container based on prefix.
+        def clone(self, parentMo, depth):
+            newChildContainer = BaseMo._ChildContainer(self._classMeta)
+            for classPrefix, classContainer in iteritems(self._classContainers):
+                newChildContainer._classContainers[classPrefix] = classContainer.clone(parentMo, depth)
+            return newChildContainer
 
-            This is called in two situations, looking up the child container
-            when modifying a child and looking up a child container when
-            accessing a child as an attribute, for example fvTenantObj.name.
-            The second situation is considered a "lookup" operation and are
-            handled differently because the child prefix changes depending
-            on how this method is called.
+        def _getChildContainerByMo(self, childMo):
+            childMeta = childMo.meta
+            childPrefix = childMeta.rnPrefixes[0][0].rstrip('-')
+            classContainer = self._classContainers.get(childPrefix, None)
+            if classContainer is None:
+                if childMeta.className in self._classMeta.childClasses or childMeta.isWireOnly:
+                    classContainer = BaseMo._ChildContainer._ClassContainer(childMo.__class__)
+                    self._classContainers[childPrefix] = classContainer
+                else:
+                    raise AttributeError('No class with prefix "{0}" found'.format(childPrefix))
+            return classContainer
 
-            Args:
-              childPrefix (str): The prefix for the child's Rn.
-              lookup (bool, optional): If true the operation is considered a
-                lookup and the child's Rn prefix is not expected to contain a
-                trailing hyphen if there are naming properties, if False the
-                rn prefix is expected to have a trailing hyphen if there are
-                naming properties.
-
-            Returns:
-              cobra.internal.base.moimpl.BaseMo._ChildContainer: The child
-              container with the specified childPrefix.
-            """
+        def _getChildContainer(self, childPrefix):
+            childPrefix = childPrefix.rstrip('-')
             classContainer = self._classContainers.get(childPrefix, None)
             if classContainer is None:
                 for childClass in self._classMeta.childClasses:
                     childMeta = childClass.meta
-                    prefix = childMeta.rnPrefixes[0][0]
-                    newPrefix = childPrefix
-                    # Accessing a child like an attribute will lead to the
-                    # childPrefix being passed in without a hyphen, add it
-                    # here for this circumstance
-                    if (childPrefix[-1] != '-' and
-                            len(childMeta.namingProps) > 0):
-                        newPrefix = childPrefix + '-'
-                    if newPrefix == prefix:
-                        # Do not overwrite the classContainer for a lookup
-                        # operation
-                        if not lookup:
-                            # pylint:disable=protected-access
-                            classContainer = \
-                                BaseMo._ChildContainer._ClassContainer(
-                                    childClass)
-                            self._classContainers[newPrefix] = classContainer
-                        else:
-                            classContainer = self._classContainers.get(
-                                newPrefix, None)
+                    prefix = childMeta.rnPrefixes[0][0].rstrip('-')
+                    if childPrefix == prefix:
+                        classContainer = BaseMo._ChildContainer._ClassContainer(childClass)
+                        self._classContainers[childPrefix] = classContainer
                         break
                 if classContainer is None:
                     # Could not find a child class with this prefix
@@ -358,49 +272,26 @@ class BaseMo(object):
             return classContainer
 
         def __iter__(self):
-            """Get the child iterator.
-
-            Returns:
-              iterator: The child iterator.
-            """
-            # pylint:disable=non-iterator-returned,protected-access
             return BaseMo._ChildContainer._ChildIter(self._classContainers)
 
         def __len__(self):
-            """Get the number of children.
-
-            Returns:
-              int: The number of children.
-            """
             numChildren = 0
-            for classContainer in self._classContainers:
+            for _, classContainer in iteritems(self._classContainers):
                 numChildren += len(classContainer)
             return numChildren
 
     def __init__(self, parentMoOrDn, markDirty, *namingVals,
                  **creationProps):
-        """Initialize a BaseMo instance.
 
-        This class can not be instantiated directly, instead instantiate a
-        managed object.
-
-        Args:
-          parentMoOrDn (cobra.mit.mo.Mo or str): The parent managed object or
-            the parent managed object distinguished name.
-          markDirty (bool): If set to True, the creation properties will be
-            marked dirty to indicate that they have not been committed.
-          *namingVals (str): The required naming values for the managed object.
-          **creationProps (dict of str): The properties that should be set at
-            object creation time.
-
-        """
         if self.__class__ == BaseMo:
             raise NotImplementedError('BaseMo cannot be instantiated.')
 
-        # pylint:disable=no-member
         self.__dict__['_BaseMo__meta'] = self.__class__.meta
-        self.__dict__['_BaseMo__status'] = MoStatus(MoStatus.CREATED |
-                                                    MoStatus.MODIFIED)
+        if 'status' in creationProps:
+            self.__dict__['_BaseMo__status'] = MoStatus.fromString(creationProps['status'])
+            del creationProps['status']
+        else:
+            self.__dict__['_BaseMo__status'] = MoStatus(MoStatus.CREATED | MoStatus.MODIFIED)
         self.__dict__['_BaseMo__dirtyProps'] = set()
         self.__dict__['_BaseMo__children'] = BaseMo._ChildContainer(self.__meta)
         self.__dict__['_BaseMo__rn'] = Rn(self.__meta, *namingVals)
@@ -433,7 +324,7 @@ class BaseMo(object):
 
         # Set the creation props
         props = self.__meta.props
-        for name, value in list(creationProps.items()):
+        for name, value in iteritems(creationProps):
             propMeta = props[name]
             # Ideally, we should be raising an Exception to let the upper layers
             # handle it. But there's a user-case where the props that are provided
@@ -446,44 +337,65 @@ class BaseMo(object):
                 self.__dirtyProps.add(name)
 
         if self.__parentMo:
-            # pylint:disable=protected-access
             self.__parentMo.__modifyChild(self, attach=True)
 
+    def clone(self, parentMo=None, depth=-1):
+        namingVals = self.__rn.namingValueList
+        if parentMo is None:
+            parentMo = self._parentDn()
+        newMo = self.__class__(parentMo, *namingVals, markDirty=False)
+
+        # Copy the properties based on the meta
+        for prop in self.__meta.props:
+            if prop.isNaming or prop.name == 'rn' or prop.name == 'dn' or prop.name == 'status':
+                continue
+            name = prop.name
+            val = getattr(self, name)
+            if name in self.__dirtyProps:
+                setattr(newMo, name, val)
+            else:
+                newMo.__dict__[name] = val
+
+        newMo.status.update(self.__status)
+
+        if depth != 0:
+            # Clone the containers to form the subtree recursively
+            childDepth = depth - 1
+            newMo.__dict__['_BaseMo__children'] = self.__children.clone(parentMo=newMo, depth=childDepth)
+        # else we just terminate at the current level
+
+        return newMo
+
+    def update(self, srcMo):
+        for dirtyPropName in srcMo.dirtyProps:
+            dirtyPropMeta = self.meta.props[dirtyPropName]
+            dirtyValue = getattr(srcMo, dirtyPropName)
+            if dirtyPropMeta.isCreateOnly:
+                self.__dict__[dirtyPropName] = dirtyValue
+                self.__dirtyProps.add(dirtyPropName)
+            else:
+                setattr(self, dirtyPropName, dirtyValue)
+        self.__status.update(srcMo.status)
+
+    def isInstance(self, superClassNames):
+        moSuperClasses = self.meta.allSuperClassNames()
+        superClassNames = set(superClassNames)
+        return len(superClassNames & moSuperClasses) > 0
+
     def __getattr__(self, attrName):
-        """Get an attribute.
-
-        A custom getattr for Mo's is used to allow attributes on BaseMo to
-        be returned if the attribute does not exist on the Mo.
-
-        Args:
-          attrName (str): The attribute name.
-        """
         if attrName in self.meta.props:
             # need to do lazy initialization of this prop to default value
             propMeta = self.meta.props[attrName]
-            defValue = propMeta.defaultValue
+            defValue = propMeta.defaultValueStr
             self.__setprop(propMeta, attrName, defValue, markDirty=False,
                            forced=True)
             return defValue
 
         # We got this call because properties did not match, so look for
         # child class containers
-        # pylint:disable=protected-access
-        return self.__children._getChildContainer(attrName, True)
+        return self.__children._getChildContainer(attrName)
 
     def __setattr__(self, attrName, attrValue):
-        """Set an attribute.
-
-        A custom setattr for Mo's is used to allow attributes on BaseMo to
-        be set if the attributes does not exist on the Mo.
-
-        Args:
-          attrName (str): The attribute name.
-          attrValue:  The attribute value
-
-        Raises:
-          AttributeError: If the attribute (property) can not be found.
-        """
         if attrName in self.meta.props:
             propMeta = self.meta.props[attrName]
             self.__setprop(propMeta, attrName, attrValue)
@@ -492,27 +404,8 @@ class BaseMo(object):
         else:
             raise AttributeError('property "%s" not found' % attrName)
 
-    # pylint:disable=too-many-arguments
     def __setprop(self, propMeta, propName, propValue, markDirty=True,
                   forced=False):
-        """Set a property for this Mo.
-
-        Args:
-          propMeta (cobra.mit.meta.PropMeta): The property meta object
-          propName (str): The name of the property
-          propValue:  The value that the property should be set to.
-          markDirty (bool, optional): If True the property will be marked as
-            dirty and not yet committed.  If False the property will not be
-            marked as dirty.  The default is True.
-          forced (bool, optional): If True the property will be set even if
-            it is a create only property.  If False, trying to set a create
-            only property will result in an exception.
-
-        Raises:
-          ValueError: If the property is a Dn property or the property is a
-            Rn property or if the property is a create only property and
-            forced is False.
-        """
         value = propMeta.makeValue(propValue)
         if propMeta.isDn:
             raise ValueError("dn cannot be set")
@@ -530,25 +423,15 @@ class BaseMo(object):
             self.__dirtyProps.add(propName)
 
     def __setModified(self):
-        """Set the Mo status to modified."""
         self.__status.onBit(MoStatus.MODIFIED)
         self.__dirtyProps.add('status')
 
     def __modifyChild(self, childMo, attach):
-        """Modify the child of this Mo.
-
-        Args:
-          childMo (cobra.mit.mo.Mo): The child to modify.
-          attach (bool): If True the child is attached to this Mo, otherwise
-            the child container is deleted.
-        """
         childMeta = childMo.meta
         namingVals = []
         for nPropMeta in childMeta.namingProps:
             namingVals.append(getattr(childMo, nPropMeta.name))
-        childPrefix = childMeta.rnPrefixes[0][0]
-        # pylint:disable=protected-access
-        childContainer = self.__children._getChildContainer(childPrefix)
+        childContainer = self.__children._getChildContainerByMo(childMo)
         if len(namingVals) == 0:
             if attach:
                 childContainer[None] = childMo
@@ -567,155 +450,63 @@ class BaseMo(object):
                 del childContainer[nvKey]
 
     def _setParent(self, parentMo):
-        """Set the parent of this Mo.
-
-        Initializes the parent Mo if it is not already initialized.
-
-        Args:
-          parentMo (cobra.mit.mo.Mo): The parent Mo.
-        """
-        # This attribute is defined in BaseMo
-        # pylint:disable=attribute-defined-outside-init
         self.__parentMo = parentMo
         if parentMo is not None:
-            # This attribute is defined in BaseMo
-            # pylint:disable=attribute-defined-outside-init
             self.__parentDn = parentMo.dn.clone()
         else:
             self.__parentDn = None
 
     def _attachChild(self, childMo):
-        """Attach a child to this Mo.
-
-        If the child is already attached to parent it is detached first.
-
-        Args:
-          childMo (cobra.mit.mo.Mo): The child Mo.
-        """
         pMo = childMo.parent
         if pMo is not None:
             # Detach from the current parent
-            # pylint:disable=protected-access
             pMo._detachChild(childMo)
 
         self.__modifyChild(childMo, True)
-        # pylint:disable=protected-access
         childMo._setParent(self)
 
     def _detachChild(self, childMo):
-        """Detach a child Mo from this parent Mo.
-
-        Args:
-          childMo (cobra.mit.mo.Mo): The child Mo.
-
-        Raises:
-          ValueError: If the parent of the child Mo is not this Mo.
-        """
         if childMo.parent != self:
-            raise ValueError('%s is not attached to %s' % (str(self.dn),
-                                                           str(childMo.dn)))
+            raise ValueError('{0} is not attached to {1}'.format(str(self.dn), str(childMo.dn)))
         self.__modifyChild(childMo, False)
-        # pylint:disable=protected-access
         childMo._setParent(None)
 
     def _delete(self):
-        """Mark this Mo as deleted."""
         self.__status.clear()
         self.__status.onBit(MoStatus.DELETED)
         self.__dirtyProps.add('status')
 
     def _dn(self):
-        """Get the Dn for this Mo.
-
-        Initializes the Dn if it wasn't already intialized.
-
-        Returns:
-          cobra.mit.naming.Dn: The Dn of this Mo.
-        """
-        # This attribute is defined in BaseMo
-        # pylint:disable=access-member-before-definition
         if self.__dn is None:
-            # This attribute is defined in BaseMo
-            # pylint:disable=attribute-defined-outside-init
             self.__dn = self._parentDn().clone()
             self.__dn.appendRn(self.__rn)
         return self.__dn
 
     def _rn(self):
-        """Get the Rn for this Mo.
-
-        Returns:
-          cobra.mit.naming.Rn: The Rn for this Mo.
-        """
         return self.__rn
 
     def _status(self):
-        """Get the status of this Mo.
-
-        Returns:
-          cobra.internal.base.moimpl.MoStatus: The status of this Mo.
-        """
         return self.__status
 
     def _parentDn(self):
-        """Get the Dn for the parent of this Mo.
-
-        Initializes the parent Dn if it wasn't initilized yet.
-
-        Returns:
-          cobra.mit.naming.Dn: The Dn of the parent of this Mo.
-        """
         if self.__parentDn is None:
-            # This attribute is defined in BaseMo
-            # pylint:disable=attribute-defined-outside-init
             self.__parentDn = Dn.fromString(self.__parentDnStr)
         return self.__parentDn
 
     def _parent(self):
-        """Get the parent Mo for this Mo.
-
-        Returns:
-          cobra.mit.mo.Mo: The parent Mo for this Mo.
-        """
         return self.__parentMo
 
     def _dirtyProps(self):
-        """Get the dirty props for the Mo.
-
-        Returns:
-          iterator: An iterator for the dirty properties for the Mo.
-        """
         return iter(self.__dirtyProps)
 
     def _children(self):
-        """Get the children of the Mo.
-
-        Returns:
-          iterator: An iterator for the children of the Mo.
-        """
         return iter(self.__children)
 
     def _numChildren(self):
-        """Get the number of children of the Mo.
-
-        Returns:
-          int: The number of children.
-        """
         return len(self.__children)
 
     def _resetProps(self):
-        """Mark all properties as clean."""
-        # This attribute is defined in BaseMo
-        # pylint:disable=attribute-defined-outside-init
         self.__dirtyProps = set()
 
     def _isPropDirty(self, propName):
-        """Check if the given propName is marked as dirty.
-
-        Args:
-          propName (str): The property name.
-
-        Returns:
-          bool: True if the propName is dirty, false otherwise.
-        """
         return propName in self.__dirtyProps

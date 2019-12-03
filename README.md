@@ -30,7 +30,7 @@ It provides a pythonic library that allows developers to quickly develop and tes
 * Programattic interface to ACI model through simple python classes
 * Works with multiple versions of ACI model
 * Provides unit testing capability against a mock APIC Server
-* Python 2.7, Python 3.3/3.4 and PyPy support
+* Python 2.7, Python 3.6+ and PyPy support
 
 ### Benefits ###
 

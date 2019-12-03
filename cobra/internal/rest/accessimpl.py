@@ -1,4 +1,4 @@
-# Copyright 2015 Cisco Systems, Inc.
+# Copyright 2019 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,95 +12,250 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""accessimpl.py.
+"""The implementation of the access layer for the ACI Python SDK (cobra)."""
 
-The implementation of the access layer for the ACI Python SDK (cobra).
-"""
-
-# These imports are for python2/3 compatibility
-from builtins import object  # pylint:disable=redefined-builtin
-from builtins import str     # pylint:disable=redefined-builtin
+import sys
+if sys.version_info[0] == 3:
+    from builtins import str
+from builtins import object
 
 import requests
-from cobra.mit.request import RestError
+from cobra.internal.codec.jsoncodec import fromJSONStr, parseJSONError
+from cobra.internal.codec.xmlcodec import fromXMLStr, parseXMLError
+from cobra.mit.request import QueryError, CommitError, RestError, AbstractRequest, CheckRequestStateQuery
+from cobra.mit.session import LoginSession, CertSession, AbstractSession
+import json
+import re
+from time import time, sleep
+
+class LoginRequest(AbstractRequest):
+    """
+    LoginRequest for standard user/password based authentication
+    """
+
+    def __init__(self, user, password):
+        super(LoginRequest, self).__init__()
+        self.user = user
+        self.password = password
+
+    @property
+    def data(self):
+        userJson = {
+            'aaaUser': {
+                'attributes': {
+                    'name': self.user,
+                    'pwd': self.password
+                }
+            }
+        }
+        return json.dumps(userJson)
+
+    def requestargs(self, session):
+        uriPathandOptions = self.getUriPathAndOptions(session)
+        headers = session.getHeaders(uriPathandOptions, self.data)
+        kwargs = {
+            'headers': headers,
+            'verify': session.secure,
+            'data': self.data,
+            'timeout': session.timeout
+        }
+        return kwargs
+
+    @staticmethod
+    def getUrl(session):
+        url = session.url
+        url += '/api/aaaLogin.json'
+        return url
+
+
+class RefreshRequest(AbstractRequest):
+    """
+    Session refresh request for standard user/password based authentication
+    """
+
+    def __init__(self, cookie):
+        super(RefreshRequest, self).__init__()
+        self.cookie = cookie
+
+    @staticmethod
+    def getUrl(session):
+        url = session.url
+        url += '/api/aaaRefresh.json'
+        return url
+
+
+class LoginHandler(object):
+    @classmethod
+    def login(cls, session):
+        loginRequest = LoginRequest(session.user, session.password)
+        url = loginRequest.getUrl(session)
+        rsp = requests.post(url, **loginRequest.requestargs(session))
+        session._parseResponse(rsp)
+
+    @classmethod
+    def logout(cls, session, accessimpl):
+        pass
+
+    @classmethod
+    def refresh(cls, session, accessimpl):
+        refreshRequest = RefreshRequest(session.cookie)
+        session._parseResponse(accessimpl._get(refreshRequest))
+
+
+class CertHandler(object):
+    @classmethod
+    def login(cls, session):
+        pass
+
+    @classmethod
+    def logout(cls, session, accessimpl):
+        pass
+
+    @classmethod
+    def refresh(cls, session, accessimpl):
+        pass
 
 
 class RestAccess(object):
-
-    """Rest access object.
-
-    The implementation of of REST access for ACI.
-    """
+    loginHandlers = {
+        LoginSession: LoginHandler,
+        CertSession: CertHandler,
+    }
 
     def __init__(self, session):
-        """Initialize an instance of RestAccess."""
         self._session = session
         self._requests = requests.Session()
+        #requests.adapters.HTTPAdapter(pool_connections = 64, pool_maxsize = 128)
 
-    @staticmethod
-    def responseIsOk(response):
-        """Check if the response from the remote server is ok.
-
-        Returns:
-          bool: True if the response did not indicate an error, False otherwise
+    def login(self):
         """
-        # pylint:disable=no-member
-        return response.status_code == requests.codes.ok
-
-    def get(self, request):
-        """Query the server.
-
-        Return data from the server for the given request on the given session.
-
+        Authenticate the user/certification provided by the session
+        object.
         Args:
-          request (cobra.mit.request.AbstractQuery): The query object
+            session (LoginSession/CertSession): Session object
+        """
+        sessionClass = self._session.__class__
+        loginHandler = RestAccess.loginHandlers.get(sessionClass, None)
+        if loginHandler is not None:
+            loginHandler.login(self._session)
 
-        Raises:
-          cobra.mit.request.QueryError: If the response indicates an error
-            occurred
-          ValueError: If the response could not be parsed
+    def logout(self):
+        sessionClass = self._session.__class__
+        loginHandler = RestAccess.loginHandlers.get(sessionClass, None)
+        if loginHandler is not None:
+            loginHandler.logout(self._session, self)
 
-        Returns:
-          cobra.mit.mo.Mo: The query response parsed into a managed object
+    def refreshSession(self):
+        """Refresh the _cookie for the given session object
+        Args:
+            session (LoginSession/CertSession)
+        """
+        sessionClass = self._session.__class__
+        loginHandler = RestAccess.loginHandlers.get(sessionClass, None)
+        if loginHandler is not None:
+            loginHandler.refresh(self._session, self)
+
+    def _get(self, request):
+        """
+        Internal _get method which performs raw request and returns requests
+        response object
         """
         uriPathAndOptions = request.getUriPathAndOptions(self._session)
         headers = self._session.getHeaders(uriPathAndOptions, None)
-        rsp = self._requests.get(request.getUrl(self._session),
-                                 headers=headers, verify=self._session.secure,
-                                 timeout=self._session.timeout)
-        if not self.responseIsOk(rsp):
-            raise RestError(0, str(rsp.text), rsp.status_code)
-        return str(rsp.text)
+        return self._requests.get(request.getUrl(self._session), headers=headers,
+                                  verify=self._session.secure,
+                                  timeout=self._session.timeout)
+
+    def get(self, request):
+        """Return data from the server for the given request on the
+        given session
+        Args:
+            request (DnQuery/ClassQuery/TraceQuery/AbstractQuery child): Query
+                object
+        Return:
+            requests.response
+        """
+        rsp = self._get(request)
+        if rsp.status_code != requests.codes.ok:
+            return self.__parseError(rsp, QueryError, rsp.status_code)
+        return self.__parseResponse(rsp)
 
     def post(self, request):
-        """Return data from the server.
-
-        For the given request on the session, return POST data from the
-        server.  The response is parsed for errors.
-
+        """Return data from the server for the given request on the
+        given session by posting the data in the request object
         Args:
-          request (cobra.mit.request.AbstractRequest): The request object
-
-        Raises:
-          cobra.mit.request.CommitError: If the response indicates  an error
-          ValueError: If the response can not be parsed
-
-        Returns:
-          requests.response: The raw requests response object for a successful
-            request
+            request (ConfigRequest): ConfigRequest object
+        Return:
+            requests.response
         """
-        uriPathAndOptions = request.getUriPathAndOptions(self._session)
-        self._session.getHeaders(uriPathAndOptions, None)
-        rsp = self._requests.post(request.getUrl(self._session),
-                                  **request.requestargs(self._session))
-        # handle a redirect, for example from http to https
-        # pylint:disable=no-member
-        while rsp.status_code in (requests.codes.moved, requests.codes.found):
-            loc = rsp.headers['Location']
-            uriPathAndOptions = request.getUriPathAndOptions(self._session)
-            self._session.url = loc.rstrip(uriPathAndOptions)
-            return self.post(request)
+        url = request.getUrl(self._session)
+        rsp = self._requests.post(url, **request.requestargs(self._session))
+        if rsp.status_code >= requests.codes.bad:
+            return self.__parseError(rsp, CommitError, rsp.status_code)
+        return rsp
 
-        if not self.responseIsOk(rsp):
-            raise RestError(0, str(rsp.text), rsp.status_code)
-        return str(rsp.text)
+    def post_sync_wait(self, request, timeout=180):
+        """Mimics the behavior of this class's post method but additionally
+        waits and polls request state if in progress for a configurable amount
+        of time
+        Args:
+            request (ConfigRequest): ConfigRequest object
+            timeout : time to poll for the request in progress to complete
+        Return:
+            requests.response
+        """
+        url = request.getUrl(self._session)
+        rsp = self._requests.post(url, **request.requestargs(self._session))
+        if rsp.status_code >= requests.codes.bad:
+            return self.__parseError(rsp, CommitError, rsp.status_code)
+        elif rsp.status_code < requests.codes.ok:
+            # Here we look and poll for the status of a request in progress
+            re_pat = r'Request in progress, please check state using URL: /api/checkRequestState.xml\?id=(?P<id>[0-9]+)'
+            m = re.search(re_pat, rsp.text)
+            if not m:
+                return self.__parseError(rsp, CommitError, rsp.status_code)
+            request_id = m.groupdict()['id']
+            crs_query = CheckRequestStateQuery()
+            crs_query.requestId = request_id
+            crs_rsp = self._get(crs_query)
+            request_complete = False
+            request_success = False
+            start = int(time())
+            # Begin polling
+            while (int(time()) - start) < timeout:
+                if self._session.refreshTimeoutSeconds < 60:
+                    # Refresh our session if we are close to timing out
+                    self.refreshSession()
+                crs_rsp = self._get(crs_query)
+                if self._session.formatType == AbstractSession.XML_FORMAT:
+                    xRsp = fromXMLStr(crs_rsp.text, tree_only=True)
+                    status_code = xRsp.getchildren()[0].attrib['code']
+                else:
+                    jRsp = fromJSONStr(crs_rsp.text, tree_only=True)
+                    status_code = jRsp['imdata'][0]['status']['attributes']['code']
+                if status_code < requests.codes.ok:
+                    sleep(1)
+                else:
+                    request_complete = True
+                    request_success = True if status_code == requests.codes.ok else False
+                    break
+            if not request_complete or not request_success:
+                crs_rsp = self._get(crs_query)
+                return self.__parseError(crs_rsp, CommitError, crs_rsp.status_code)
+            else:
+                rsp = crs_rsp
+        return rsp
+
+    def __parseError(self, rsp, errorClass, httpCode):
+        try:
+            if self._session.formatType == AbstractSession.XML_FORMAT:
+                parseXMLError(rsp.text, errorClass, httpCode)
+            parseJSONError(rsp.text, errorClass, httpCode)
+        except ValueError as ex:
+            raise RestError(None, str(ex), httpCode)
+
+    def __parseResponse(self, rsp):
+        if self._session.formatType == AbstractSession.XML_FORMAT:
+            return fromXMLStr(rsp.text)
+        return fromJSONStr(rsp.text)
+

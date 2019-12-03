@@ -21,7 +21,7 @@ statements, which are described in the following sections:
 Path Settings
 -------------
 
-If you installed the cobra sdk egg file in the standard python site-packages,
+If you installed the cobra sdk wheel file in the standard python site-packages,
 the modules are already included in the python path.
 
 If you installed it in a different directory, add the SDK directory to your
