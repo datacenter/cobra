@@ -1,4 +1,4 @@
-# Copyright 2015 Cisco Systems, Inc.
+# Copyright 2019 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,64 +23,42 @@ import zipfile
 
 class UploadPackage(AbstractRequest):
 
-    """Upload L4-L7 device packages to APIC.
-
-    Attributes:
-      data (str): A string containing the payload for this request in JSON
-        format - readonly
-
-      devicePackagePath (str): Path to the device package on the local
-        file system. No Path verification is performed, so any errors
-        accessing the specified file will be raised directly to the calling
-        function.
-
-        Note:
-           If validation is requested, the device package contents are verified
-           to contain a device specification XML/JSON document
-
-      options (str): The HTTP request query string for this object - readonly
-
-      id (None or int): An internal troubleshooting value useful for tracing
-        the processing of a request within the cluster
-
-      uriBase (str): The base URI used to build the URL for queries and
-        requests
+    """
+    Class for uploading L4-L7 device packages to APIC
     """
 
     def __init__(self, devicePackagePath, validate=False):
-        """Upload a device package to an APIC.
+        """
+        Create an UploadPackage object that can be passed to MoDirectory.commit
 
-        :func:`cobra.mit.access.MoDirectory.commit` is required to commit the
-        upload.
+        :param devicePackagePath: Path to the device package on the local file
+            system
+        :type devicePackagePath: str
 
-        Args:
-          devicePackagePath (str): Path to the device package on the local
-            file system
-          validate (bool, optional): If true, the device package will be
-            validated locally before attempting to upload. The default is
-            False.
+        :param validate: If true, the device package will be validated locally
+            before attempting to upload
+        :type validate: bool
+
         """
         super(UploadPackage, self).__init__()
-        # Validate must be set before devicePackagePath
         self.__validate = validate
-        self.__devicePackagePath = ''  # Prevent pylint from barking
-        # Set this through the property so validation can take place
-        # if requested.
         self.devicePackagePath = devicePackagePath
         self.uriBase = "/ppi/node/mo"
 
     def requestargs(self, session):
-        """Get the request arguments for this object.
-
-        Args:
-          session (cobra.mit.session.AbstractSession): The session to be used
-            to build the the requestarguments
-
-        Returns:
-          dict: A dictionary containing the arguments
         """
+        Returns the POST arguments for this request
+
+        :param session: session object for which the request will be sent
+        :type session: cobra.mit.session.AbstractSession
+
+        :returns: requests style kwargs that can be passed to request.post()
+        :rtype: dict
+        """
+        uriPathandOptions = self.getUriPathAndOptions(session)
+        headers = session.getHeaders(uriPathandOptions, self.data)
         kwargs = {
-            'headers': self.getHeaders(session),
+            'headers': headers,
             'verify': session.secure,
             'files': {
                 'file': self.data
@@ -90,36 +68,47 @@ class UploadPackage(AbstractRequest):
 
     @property
     def data(self):
-        """Get the data for the request."""
+        """
+        Returns the data this request should post
+
+        :returns: string containing contents of device package
+        :rtype: str
+        """
         return open(self.__devicePackagePath, 'rb').read()
 
     def getUrl(self, session):
-        """Get the URL for this request, includes all options as well.
+        """
+        Returns the URI this request will access
 
-        Args:
-          session (cobra.mit.session.AbstractSession): The session to use for
-            this query.
-
-        Returns:
-          str: A string containing the request url
+        :param session: session object for which the request will be sent
+        :type session: cobra.mit.session.AbstractSession
         """
         return session.url + self.getUriPathAndOptions(session)
 
+    # property setters / getters for this class
+
     @property
     def devicePackagePath(self):
-        """Get the device package path.
+        """
+        Returns the currently configured path to the device package
 
-        Returns:
-          str: The path to the device package.
+        :returns: Path to the device package on the local file system
+        :rtype: str
         """
         return self.__devicePackagePath
 
     @devicePackagePath.setter
     def devicePackagePath(self, devicePackagePath):
-        """Set the device package path.
+        """
+        Sets the device package path for this request and if validation is
+        requested, will ensure that the device package contains the
+        device specification XML/JSON document
 
-        Args:
-          devicePackagePath (str): The path to the device package as a string.
+        :param devicePackagePath: Path to the device package on the local
+            file system. No path verification is performed, so any errors
+            accessing the specified file will be raised directly to the calling
+            function.
+        :type devicePackagePath: str
         """
         if self.__validate:
             # Device package spec will look at the first .xml document and use
@@ -132,7 +121,7 @@ class UploadPackage(AbstractRequest):
                         break
                 else:
                     raise AttributeError('Device package {0} missing required '
-                                         'device specification '
-                                         'document'.format(devicePackagePath))
+                                         'device specification document'.format(
+                                             devicePackagePath))
 
         self.__devicePackagePath = devicePackagePath

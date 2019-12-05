@@ -38,7 +38,7 @@ class PyTest(TestCommand):
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
-INSTALL_REQUIRES = ['requests', 'future<=0.14.3']
+INSTALL_REQUIRES = ['requests', 'future<=0.14.3', 'ply']
 
 # Doc build instructions:
 # Clone the repo
@@ -53,7 +53,7 @@ TESTS_REQUIRES = INSTALL_REQUIRES + ['pytest', 'responses']
 
 setup(
     name='acicobra',
-    version='1.0',
+    version='2.0',
     description='Rest API client for the Cisco ACI',
     author='Cisco Systems Inc',
     author_email='acicobra@external.cisco.com',

@@ -1,4 +1,6 @@
 requests
 pyOpenSSL
 responses
+ply
+future
 pytest-cov

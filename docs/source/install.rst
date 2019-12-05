@@ -7,7 +7,7 @@ Installing the Cisco APIC Python SDK
 Installation Requirements:
 --------------------------
 
-The Cisco APIC Python SDK ("cobra") comes in two installable .egg files that
+The Cisco APIC Python SDK ("cobra") comes in two installable .whl files that
 are part of the **cobra** namespace, they operate as one **virtual**
 namespace.  Those installable packages are:
 
@@ -25,44 +25,41 @@ namespace.  Those installable packages are:
 
 In this document, the **acicobra** package is also referred to as **the SDK**.
 
-Both packages are required. You can download the two .egg files from a 
+Both packages are required. You can download the two .whl files from a
 running instance of APIC at this URL:
 
 * http[s]://<APIC address>/cobra/_downloads/
 
-The /cobra/_downloads directory contains the two .egg files. The actual 
-filenames may contain extra information such as the APIC and Python versions, 
-as shown in this example:
+The /cobra/_downloads directory contains the two .whl files along with the .egg files. The egg files are only for backward compatibility and users should migrate to .whl files. The actual
+filenames may contain extra information such as the APIC and Python versions, as shown in this example:
 
     .. code-block:: shell
 
        Index of cobra/_downloads
 
            Parent Directory
-           acicobra-1.1_1j-py2.7.egg
-           acimodel-1.1_1j-py2.7.egg
+           acicobra-4.2_2j-py2.py3-none-any.whl
+           acimodel-4.2_2j-py2.py3-none-any.whl
 
-In this example, each .egg filename references the APIC version 1.1(1j) from 
-which it was created and the Python version py2.7 with which it is compatible.
+In this example, each .whl filename references the APIC version 4.2(2j) from
+which it was created and the Python version py2 and py3 with which it is compatible. The whl files are platform independent.
 
-Download both files from APIC to a convenient directory on your host computer. 
+Download both files from APIC to a convenient directory on your host computer.
 We recommend placing the files in a directory with no other files.
 
 Before installing the SDK, ensure that you have the following packages
 installed:
 
-* Python 2.7 - For more information, see https://www.python.org/.
-* easy_install - For more information about easy_install, see
-  https://pypi.python.org/pypi/setuptools.
+* Python 2.7 or Python3.6 - For more information, see https://www.python.org/.
 * pip - For more information, see https://pypi.python.org/pypi/pip.
 * virtualenv - We recommend installing the Python SDK within a virtual
-  environment using virtualenv.  A virtual environment allows isolation of 
-  the Cobra Python environment from the system Python environment or from 
+  environment using virtualenv.  A virtual environment allows isolation of
+  the Cobra Python environment from the system Python environment or from
   multiple Cobra versions.For more information, see
   https://pypi.python.org/pypi/virtualenv.
 
-**Note:** SSL support for connecting to the APIC and fabric nodes using HTTPS 
-is present by default in the normal installation. If you intend to use the 
+**Note:** SSL support for connecting to the APIC and fabric nodes using HTTPS
+is present by default in the normal installation. If you intend to use the
 CertSession class with pyopenssl, see *Installing pyopenssl*.
 
 **Note:** The model package depends on the SDK package; be sure to install
@@ -79,36 +76,36 @@ Follow these steps to install the SDK on Unix and Linux:
     .. code-block:: shell
 
        pip uninstall acicobra
-       
+
     If no previous versions are installed, skip this step.
 
 2. (Optional)Create and activate a new virtual environment in which to run the SDK.
     Refer to the documentation for virtualenv or similar virtual environment tools for your operating system.
     If you create a virtual environment for the SDK, perform the remaining steps in the virtual environment.
 
-3. Copy the .egg files to your development system.
+3. Copy the .whl files to your development system.
 
-4. Install the egg file using the following command:
+4. Install the whl file using the following command:
 
    From a local directory (relative or absolute):
 
     .. code-block:: shell
 
-        easy_install -Z *directory/path*/acicobra
+        pip install *directory/path*/acicobra
 
-    In the following example, the .egg file is in a directory named 
-    cobra-eggs that is a sub-directory of the current directory:
-      
+    In the following example, the .whl file is in a directory named
+    cobra-whls that is a sub-directory of the current directory:
+
     .. code-block:: shell
-      
-        $ easy_install -Z ./cobra-eggs/acicobra-1.1_1j-py2.7.egg
+
+        $ pip install ./cobra-whls/acicobra-4.2_2j-py2.py3-none-any.whl
 
     **Note:** To install the package directly into the user-site-packages
-    directory, use the **easy_install --user** option:
-    
+    directory, use the **pip install --user** option:
+
     .. code-block:: shell
 
-        easy_install --user -Z *directory/path*/acicobra    
+        pip install --user *directory/path*/acicobra
 
     **Note:** If you intend to use the CertSession class with pyopenssl, see *Installing pyopenssl*.
 
@@ -175,7 +172,7 @@ Follow these steps to install the SDK on Windows:
 
     .. code-block:: shell
 
-       mkvirtualenv egg123
+       mkvirtualenv acienv
 
    **Note:** Virtual environments using virtualenvwrapper-win are created in
    `%USERPROFILE%\Envs` by default.
@@ -184,7 +181,7 @@ Follow these steps to install the SDK on Windows:
 
     .. code-block:: shell
 
-	   c:\users\username\Envs\egg123
+	   c:\users\username\Envs\acienv
 	   python -m pip install --upgrade pip
 
 9. Install the APIC Python SDK (Cobra) using the following command.
@@ -193,17 +190,17 @@ Follow these steps to install the SDK on Windows:
 
     .. code-block:: shell
 
-        easy_install -Z \*directory\path*\acicobra
+        pip install \*directory\path*\acicobra
 
-    In the following example, the .egg file is in a directory named 
-    cobra-eggs that is a sub-directory of the current directory:
-      
+    In the following example, the .whl file is in a directory named
+    cobra-whls that is a sub-directory of the current directory:
+
     .. code-block:: shell
-      
-        > easy_install -Z cobra-eggs\acicobra-1.1_1j-py2.7.egg
+
+        > pip install cobra-whls\acicobra-4.2_2j-py2.py3-none-any.whl
 
     **Note:** To install the package directly into the user-site-packages
-    directory, use the **easy_install --user** option.
+    directory, use the **pip install --user** option.
 
     **Note:** If you intend to use the CertSession class with pyopenssl, see *Installing pyopenssl*.
 
@@ -211,27 +208,27 @@ Installing the model package on any platform
 --------------------------------------------
 
 The model package  depends on the SDK package. Install the SDK package
-prior to installing the model package.  If you uninstall the SDK package 
-and then try to import the model package, the APIC displays an **ImportError** 
+prior to installing the model package.  If you uninstall the SDK package
+and then try to import the model package, the APIC displays an **ImportError**
 for the module **mit.meta**.
 
-Installation of the model package can be accomplished via easy_install:
+Installation of the model package can be accomplished via pip:
 
     .. code-block:: shell
 
-       easy_install -Z *directory/path*/acimodel-*version*-py2.7.egg
+       pip install *directory/path*/acimodel-*version*-py2.7.whl
 
-In the following example, the .egg file is in a directory named 
-cobra-eggs that is a sub-directory of the current directory:
-      
+In the following example, the .whl file is in a directory named
+cobra-whls that is a sub-directory of the current directory:
+
     .. code-block:: shell
-      
-       easy_install -Z ./cobra-eggs/acimodel-1.1_1j-py2.7.egg
 
-**Note:** The .egg file name might be different depending on whether the 
+       pip install ./cobra-whls/acimodel-4.2_2j-py2.py3-none-any.whl
+
+**Note:** The .whl file name might be different depending on whether the
 file is downloaded from the APIC or from Cisco.com.
 
-**Note:** If you uninstall the SDK package and then try to import the 
+**Note:** If you uninstall the SDK package and then try to import the
 model package, the APIC displays an ImportError for the module mit.meta.
 
 ********************************************************
@@ -259,8 +256,8 @@ For example:
        $ pip show acimodel
        ---
        Name: acimodel
-       Version: 1.1_1j
-       Location: /local/lib/python2.7/site-packages/acimodel-1.1_1j-py2.7.egg
+       Version: 4.2_2j
+       Location: /local/lib/python2.7/site-packages/acimodel-4.2_2j-py2.py3-none-any.whl
        Requires: acicobra
 
 When you install the SDK without SSL support it will depend on the following
@@ -304,40 +301,20 @@ together and uninstalled together.
 Installing pyopenssl
 ********************
 
-SSL support for connecting to the APIC and fabric nodes using HTTPS is present 
-by default in the normal installation. Installing pyopenssl is necessary only 
-if you intend to use the CertSession class with pyopenssl. Note that CertSession 
+SSL support for connecting to the APIC and fabric nodes using HTTPS is present
+by default in the normal installation. Installing pyopenssl is necessary only
+if you intend to use the CertSession class with pyopenssl. Note that CertSession
 works with native OS calls to openssl.
 
 Installations with SSL can require a compiler.
 
-Installing pyopenssl on Unix and Linux
---------------------------------------
+Installing pyopenssl
+---------------------
 
-In *Installing the SDK on Unix and Linux*, substitute the following procedure for the step where the SDK .egg file is installed.
+In *Installing the SDK on Unix and Linux*, substitute the following procedure for the step where the SDK .whl file is installed.
 If you have created a virtual environment for the SDK, enter the command in the virtual environment.
 
-1. Install the SDK .egg file using the following command:
-
-    From a local directory (relative or absolute) you must use the --find-links option and the [ssl] option:
-
-    .. code-block:: shell
-
-        easy_install -Z --find-links *directory/path*/acicobra[ssl]
-
-    In the following example, the .egg file is in a directory named cobra-eggs that is a sub-directory of the current directory:
-
-    .. code-block:: shell
-
-        $ easy_install -Z --find-links ./cobra-eggs/acicobra-1.1_1j-py2.7.egg[ssl]
-
-Installing pyopenssl on Windows
--------------------------------
-
-In *Installing the SDK on Windows*, substitute the following procedure for the step where the SDK .egg file is installed.
-If you have created a virtual environment for the SDK, enter these commands in the virtual environment.
-
-1. Upgrade pip. 
+1. Upgrade pip.
 
     .. code-block:: shell
 
@@ -348,21 +325,21 @@ If you have created a virtual environment for the SDK, enter these commands in t
 
     .. code-block:: shell
 
-	   pip install --use-wheel pyopenssl
+          pip install --use-wheel pyopenssl
 
     **Note:** This package installs pyopenssl, cryptography, cffi, pycparser and six.
 
-3. Install the SDK .egg file using the following command:
+3. Install the SDK .whl file using the following command:
 
     From a local directory (relative or absolute) you must use the --find-links option and the [ssl] option:
 
     .. code-block:: shell
 
-        easy_install -Z --find-links *directory\path*\acicobra[ssl]
+        pip install \*directory\path*\acicobra
 
-    In the following example, the .egg file is in a directory named cobra-eggs that is a sub-directory of the current directory:
+    In the following example, the .whl file is in a directory named cobra-whls that is a sub-directory of the current directory:
 
     .. code-block:: shell
 
-        > easy_install -Z --find-links cobra-eggs\acicobra-1.1_1j-py2.7.egg[ssl]
+        > pip install ./cobra-whls/acicobra-4.2_2j-py2.py3-none-any.whl
 

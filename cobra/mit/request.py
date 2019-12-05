@@ -1,4 +1,4 @@
-# Copyright 2015 Cisco Systems, Inc.
+# Copyright 2019 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,47 +14,38 @@
 
 """The request module for the ACI Python SDK (cobra)."""
 
-from builtins import str     # pylint:disable=redefined-builtin
-from builtins import object  # pylint:disable=redefined-builtin
+import sys
+if sys.version_info[0] == 3:
+    from builtins import str
+from builtins import object
 
-import json
+#from past.builtins import basestring
+#from past.builtins import cmp
 from cobra.mit.naming import Dn
-from cobra.internal.codec.jsoncodec import toJSONStr
-from cobra.internal.codec.xmlcodec import toXMLStr
+from .jsoncodec import toJSONStr
+from .xmlcodec import toXMLStr
+
+
+def filterUrl(st):
+    return st.replace('+', '%2B')
 
 
 class AbstractRequest(object):
-
-    """Abstract base class for all other request types.
-
-    Attributes:
-      options (str): The HTTP request query string for this object - readonly
-
-      id (None or int): An internal troubleshooting value useful for tracing
-        the processing of a request within the cluster
-
-      uriBase (str): The base URI used to build the URL for queries and
-        requests
+    """
+    AbstractRequest is the base class for all other request types, including
+    AbstractQuery, ConfigRequest, UploadPackage, LoginRequest and RefreshRequest
     """
 
     def __init__(self):
-        """Instantiate an AbstractRequest instance."""
         self.__options = {}
-        self.id = None  # pylint:disable=invalid-name
+        self.id = None
         self.__uriBase = ""
 
     @classmethod
     def makeOptions(cls, options):
-        """Make the request options.
-
+        """
         Returns a string containing the concatenated values of all key/value
         pairs for the options defined in dict options
-
-        Args:
-          options (list): A list of options to turn into an option string
-
-        Returns:
-          str: The options strings
         """
         optionStr = ''
         if options:
@@ -64,218 +55,202 @@ class AbstractRequest(object):
         return optionStr
 
     def getUriPathAndOptions(self, session):
-        """Get the uri path and options.
-
-        Returns the full URI path and options portion of the URL that will be
-        used in a query
-
-        Args:
-          session (cobra.mit.session.AbstractSession): The session object which
-            contains information needed to build the URI
-
-        Returns:
-          str: The URI and options strings
-        """
         return "%s.%s%s%s" % (self.uriBase, session.formatStr,
-                              '?' if self.options else '', self.options)
-
-    def getHeaders(self, session, data=None):
-        """Get the headers for the session.
-
-        The data may be needed if a signature is needed to be calculated for
-        a transaction.
-
-        Args:
-          session (cobra.mit.session.AbstractSession): The session
-            the headers should be for.
-          data (str, optional): The data for the request.  The default is None
-
-        Returns:
-          dict: A dictionary with the headers for the session.
-        """
-        uriPathandOptions = self.getUriPathAndOptions(session)
-        # Data is needed for CertSession where the payload is used to calculate
-        # a signature.
-        return session.getHeaders(uriPathandOptions, data)
+                              '?' if self.options else '', filterUrl(self.options))
 
     @property
     def options(self):
-        """Get the options.
-
-        Returns:
-          str: All the options for this abstract request as a string
-            joined by &'s.
+        """
+        Return the HTTP request query string string for this object
         """
         return AbstractRequest.makeOptions(self.__options)
 
-    @property
-    def id(self):  # pylint:disable=invalid-name
-        """Get the id.
+    # property setters / getters for this class
 
-        Returns:
-           str: The id for this request.
+    @property
+    def id(self):
+        """
+        Returns the id of this query if set, else None
         """
         return self.__options.get('_dc', None)
 
     @id.setter
-    def id(self, value):  # pylint:disable=invalid-name
-        """Set the id.
-
-        Args:
-          value (str): The id to use for this request.
+    def id(self, value):
+        """
+        Sets the id of this query. The id is an internal troubleshooting
+        value useful for tracing the processing of a request within the cluster
         """
         self.__options['_dc'] = value
 
     @property
     def uriBase(self):
-        """Get the base uri.
-
-        Returns:
-          str: A string representing the base URI for this request.
-        """
         return self.__uriBase
 
     @uriBase.setter
     def uriBase(self, value):
-        """Set the base uri.
-
-        Args:
-          value (str): The base uri for this request.
-        """
         self.__uriBase = value
 
+    def getUrl(self, session):
+        """
+        Returns the dn query URL containing all the query options defined on
+        this object
+        """
+        return session.url + self.getUriPathAndOptions(session)
 
-class AbstractQuery(AbstractRequest):
 
-    """Abstract base class for a query.
-
-    Attributes:
-      options (str): The HTTP request query string for this object - readonly
-
-      propInclude (str): the current response property include filter.
-        This filter can be used to specify the properties that should be
-        included in the response.  Valid values are:
-
-        * _all_
-        * naming-only
-        * config-explicit
-        * config-all
-        * config-only
-        * oper
-
-      subtreePropFilter (str): The response subtree filter can be used to limit
-        what is returned in a subtree response by property values
-
-      subtreeClassFilter (str): The response subtree class filter can be used
-        to filter a subtree response down to one or more classes.  Setting this
-        can be done with either a list or a string, the value is always stored
-        as a comma separated string.
-
-      subtreeInclude (str): The response subtree include filter can be used to
-        limit the response to a specific type of information from the subtree,
-        these include:
-
-        * audit-logs
-        * event-logs
-        * faults
-        * fault-records
-        * health
-        * health-records
-        * relations
-        * stats
-        * tasks
-        * count
-        * no-scoped
-        * required
-
-      queryTarget (str): The query target filter can be used to specify what
-        part of the MIT to query.  You can query:
-
-        * self - The object itself
-        * children - The children of the object
-        * subtree - All the objects lower in the heirarchy
-
-      classFilter (str): The target subtree class filter can be used to specify
-        which subtree class to filter by.  You can set this using a list or
-        a string.  The value is always stored as a comma separated string.
-
-      propFilter (str): The query target property filter can be used to limit
-        which objects are returned based on the value that is set in the
-        specific property within those objects.
-
-      subtree (str): The response subtree filter can be used to define what
-        objects you want in the response.  The possible values are:
-
-        * no - No subtree requested
-        * children - Only the children objects
-        * full - A full subtree
-
-      replica (int): The replica option can direct a query to a specific
-        replica.  The possible values are:
-
-        * 1
-        * 2
-        * 3
-
-      orderBy (list or str): Request that the results be ordered in a certain
-        way.  This can be a list of property sort specifiers or a comma
-        separated string. An example sort specifier: 'aaaUser.name|desc'.
-
-      pageSize (int): Request that the results that are returned are limited
-        to a certain number, the pageSize.
-
-      id (None or int): An internal troubleshooting value useful for tracing
-        the processing of a request within the cluster
-
-      uriBase (str): The base URI used to build the URL for queries and
-        requests
+class CheckRequestStateQuery(AbstractRequest):
+    """
+    Class representing a check request state query, used to query
+     the state of a request in progress
     """
 
     def __init__(self):
-        """Instantiate an AbstractQuery instance."""
+        super(CheckRequestStateQuery, self).__init__()
+        self.__options = {}
+        self.uriBase = '/api/checkRequestState'
+
+    @property
+    def options(self):
+        """
+        Returns the concatenation of the class and base class options for HTTP
+        request query string
+        """
+        return '&'.join([_f for _f in [AbstractRequest.makeOptions(
+            self.__options), super(CheckRequestStateQuery, self).options] if _f])
+
+    # property setters / getters for this class
+
+    @property
+    def requestId(self):
+        """
+        Returns the current requestId filter
+        """
+        return self.__options.get('id', None)
+
+    @requestId.setter
+    def requestId(self, value):
+        """
+        Sets the request id to query
+        """
+        self.__options['id'] = value
+
+
+class DeploymentQuery(AbstractRequest):
+    """
+    Class to create a deployment query to find the impacted deployment entities for changes in specific dn.
+    """
+
+    def __init__(self, dn):
+        """
+        Args:
+            dnStr (str): DN to query
+        """
+        super(DeploymentQuery, self).__init__()
+        self.__dnStr = str(dn)
+        self.__options = {'rsp-subtree-include': 'full-deployment'}
+        self.uriBase = "/api/mo/%s" % self.__dnStr
+
+    @property
+    def options(self):
+        """
+        Returns the concatenation of the class and base class options for HTTP
+        request query string
+        """
+        return '&'.join([_f for _f in [AbstractRequest.makeOptions(
+            self.__options), super(DeploymentQuery, self).options] if _f])
+
+    # property setters / getters for this class
+
+    @property
+    def dnStr(self):
+        """
+        Returns the base dnString for this DnQuery
+        """
+        return self.__dnStr
+
+    @property
+    def targetNode(self):
+        """
+        Returns the node specific information
+        """
+        return self.__options.get('target-node', None)
+
+    @targetNode.setter
+    def targetNode(self, value):
+        """
+        Args:
+            value (int): id of the node
+        """
+        self.__options['target-node'] = value
+
+    @property
+    def targetPath(self):
+        """
+        Returns the path selected for the query
+        """
+        return self.__options.get('target-path', None)
+
+    @targetNode.setter
+    def targetPath(self, value):
+        """
+        Args:
+            value (str): specific target path for this query
+        """
+        self.__options['target-path'] = value
+
+    @property
+    def includeRelations(self):
+        """
+        Returns the path selected for the query
+        """
+        return self.__options.get('include-relns', None)
+
+    @includeRelations.setter
+    def includeRelations(self, value):
+        """
+        Args:
+            value (str): specific target path for this query
+        """
+        value = 'yes' if value else 'no'
+        self.__options['include-relns'] = value
+
+
+class AbstractQuery(AbstractRequest):
+    """
+    Class representing an abstract query. The class is used by classQuery
+    and Dnquery.
+    """
+
+    def __init__(self):
         super(AbstractQuery, self).__init__()
         self.__options = {}
 
     @property
     def options(self):
-        """Get the options.
-
-        Returns:
-          str: All the options for this abstract query as a string
-            joined by &'s.
+        """
+        Returns the concatenation of the class and base class options for HTTP
+        request query string
         """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(AbstractQuery, self).options] if _f])
 
+    # property setters / getters for this class
+
     @property
     def propInclude(self):
-        """Get the property include.
-
-        Returns:
-          str: The property include (rsp-prop-include) value.
+        """
+        Returns the current response property include filter
         """
         return self.__options.get('rsp-prop-include', None)
 
     @propInclude.setter
     def propInclude(self, value):
-        """Set the property include value.
-
-        Args:
-          value (str): The value to set the property include to.  Valid values
-            are:
-
-            * _all_
-            * naming-only
-            * config-explicit
-            * config-all
-            * config-only
-            * oper
-
-        Raises:
-          ValueError: If the value is not a valid value.
         """
-        allowedValues = {'_all_', 'naming-only', 'config-explicit',
-                         'config-all', 'config-only', 'oper'}
+        Filters that can specify the properties that should be included in the
+        response body
+        """
+        allowedValues = ['all', 'naming-only', 'config-explicit',
+                         'config-all', 'config-only', 'oper']
         if value not in allowedValues:
             raise ValueError('"%s" is invalid, valid values are "%s"' %
                              (value, str(allowedValues)))
@@ -283,38 +258,29 @@ class AbstractQuery(AbstractRequest):
 
     @property
     def subtreePropFilter(self):
-        """Get the subtree property filter.
-
-        Returns:
-          str: The subtree property filter (rsp-subtree-filter) value.
+        """
+        Returns the subtree prop filter.
         """
         return self.__options.get('rsp-subtree-filter', None)
 
     @subtreePropFilter.setter
     def subtreePropFilter(self, pFilter):
-        """Set the subtree property filter.
-
-        Args:
-          pFilter (str): The subtree property filter.
+        """
+        Returns the subtree prop filter.
         """
         self.__options['rsp-subtree-filter'] = str(pFilter)
 
     @property
     def subtreeClassFilter(self):
-        """Get the the subtree class filter.
-
-        Returns:
-          str: The subtree class filter (rsp-subtree-class)
+        """
+        Returns the current subtree class filter.
         """
         return self.__options.get('rsp-subtree-class', None)
 
     @subtreeClassFilter.setter
     def subtreeClassFilter(self, value):
-        """Set the subtree class filter.
-
-        Args:
-          value (str or list of str):  A list of subtree class filter strings
-            or a string for the subtree class filter.
+        """
+        Returns the children of a single class.
         """
         if isinstance(value, list):
             value = ','.join(value)
@@ -322,70 +288,52 @@ class AbstractQuery(AbstractRequest):
 
     @property
     def subtreeInclude(self):
-        """Get the subtree include.
-
-        Returns:
-          str: The subtree include (rsp-subtree-include) value.
+        """
+        Returns the current subtree query values.
         """
         return self.__options.get('rsp-subtree-include', None)
 
     @subtreeInclude.setter
     def subtreeInclude(self, value):
-        """Set the subtree include.
-
-        Args:
-          value (str):  The subtree include value.  Valid values are:
-
-            * audit-logs
-            * event-logs
-            * faults
-            * fault-records
-            * health
-            * health-rcords
-            * deployment-records
-            * relations
-            * stats
-            * tasks
-            * count
-            * no-scoped
-            * required
-
-        Raises:
-          ValueError: If the value is not a valid value.
         """
-        allowedValues = {'audit-logs', 'event-logs', 'faults', 'fault-records',
-                         'health', 'health-records', 'deployment-records',
-                         'relations', 'stats', 'tasks', 'count', 'no-scoped',
-                         'required'}
+        Specifies optional values for a subtree query, including:
+        *audit-logs
+        *event-logs
+        *faults
+        *fault-records
+        *ep-records
+        *health
+        *health-records
+        *relations
+        *stats
+        *tasks
+        *count
+        *no-scoped
+        *required
+        *subtree
+        """
+        allowedValues = {'audit-logs', 'event-logs', 'faults', 'fault-records', 'ep-records',
+                         'health', 'health-records', 'deployment-records', 'relations', 'stats',
+                         'tasks', 'count', 'no-scoped', 'required', 'subtree'}
         allValues = value.split(',')
-        for val in allValues:
-            if val not in allowedValues:
+        for v in allValues:
+            if v not in allowedValues:
                 raise ValueError('"%s" is invalid, valid values are "%s"' %
                                  (value, str(allowedValues)))
         self.__options['rsp-subtree-include'] = value
 
     @property
     def queryTarget(self):
-        """Get the query target.
-
-        Returns:
-          str: The query target (query-target).
+        """
+        Returns the query type.
         """
         return self.__options.get('query-target', None)
 
     @queryTarget.setter
     def queryTarget(self, value):
-        """Set the query target.
-
-        Args:
-          value (str): The query target value.  The valid values are:
-
-            * self
-            * children
-            * subtree
-
-        Raises:
-          ValueError: If the value is not a valid value.
+        """
+        Sets the query type. You can query the object (self), child objects
+        (children), or all objects lower in the heirarchy (subtree).
         """
         allowedValues = {'self', 'children', 'subtree'}
         if value not in allowedValues:
@@ -395,21 +343,17 @@ class AbstractQuery(AbstractRequest):
 
     @property
     def classFilter(self):
-        """Get the class filter.
-
-        Returns:
-          str: The class filter (target-subtree-class)
+        """
+        Returns the current class filter type.
         """
         return self.__options.get('target-subtree-class', None)
 
     @classFilter.setter
     def classFilter(self, value):
-        """Set the class filter.
-
-        Args:
-          value (str or list of strings): The class filter value as either a
-            string or a list of strings.
         """
+        Filters by a specified class.
+        """
+
         if not isinstance(value, list):
             value = value.split(',')
 
@@ -419,44 +363,30 @@ class AbstractQuery(AbstractRequest):
 
     @property
     def propFilter(self):
-        """Get the the property filter.
-
-        Returns:
-          str: The property filter (query-target-filter)
+        """
+        Returns the current property filter type.
         """
         return self.__options.get('query-target-filter', None)
 
     @propFilter.setter
     def propFilter(self, pFilter):
-        """Set the property filter.
-
-        Args:
-          pFilter (str): The value the property filter should be set to.
+        """
+        Filters by a specified property value.
         """
         self.__options['query-target-filter'] = str(pFilter)
 
     @property
     def subtree(self):
-        """Get the subtree.
-
-        Returns:
-          str: The subtree specifier (rsp-subtree).
+        """
+        Returns the current type of subtree filter.
         """
         return self.__options.get('rsp-subtree', None)
 
     @subtree.setter
     def subtree(self, value):
-        """Set the subtree specifier.
-
-        Args:
-          value (str): The subtree value can be:
-
-            * no
-            * children
-            * full
-
-        Raises:
-          ValueError: If the value is not a valid value.
+        """
+        Filters query values within a subtree- you can filter by MOs (children)
+        or return the entire subtree (full).
         """
         allowedValues = {'no', 'children', 'full'}
         if value not in allowedValues:
@@ -466,22 +396,15 @@ class AbstractQuery(AbstractRequest):
 
     @property
     def replica(self):
-        """Get the replica.
-
-        Returns:
-          int: The replica option to be set on this query (replica).
+        """
+        Returns the current value for the replica option.
         """
         return self.__options.get('replica', None)
 
     @replica.setter
     def replica(self, value):
-        """Set the replica value.
-
-        Args:
-          value (int): The replica value to set.  Valid values are: 1, 2 or 3.
-
-        Raises:
-          ValueError: If the value is not a valid value.
+        """
+        Direct the query to a specific replica
         """
         allowedValues = set([1, 2, 3])
         if value not in allowedValues:
@@ -526,485 +449,222 @@ class AbstractQuery(AbstractRequest):
         Args:
           pageSize (int): The number of results to be returned by a query.
         """
-        self.__options['page-size'] = str(pageSize)
-
-
-class LoginRequest(AbstractRequest):
-
-    """LoginRequest for standard user/password based authentication."""
-
-    def __init__(self, user, password):
-        """Instantiate a LoginRequest instance."""
-        super(LoginRequest, self).__init__()
-        self.user = user
-        self.password = password
-        self.uriBase = '/api/aaaLogin.json'
+        try:
+            numVal = int(pageSize)
+        except:
+            raise ValueError('{} pageSize needs to be an integer'.format(pageSize))
+        self.__options['page-size'] = str(numVal)
 
     @property
-    def data(self):
-        """Get the data.
-
-        Currently only JSON is supported.
+    def page(self):
+        """Get the page value.
 
         Returns:
-          str: The data that will be committed as a JSON string.
+          int: The number of the page returned in the query.
         """
-        userJson = {
-            'aaaUser': {
-                'attributes': {
-                    'name': self.user,
-                    'pwd': self.password
-                }
-            }
-        }
-        # Keys are sorted because the APIC REST API requires the attributes
-        # to come first.
-        return json.dumps(userJson, sort_keys=True)
+        return self.__options.get('page', None)
 
-    def requestargs(self, session):
-        """Get the arguments to be used by the HTTP request.
-
-        session (cobra.mit.session.AbstractSession): The session to be used to
-          build the the request arguments
-
-        Returns:
-          dict: The arguments
-        """
-        kwargs = {
-            'headers': self.getHeaders(session, self.data),
-            'verify': session.secure,
-            'data': self.data,
-            'timeout': session.timeout,
-            'allow_redirects': False
-        }
-        return kwargs
-
-    def getUrl(self, session):
-        """Get the URL containing all the query options.
+    @page.setter
+    def page(self, value):
+        """Set the page value.
 
         Args:
-          session (cobra.mit.session.AbstractSession): The session to use for
-            this query.
-
-        Returns:
-          str: The url
+          page (int): The position in the query which should be retrieved.
         """
-        return session.url + self.uriBase
+        try:
+            numVal = int(value)
+        except:
+            raise ValueError('{} page needs to be an integer'.format(value))
+        self.__options['page'] = str(numVal)
 
+    @property
+    def cacheId(self):
+        return self.__options.get('cache-session', None)
 
-class ListDomainsRequest(AbstractRequest):
+    @cacheId.setter
+    def cacheId(self, value):
+        if value is None and 'cache-session' in self.__options:
+            del self.__options['cache-session']
+            return
+        try:
+            numVal = int(value)
+        except:
+            raise ValueError('{} cache id needs to be an integer'.format(value))
+        self.__options['cache-session'] = str(numVal)
 
-    """A class to get the possible security domains prior to login."""
+    @property
+    def deleteCacheId(self):
+        return self.__options.get('delete-session', None)
 
-    def __init__(self):
-        """Instantiate a ListDomainsRequest instance."""
-        super(ListDomainsRequest, self).__init__()
-        self.uriBase = '/api/aaaListDomains.json'
-
-    def getUrl(self, session):
-        """Get the URL containing all the options if any.
-
-        Args:
-          session (cobra.mit.session.AbstractSession): The session to use for
-            this request.
-
-        Returns:
-          str: The url
-        """
-        return session.url + self.uriBase
-
-
-class RefreshRequest(AbstractRequest):
-
-    """Session refresh request.
-
-    Does standard user/password based re-authentication.
-    """
-
-    def __init__(self, cookie):
-        """Instantiate a RefreshRequest instance."""
-        super(RefreshRequest, self).__init__()
-        self.cookie = cookie
-        self.uriBase = '/api/aaaRefresh.json'
-
-    def getUrl(self, session):
-        """Get the URL containing all the  options if any.
-
-        Args:
-          session (cobra.mit.session.AbstractSession): The session to use for
-            this request.
-
-        Returns:
-          str: The url
-        """
-        return session.url + self.uriBase
+    @deleteCacheId.setter
+    def deleteCacheId(self, value):
+        try:
+            numVal = int(value)
+        except:
+            raise ValueError('{} delete cache id needs to be an integer'.format(value))
+        self.__options['delete-session'] = str(numVal)
 
 
 class DnQuery(AbstractQuery):
-
-    """Query based on distinguished name (Dn).
-
-    Attributes:
-      options (str): The HTTP request query string string for this DnQuery
-        object - readonly
-
-      dnStr (str): The base dn string for this DnQuery object - readonly
-
-      propInclude (str): the current response property include filter.
-        This filter can be used to specify the properties that should be
-        included in the response.  Valid values are:
-
-        * _all_
-        * naming-only
-        * config-explicit
-        * config-all
-        * config-only
-        * oper
-
-      subtreePropFilter (str): The response subtree filter can be used to limit
-        what is returned in a subtree response by property values
-
-      subtreeClassFilter (str): The response subtree class filter can be used
-        to filter a subtree response down to one or more classes.  Setting this
-        can be done with either a list or a string, the value is always stored
-        as a comma separated string.
-
-      subtreeInclude (str): The response subtree include filter can be used to
-        limit the response to a specific type of information from the subtree,
-        these include:
-
-        * audit-logs
-        * event-logs
-        * faults
-        * fault-records
-        * health
-        * health-records
-        * relations
-        * stats
-        * tasks
-        * count
-        * no-scoped
-        * required
-
-      queryTarget (str): The query target filter can be used to specify what
-        part of the MIT to query.  You can query:
-
-        * self - The object itself
-        * children - The children of the object
-        * subtree - All the objects lower in the heirarchy
-
-      classFilter (str): The target subtree class filter can be used to specify
-        which subtree class to filter by.  You can set this using a list or
-        a string.  The value is always stored as a comma separated string.
-
-      propFilter (str): The query target property filter can be used to limit
-        which objects are returned based on the value that is set in the
-        specific property within those objects.
-
-      subtree (str): The response subtree filter can be used to define what
-        objects you want in the response.  The possible values are:
-
-        * no - No subtree requested
-        * children - Only the children objects
-        * full - A full subtree
-
-      orderBy (list or str): Request that the results be ordered in a certain
-        way.  This can be a list of property sort specifiers or a comma
-        separated string. An example sort specifier: 'aaaUser.name|desc'.
-
-      pageSize (int): Request that the results that are returned are limited
-        to a certain number, the pageSize.
-
-      replica (int): The replica option can direct a query to a specific
-        replica.  The possible values are:
-
-        * 1
-        * 2
-        * 3
-
-      id (None or int): An internal troubleshooting value useful for tracing
-        the processing of a request within the cluster
-
-      uriBase (str): The base URI used to build the URL for queries and
-        requests
+    """
+    Class to create a query based on distinguished name (Dn).
     """
 
     def __init__(self, dn):
-        """Initialize a DnQuery object.
-
+        """
         Args:
-          dn (str or cobra.mit.naming.Dn): The Dn to query
+            dnStr (str): DN to query
         """
         super(DnQuery, self).__init__()
         self.__dnStr = str(dn)
         self.__options = {}
-        self.uriBase = "/api/mo/%s" % self.__dnStr
+        self.uriBase = "/api/mo/{0}".format(self.__dnStr)
 
     @property
     def options(self):
-        """Get the options.
-
-        Returns:
-          str: All the options for this dn queryas a string
-            joined by &'s.
+        """
+        Returns the concatenation of the class and base class options for HTTP
+        request query string
         """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(DnQuery, self).options] if _f])
 
+    # property setters / getters for this class
+
     @property
     def dnStr(self):
-        """Get the dn string.
-
-        Returns:
-          str: The dn string for this dn query.
+        """
+        Returns the base dnString for this DnQuery
         """
         return self.__dnStr
 
-    def getUrl(self, session):
-        """Get the URL containing all the query options.
+    def __hash__(self):
+        url = '{0}/{1}'.format(self.__dnStr, self.options)
+        return hash(url)
 
-        Args:
-          session (cobra.mit.session.AbstractSession): The session to use for
-            this query.
+    # def __cmp__(self, other):
+    #     thisUrl = '{0}/{1}'.format(self.__dnStr, self.options)
+    #     otherUrl = '{0}/{1}'.format(other.dnStr, other.options)
+    #     return cmp(thisUrl, otherUrl)
 
-        Returns:
-          str: The url
-        """
-        return session.url + self.getUriPathAndOptions(session)
+    def __lt__(self, other):
+        """Implement <."""
+        thisUrl = '{0}/{1}'.format(self.__dnStr, self.options)
+        otherUrl = '{0}/{1}'.format(other.dnStr, other.options)
+        return thisUrl < otherUrl
+
+    def __le__(self, other):
+        """Implement <=."""
+        thisUrl = '{0}/{1}'.format(self.__dnStr, self.options)
+        otherUrl = '{0}/{1}'.format(other.dnStr, other.options)
+        return thisUrl <= otherUrl
+
+    def __eq__(self, other):
+        """Implement ==."""
+        thisUrl = '{0}/{1}'.format(self.__dnStr, self.options)
+        otherUrl = '{0}/{1}'.format(other.dnStr, other.options)
+        return thisUrl == otherUrl
+
+    def __ne__(self, other):
+        """Implement !=."""
+        thisUrl = '{0}/{1}'.format(self.__dnStr, self.options)
+        otherUrl = '{0}/{1}'.format(other.dnStr, other.options)
+        return thisUrl != otherUrl
+
+    def __gt__(self, other):
+        """Implement >."""
+        thisUrl = '{0}/{1}'.format(self.__dnStr, self.options)
+        otherUrl = '{0}/{1}'.format(other.dnStr, other.options)
+        return thisUrl > otherUrl
+
+    def __ge__(self, other):
+        """Implement >=."""
+        thisUrl = '{0}/{1}'.format(self.__dnStr, self.options)
+        otherUrl = '{0}/{1}'.format(other.dnStr, other.options)
+        return thisUrl >= otherUrl
 
 
 class ClassQuery(AbstractQuery):
-
-    """Query based on class name.
-
-    Attributes:
-      options (str): The HTTP request query string string for this DnQuery
-        object - readonly
-
-      className (str): The className to query for - readonly
-
-      propInclude (str): the current response property include filter.
-        This filter can be used to specify the properties that should be
-        included in the response.  Valid values are:
-
-        * _all_
-        * naming-only
-        * config-explicit
-        * config-all
-        * config-only
-        * oper
-
-      subtreePropFilter (str): The response subtree filter can be used to limit
-        what is returned in a subtree response by property values
-
-      subtreeClassFilter (str): The response subtree class filter can be used
-        to filter a subtree response down to one or more classes.  Setting this
-        can be done with either a list or a string, the value is always stored
-        as a comma separated string.
-
-      subtreeInclude (str): The response subtree include filter can be used to
-        limit the response to a specific type of information from the subtree,
-        these include:
-
-        * audit-logs
-        * event-logs
-        * faults
-        * fault-records
-        * health
-        * health-records
-        * relations
-        * stats
-        * tasks
-        * count
-        * no-scoped
-        * required
-
-      queryTarget (str): The query target filter can be used to specify what
-        part of the MIT to query.  You can query:
-
-        * self - The object itself
-        * children - The children of the object
-        * subtree - All the objects lower in the heirarchy
-
-      classFilter (str): The target subtree class filter can be used to specify
-        which subtree class to filter by.  You can set this using a list or
-        a string.  The value is always stored as a comma separated string.
-
-      propFilter (str): The query target property filter can be used to limit
-        which objects are returned based on the value that is set in the
-        specific property within those objects.
-
-      subtree (str): The response subtree filter can be used to define what
-        objects you want in the response.  The possible values are:
-
-        * no - No subtree requested
-        * children - Only the children objects
-        * full - A full subtree
-
-      orderBy (list or str): Request that the results be ordered in a certain
-        way.  This can be a list of property sort specifiers or a comma
-        separated string. An example sort specifier: 'aaaUser.name|desc'.
-
-      pageSize (int): Request that the results that are returned are limited
-        to a certain number, the pageSize.
-
-      replica (int): The replica option can direct a query to a specific
-        replica.  The possible values are:
-
-        * 1
-        * 2
-        * 3
-
-      id (None or int): An internal troubleshooting value useful for tracing
-        the processing of a request within the cluster
-
-      uriBase (str): The base URI used to build the URL for queries and
-        requests
+    """
+    Class to create a query based on object class.
     """
 
     def __init__(self, className):
-        """Initialize a ClassQuery instance.
-
-        Args:
-          className (str): The className to query for
-        """
         super(ClassQuery, self).__init__()
         self.__className = className.replace('.', '')
         self.__options = {}
-        self.uriBase = "/api/class/%s" % self.className
+        self.uriBase = "/api/class/{0}".format(self.className)
 
     @property
     def options(self):
-        """Get the options.
-
-        Returns:
-          str: All the options for this class query as a string
-            joined by &'s.
+        """
+        Returns the concatenation of the class and base class options for HTTP
+        request query string
         """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(ClassQuery, self).options] if _f])
 
+    # property setters / getters for this class
+
     @property
     def className(self):
-        """Get the class name.
-
-        Returns:
-          str: The class name for this class query
+        """
+        Returns the className targeted by this ClassQuery
         """
         return self.__className
 
-    def getUrl(self, session):
-        """Get the URL containing all the query options.
+    def __hash__(self):
+        url = '{0}/{1}'.format(self.__className, self.options)
+        return hash(url)
 
-        Args:
-          session (cobra.mit.session.AbstractSession): The session to use for
-            this query.
+    # def __cmp__(self, other):
+    #     thisUrl = '{0}/{1}'.format(self.__className, self.options)
+    #     otherUrl = '{0}/{1}'.format(other.className, other.options)
+    #     return cmp(thisUrl, otherUrl)
 
-        Returns:
-          str: The url
-        """
-        return session.url + self.getUriPathAndOptions(session)
+    def __lt__(self, other):
+        """Implement <."""
+        thisUrl = '{0}/{1}'.format(self.__className, self.options)
+        otherUrl = '{0}/{1}'.format(other.className, other.options)
+        return thisUrl < otherUrl
+
+    def __le__(self, other):
+        """Implement <=."""
+        thisUrl = '{0}/{1}'.format(self.__className, self.options)
+        otherUrl = '{0}/{1}'.format(other.className, other.options)
+        return thisUrl <= otherUrl
+
+    def __eq__(self, other):
+        """Implement ==."""
+        thisUrl = '{0}/{1}'.format(self.__className, self.options)
+        otherUrl = '{0}/{1}'.format(other.className, other.options)
+        return thisUrl == otherUrl
+
+    def __ne__(self, other):
+        """Implement !=."""
+        thisUrl = '{0}/{1}'.format(self.__className, self.options)
+        otherUrl = '{0}/{1}'.format(other.className, other.options)
+        return thisUrl != otherUrl
+
+    def __gt__(self, other):
+        """Implement >."""
+        thisUrl = '{0}/{1}'.format(self.__className, self.options)
+        otherUrl = '{0}/{1}'.format(other.className, other.options)
+        return thisUrl > otherUrl
+
+    def __ge__(self, other):
+        """Implement >=."""
+        thisUrl = '{0}/{1}'.format(self.__className, self.options)
+        otherUrl = '{0}/{1}'.format(other.className, other.options)
+        return thisUrl >= otherUrl
 
 
 class TraceQuery(AbstractQuery):
-
-    """Trace Query using a base Dn and a target class.
-
-    Attributes:
-      options (str): The HTTP request query string string for this DnQuery
-        object - readonly
-
-      targetClass (str): The targetClass for this trace query
-
-      dnStr (str): The base Dn string for this trace query
-
-      propInclude (str): the current response property include filter.
-        This filter can be used to specify the properties that should be
-        included in the response.  Valid values are:
-
-        * _all_
-        * naming-only
-        * config-explicit
-        * config-all
-        * config-only
-        * oper
-
-      subtreePropFilter (str): The response subtree filter can be used to limit
-        what is returned in a subtree response by property values
-
-      subtreeClassFilter (str): The response subtree class filter can be used
-        to filter a subtree response down to one or more classes.  Setting this
-        can be done with either a list or a string, the value is always stored
-        as a comma separated string.
-
-      subtreeInclude (str): The response subtree include filter can be used to
-        limit the response to a specific type of information from the subtree,
-        these include:
-
-        * audit-logs
-        * event-logs
-        * faults
-        * fault-records
-        * health
-        * health-records
-        * relations
-        * stats
-        * tasks
-        * count
-        * no-scoped
-        * required
-
-      queryTarget (str): The query target filter can be used to specify what
-        part of the MIT to query.  You can query:
-
-        * self - The object itself
-        * children - The children of the object
-        * subtree - All the objects lower in the heirarchy
-
-      classFilter (str): The target subtree class filter can be used to specify
-        which subtree class to filter by.  You can set this using a list or
-        a string.  The value is always stored as a comma separated string.
-
-      propFilter (str): The query target property filter can be used to limit
-        which objects are returned based on the value that is set in the
-        specific property within those objects.
-
-      subtree (str): The response subtree filter can be used to define what
-        objects you want in the response.  The possible values are:
-
-        * no - No subtree requested
-        * children - Only the children objects
-        * full - A full subtree
-
-      orderBy (list or str): Request that the results be ordered in a certain
-        way.  This can be a list of property sort specifiers or a comma
-        separated string. An example sort specifier: 'aaaUser.name|desc'.
-
-      pageSize (int): Request that the results that are returned are limited
-        to a certain number, the pageSize.
-
-      replica (int): The replica option can direct a query to a specific
-        replica.  The possible values are:
-
-        * 1
-        * 2
-        * 3
-
-      id (None or int): An internal troubleshooting value useful for tracing
-        the processing of a request within the cluster
-
-      uriBase (str): The base URI used to build the URL for queries and
-        requests
+    """
+    Class to create a trace query using base Dn and targetClass
     """
 
     def __init__(self, dn, targetClass):
-        """Initialize a TraceQuery instance.
-
-        Args:
-          dn (str or cobra.mit.naming.Dn): The base Dn for this query
-
-          targetClass (str): The target class for this query
-        """
         super(TraceQuery, self).__init__()
         self.__options = {}
         self.__dnStr = str(dn)
@@ -1013,90 +673,52 @@ class TraceQuery(AbstractQuery):
 
     @property
     def options(self):
-        """Get the options.
-
-        Returns:
-          str: All the options for this trace query as a string
-            joined by &'s.
+        """
+        Returns the concatenation of the class and base class options for HTTP
+        request query string
         """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(TraceQuery, self).options] if _f])
 
+    # property setters / getters for this class
+
     @property
     def targetClass(self):
-        """Get the target class.
-
-        Returns:
-          str: The string representing the target class for this trace query.
+        """
+        Returns the target class
         """
         return self.__options.get('target-class', None)
 
     @targetClass.setter
     def targetClass(self, value):
-        """Set the target class.
-
-        Args:
-          value(str): The string representing the target class for this trace
-            query.
+        """
+        Sets the targetClass for this traceQuery
         """
         self.__options['target-class'] = value.replace('.', '')
 
     @property
     def dnStr(self):
-        """Get the base dn string.
-
-        Returns:
-          str: The string representing the base Dn for this trace query.
+        """
+        Returns the base dnString for this DnQuery
         """
         return self.__dnStr
 
-    def getUrl(self, session):
-        """Get the URL containing all the query options.
-
-        Args:
-          session (cobra.mit.session.AbstractSession): The session to use for
-            this query.
-
-        Returns:
-          str: The url
-        """
-        return session.url + self.getUriPathAndOptions(session)
-
 
 class TagsRequest(AbstractRequest):
-
-    """Hybrid query and request for tags.
-
-    This class does both setting of tags (request) and retrieving of tags
-    (query).
-
-    Attributes:
-      options (str): The HTTP request query string string for this DnQuery
-        object - readonly
-
-      data (str): The payload for this request in JSON format - readonly
-
-      dnStr (str): The base Dn for this request/query - readonly
-
-      add (None or str or list): The tag(s) to add, default is None
-
-      remove (None or str or list): The tag(s) to remove, default is None
-
-      id (None or int): An internal troubleshooting value useful for tracing
-        the processing of a request within the cluster
-
-      uriBase (str): The base URI used to build the URL for queries and
-        requests
+    """
+    Tags request to add or remove tags for a Dn.
     """
 
     def __init__(self, dn, add=None, remove=None):
-        """Initialize a tags query/request object.
+        """
+        :param dn: The Dn to do the Tags request against
+        :type dn: cobra.mit.naming.Dn or str
 
-        Args:
-          dn (str or cobra.mit.naming.Dn): The base Dn for this request/query
+        :param add: The comma separated string or list of tags to add
+        :type add: str or list
 
-          add (None or str or list): The tag(s) to add, default is None
-          remove (None or str or list): The tag(s) to remove, default is None
+        :param remove: The comma separated string or list of tags to remove
+        :type remove: str or list
         """
         self.__options = {}
         super(TagsRequest, self).__init__()
@@ -1106,155 +728,82 @@ class TagsRequest(AbstractRequest):
         self.remove = [] if remove is None else remove
 
     @property
-    def data(self):  # pylint:disable=no-self-use
-        """Get the data.
-
-        Currently only JSON is supported
-
-        Returns:
-          str: The data that will be committed as a JSON string.
-        """
+    def data(self):
         return str({})
 
     @property
     def options(self):
-        """Get the options.
-
-        Returns:
-          str: All the options for this tags request as a string
-            joined by &'s.
+        """
+        :returns: The url options string with & prepended
+        :rtype: str
         """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(TagsRequest, self).options] if _f])
 
     @property
     def dnStr(self):
-        """Get the dn string.
-
-        Returns:
-          str: The string representing the Dn that the tags will be committed
-            to.
+        """
+        :returns: The Dn string for this request
+        :rtype: str
         """
         return self.__dnStr
 
     @property
     def remove(self):
-        """Get the remove string.
+        """
+        Tags that will be removed for this TagsRequest
 
-        Returns:
-          str: The string of tags that will be removed by this request.
+        :returns: String form of the tags, comma separated
+        :rtype: str
         """
         return self.__options['remove']
 
     @remove.setter
     def remove(self, tags):
-        """Set the remove string.
-
-        Args:
-          tags (list or str): The tags to remove via this tags request as a
-            list or comma separated string.
-        """
         tags = self._get_tags_string(tags)
         self.__options['remove'] = tags
 
     @property
     def add(self):
-        """Get the add string.
+        """
+        Tags that will be added for this TagsRequest
 
-        Returns:
-          str: The string of tags that will be added by this request.
+        :returns: String form of the tags, comma separated
+        :rtype: str
         """
         return self.__options['add']
 
     @add.setter
     def add(self, tags):
-        """Set the add string.
-
-        Args:
-          tags (list or str): The tags to add via this tags request as a list
-            or comma separated string.
-        """
         tags = self._get_tags_string(tags)
         self.__options['add'] = tags
 
     def requestargs(self, session):
-        """Get the arguments to be used by the HTTP request.
-
-        session (cobra.mit.session.AbstractSession): The session to be used to
-          build the the request arguments
-
-        Returns:
-          dict: The arguments
-        """
+        uriPathandOptions = self.getUriPathAndOptions(session)
+        headers = session.getHeaders(uriPathandOptions, self.data)
         kwargs = {
-            'headers': self.getHeaders(session, self.data),
+            'headers': headers,
             'verify': session.secure,
             'timeout': session.timeout,
             'data': self.data
         }
         return kwargs
 
-    def getUrl(self, session):
-        """Get the URL containing all the query options.
-
-        Args:
-          session (cobra.mit.session.AbstractSession): The session to use for
-            this query.
-
-        Returns:
-          str: The url
-        """
-        return session.url + self.getUriPathAndOptions(session)
-
     @staticmethod
     def _get_tags_string(value):
-        """Get the tags string.
-
-        Args:
-          value (list or str): A list of tags or a string of tags comma
-             separated.
-
-        Raises:
-          ValueError: If the value is not a list or a string.
-
-        Returns:
-          str: The tags string.
-        """
         if isinstance(value, list):
             value = ','.join(value)
         elif not isinstance(value, str):
+            # # TODO: PYTHON 3 TIMEBOMB basestring ##
             raise ValueError("add or remove should be a list or a string " +
                              "{0}".format(type(value)))
         return value
 
 
+# Aliases are not supported at FCS.  This is added for testing only and not
+# documented on purpose
 class AliasRequest(AbstractRequest):
-
-    """Hybrid query and request for alias support.
-
-    This class does both setting of aliases (request) and retrieving of aliases
-    (query).
-
-    Attributes:
-      options (str): The HTTP request query string string for this DnQuery
-        object - readonly
-
-      data (str): The payload for this request in JSON format - readonly
-
-      dnStr (str): The base Dn for this request/query - readonly
-
-      alias (None or str): The alias to be set, if set to None, the alias is
-        cleared
-
-      id (None or int): An internal troubleshooting value useful for tracing
-        the processing of a request within the cluster
-
-      uriBase (str): The base URI used to build the URL for queries and
-        requests
-    """
-
     def __init__(self, dn, alias=None):
-        """Instantiate an AliasRequest instance."""
         self.__options = {}
         super(AliasRequest, self).__init__()
         self.__dnStr = str(dn)
@@ -1262,53 +811,28 @@ class AliasRequest(AbstractRequest):
         self.alias = alias
 
     @property
-    def data(self):  # pylint:disable=no-self-use
-        """Get the data.
-
-        Currently only JSON is supported.
-
-        Returns:
-          str: The data that will be committed as a JSON string.
-        """
+    def data(self):
         return str({})
 
     @property
     def options(self):
-        """Get the options.
-
-        Returns:
-          str: All the options for this alias request as a string
-            joined by &'s.
-        """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(AliasRequest, self).options] if _f])
 
     @property
     def dnStr(self):
-        """Get the dnStr.
-
-        Returns:
-          str: The dn string for this alias request.
-        """
         return self.__dnStr
+
+    def clear(self):
+        self.__options['set'] = ""
+        self.__options['clear'] = "yes"
 
     @property
     def alias(self):
-        """Get the alias.
-
-        Returns:
-          str: The alias if it is set, otherwise an empty string.
-        """
         return self.__options['set']
 
     @alias.setter
     def alias(self, value):
-        """Set the alias.
-
-        Args:
-          value (str): The value to set the alias to.  If the value is None or
-            an empty string, the alias is cleared.
-        """
         if value is None or value == "":
             self.__options['clear'] = "yes"
         else:
@@ -1316,70 +840,25 @@ class AliasRequest(AbstractRequest):
         self.__options['set'] = value
 
     def requestargs(self, session):
-        """Get the arguments to be used by the HTTP request.
-
-        session (cobra.mit.session.AbstractSession): The session to be used to
-          build the the request arguments
-
-        Returns:
-          dict: The arguments
-        """
+        uriPathandOptions = self.getUriPathAndOptions(session)
+        headers = session.getHeaders(uriPathandOptions, self.data)
         kwargs = {
-            'headers': self.getHeaders(session, self.data),
+            'headers': headers,
             'verify': session.secure,
             'timeout': session.timeout,
             'data': self.data
         }
         return kwargs
 
-    def getUrl(self, session):
-        """Get the URL containing all the query options.
-
-        Args:
-          session (cobra.mit.session.AbstractSession): The session to use for
-            this query.
-
-        Returns:
-          str: The url
-        """
-        return session.url + self.getUriPathAndOptions(session)
-
-    def clear(self):
-        """Clear the alias."""
-        self.__options['set'] = ""
-        self.__options['clear'] = "yes"
-
 
 class ConfigRequest(AbstractRequest):
-
-    """Change the configuration.
-
-    :py:func:`cobra.mit.access.MoDirectory.commit` function uses this class.
-
-    Attributes:
-      options (str): The HTTP request query string string for this DnQuery
-        object - readonly
-
-      data (str): The payload for this request in JSON format - readonly
-
-      xmldata (str): The payload for this request in XML format - readonly
-
-      subtree (str): The response subtree filter can be used to define what
-        objects you want in the response.  The possible values are:
-
-        * no - No subtree requested
-        * children - Only the children objects
-        * full - A full subtree
-
-      id (None or int): An internal troubleshooting value useful for tracing
-        the processing of a request within the cluster
-
-      uriBase (str): The base URI used to build the URL for queries and
-        requests
+    """
+    Class to handle configuration requests. The commit function uses this
+    class.
     """
 
     def __init__(self):
-        """Initialize a ConfigRequest instance."""
+
         super(ConfigRequest, self).__init__()
         self.__options = {}
         self.__ctxRoot = None
@@ -1389,25 +868,15 @@ class ConfigRequest(AbstractRequest):
 
     @property
     def options(self):
-        """Get the options.
-
-        Returns:
-          str: All the options for this config request as a string
-            joined by &'s.
+        """
+        Returns the concatenation of the class and base class options for HTTP
+        request query string
         """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(ConfigRequest, self).options] if _f])
 
     @property
     def data(self):
-        """Get the data as JSON.
-
-        Raises:
-          CommitError: If no Mo's have been added to this config request.
-
-        Returns:
-          str: The data that will be committed as a JSON string.
-        """
         if self.getRootMo() is None:
             raise CommitError(0, "No mos in config request")
 
@@ -1415,60 +884,17 @@ class ConfigRequest(AbstractRequest):
 
     @property
     def xmldata(self):
-        """Get the data as XML.
-
-        Raises:
-          CommitError: If no Mo's ahve been added to this config request.
-
-        Returns:
-          str: The data as a XML string.
-        """
         if self.getRootMo() is None:
             raise CommitError(0, "No mos in config request")
 
         return toXMLStr(self.getRootMo())
 
-    @property
-    def subtree(self):
-        """Get the subtree.
-
-        Returns:
-          str: The subtree specifier.
-        """
-        return self.__options.get('rsp-subtree', None)
-
-    @subtree.setter
-    def subtree(self, value):
-        """Set the subtree specifier.
-
-        Args:
-          value (str): The subtree value can be:
-
-            * no
-            * full
-            * modified
-
-        Raises:
-          ValueError: If the value is not a valid value.
-        """
-        allowedValues = {'no', 'full', 'modified'}
-        if value not in allowedValues:
-            raise ValueError('"%s" is invalid, valid values are "%s"' %
-                             (value, str(allowedValues)))
-        self.__options['rsp-subtree'] = value
-
     def requestargs(self, session):
-        """Get the arguments to be used by the HTTP request.
-
-        session (cobra.mit.session.AbstractSession): The session to be used to
-          build the the request arguments
-
-        Returns:
-          dict: The arguments
-        """
+        uriPathandOptions = self.getUriPathAndOptions(session)
         data = self.xmldata if session.formatStr == 'xml' else self.data
+        headers = session.getHeaders(uriPathandOptions, data)
         kwargs = {
-            'headers': self.getHeaders(session, data),
+            'headers': headers,
             'verify': session.secure,
             'timeout': session.timeout,
             'data': str(data)
@@ -1476,33 +902,16 @@ class ConfigRequest(AbstractRequest):
         return kwargs
 
     def addMo(self, mo):
-        """Add a managed object (MO) to the configuration request.
-
-        Args
-          mo (cobra.mit.mo.Mo): The managed object to add
-
-        Raises:
-          ValueError: If the context root of the MO is not allowed. This can
-            happen if the MO being added does not have a common context root
-            with the MOs that are already added to the configuration request
         """
-        moCtx = mo.contextRoot
-        if moCtx is None:
-            raise ValueError('mo context not found for {0}'.format(str(mo.dn)))
-        if not self.__ctxRoot:
-            self.__ctxRoot = moCtx
-        elif moCtx != self.__ctxRoot:
-            raise ValueError('mo context "%s" not allowed for request "%s"' %
-                             (mo.meta.moClassName,
-                              self.__ctxRoot.moClassName))
+        Adds a managed object (MO) to the configuration.
+        """
+
         self.__configMos[mo.dn] = mo
         self.__rootMo = None
 
     def removeMo(self, mo):
-        """Remove a managed object (MO) from the configuration request.
-
-        Args:
-          mo (cobra.mit.mo.Mo): The managed object to add
+        """
+        Removes a managed object (MO) from the configuration.
         """
         del self.__configMos[mo.dn]
         self.__rootMo = None
@@ -1510,42 +919,31 @@ class ConfigRequest(AbstractRequest):
             self.__ctxRoot = None
 
     def hasMo(self, dn):
-        """Check if the configuration request has a specific MO.
-
-        Args:
-        dn (str): The distinguished name of the mo to check
-
-        Returns (bool): True if the MO is in the configuration request,
-          otherwise False
+        """
+        Verifies whether managed object (MO) is present in an uncommitted
+        configuration.
         """
         return dn in self.__configMos
 
+    @property
+    def configMos(self):
+        mos = [mo for mo in list(self.__configMos.values())]
+        mos.sort(key=lambda xmo: str(xmo.dn), reverse=True)
+        return mos
+
     def getRootMo(self):
-        """Get the Root Mo for this configuration request.
-
-        Returns:
-          None or cobra.mit.mo.Mo: The root Mo for the config request
-        """
         def addDescendantMo(rMo, descendantMo):
-            """Add a descendant to a root Mo (rMo).
-
-            Args:
-              rMo (cobra.mit.mo.Mo): The root Mo to add the descendant to.
-              descendantMo (cobra.mit.mo.Mo): The descendant to add to the root
-                Mo.
-            """
             rDn = rMo.dn
             descendantDn = descendantMo.dn
             parentDn = descendantDn.getParent()
+            ConfigRequest.__getMoForDnInFlatTree(descendantDn, flatTreeDict, descendantMo)
             while rDn != parentDn:
-                # This is a descendant.  Make the parent mo.
-                parentMo = ConfigRequest.__getMoForDnInFlatTree(parentDn,
-                                                                flatTreeDict)
-                # pylint:disable=protected-access
+                # This is a descendant. make the parent mo
+                parentMo = ConfigRequest.__getMoForDnInFlatTree(parentDn, flatTreeDict)
                 parentMo._attachChild(descendantMo)
                 descendantMo = parentMo
                 parentDn = parentDn.getParent()
-            rMo._attachChild(descendantMo)  # pylint:disable=protected-access
+            rMo._attachChild(descendantMo)
 
         if self.__rootMo:
             return self.__rootMo
@@ -1563,8 +961,7 @@ class ConfigRequest(AbstractRequest):
         # If it is there, remove it, else create a new MO, but in any case
         # add the MO to the flat tree dictionary for further lookups.
         rootMo = configMos.pop(rootDn) if rootDn in configMos else None
-        rootMo = ConfigRequest.__getMoForDnInFlatTree(rootDn, flatTreeDict,
-                                                      rootMo)
+        rootMo = ConfigRequest.__getMoForDnInFlatTree(rootDn, flatTreeDict, rootMo)
 
         # Add the rest of the mos to the root.
         childMos = sorted(list(configMos.values()), key=lambda x: x.dn)
@@ -1575,33 +972,12 @@ class ConfigRequest(AbstractRequest):
         return rootMo
 
     def getUriPathAndOptions(self, session):
-        """Get the full URI path and options portion of the URL.
-
-        Args:
-          session (cobra.mit.session.AbstractSession): The session object which
-            contains information needed to build the URI
-
-        Returns:
-          str: The URI and options string
-        """
         rootMo = self.getRootMo()
         if rootMo is None:
-            return None
+            raise CommitError(0, "No mos in config request")
         dnStr = str(rootMo.dn)
         return "%s/%s.%s%s%s" % (self.uriBase, dnStr, session.formatStr,
                                  '?' if self.options else '', self.options)
-
-    def getUrl(self, session):
-        """Get the URL containing all the query options.
-
-        Args:
-          session (cobra.mit.session.AbstractSession): The session to use for
-            this query.
-
-        Returns:
-          str: The url
-        """
-        return session.url + self.getUriPathAndOptions(session)
 
     @staticmethod
     def __getMoForDnInFlatTree(dn, flatTree, mo=None):
@@ -1610,261 +986,122 @@ class ConfigRequest(AbstractRequest):
         This method lookup for the given dn in a tree, if there is not any
         entry for that dn, it use the given mo or it creates a new mo.
         """
-        return flatTree.setdefault(dn, mo if mo else
-                                   ConfigRequest.__makeMoFromDn(dn))
+        return flatTree.setdefault(dn, mo if mo else ConfigRequest.__makeMoFromDn(dn))
 
     @staticmethod
     def __makeMoFromDn(dn):
-        """Make a managed object from a Dn object.
-
-        Args:
-          dn (cobra.mit.naming.Dn): The Dn to build an Mo from.
-
-        Returns:
-          cobra.mit.mo.Mo: The managed object that the dn represented.
-        """
         klass = dn.moClass
         namingVals = list(dn.rn().namingVals)
         pDn = dn.getParent()
         return klass(pDn, *namingVals)
 
+    # property setters / getters for this class
+
+    @property
+    def subtree(self):
+        """
+        Returns the current type of subtree filter.
+        """
+        return self.__options.get('rsp-subtree', None)
+
+    @subtree.setter
+    def subtree(self, value):
+        """
+        Filters Mo values returned by the ConfigRequest. This can be the full
+        tree of objects under the top level, just the modified attributes or
+        none (default)
+        """
+        allowedValues = {'no', 'full', 'modified'}
+        if value not in allowedValues:
+            raise ValueError('"%s" is invalid, valid values are "%s"' %
+                             (value, str(allowedValues)))
+        self.__options['rsp-subtree'] = value
+
 
 class MultiQuery(AbstractQuery):
-
-    """Perform a multiquery.
-
-    Attributes:
-      options (str): The HTTP request query string string for this DnQuery
-        object - readonly
-
-      target (str): The target for this MultiQuery - readonly
-
-      propInclude (str): the current response property include filter.
-        This filter can be used to specify the properties that should be
-        included in the response.  Valid values are:
-
-        * _all_
-        * naming-only
-        * config-explicit
-        * config-all
-        * config-only
-        * oper
-
-      subtreePropFilter (str): The response subtree filter can be used to limit
-        what is returned in a subtree response by property values
-
-      subtreeClassFilter (str): The response subtree class filter can be used
-        to filter a subtree response down to one or more classes.  Setting this
-        can be done with either a list or a string, the value is always stored
-        as a comma separated string.
-
-      subtreeInclude (str): The response subtree include filter can be used to
-        limit the response to a specific type of information from the subtree,
-        these include:
-
-        * audit-logs
-        * event-logs
-        * faults
-        * fault-records
-        * health
-        * health-records
-        * relations
-        * stats
-        * tasks
-        * count
-        * no-scoped
-        * required
-
-      queryTarget (str): The query target filter can be used to specify what
-        part of the MIT to query.  You can query:
-
-        * self - The object itself
-        * children - The children of the object
-        * subtree - All the objects lower in the heirarchy
-
-      classFilter (str): The target subtree class filter can be used to specify
-        which subtree class to filter by.  You can set this using a list or
-        a string.  The value is always stored as a comma separated string.
-
-      propFilter (str): The query target property filter can be used to limit
-        which objects are returned based on the value that is set in the
-        specific property within those objects.
-
-      subtree (str): The response subtree filter can be used to define what
-        objects you want in the response.  The possible values are:
-
-        * no - No subtree requested
-        * children - Only the children objects
-        * full - A full subtree
-
-      orderBy (list or str): Request that the results be ordered in a certain
-        way.  This can be a list of property sort specifiers or a comma
-        separated string. An example sort specifier: 'aaaUser.name|desc'.
-
-      pageSize (int): Request that the results that are returned are limited
-        to a certain number, the pageSize.
-
-      replica (int): The replica option can direct a query to a specific
-        replica.  The possible values are:
-
-        * 1
-        * 2
-        * 3
-
-      id (None or int): An internal troubleshooting value useful for tracing
-        the processing of a request within the cluster
-
-      uriBase (str): The base URI used to build the URL for queries and
-        requests
+    """
+    Class to create a MultiQuery
     """
 
     def __init__(self, target):
-        """Initialize a MultiQuery instance.
-
-        Args:
-        target (str): The target for this MultiQuery
-        """
         super(MultiQuery, self).__init__()
         self.__options = {}
         self.__target = target
-        self.uriBase = "/api/mqapi2/%s" % self.target
+        self.uriBase = "/mqapi2/%s" % self.target
 
     @property
     def options(self):
-        """Get the options.
-
-        Returns:
-          str: All the options for this MultiQuery request as a string
-            joined by &'s.
+        """
+        Returns the concatenation of the class and base class options for HTTP
+        request query string
         """
         return '&'.join([_f for _f in [AbstractRequest.makeOptions(
             self.__options), super(MultiQuery, self).options] if _f])
 
+    # property setters / getters for this class
+
     @property
     def target(self):
-        """Get the target.
-
-        Returns:
-          str: The target for this MultiQuery request.
+        """
+        Returns the target for this MultiQuery
         """
         return self.__target
 
-    def getUrl(self, session):
-        """Get the URL containing all the query options.
-
-        Args:
-          session (cobra.mit.session.AbstractSession): The session to use for
-            this query.
-
-        Returns:
-          str: The url
-        """
-        return session.url + self.getUriPathAndOptions(session)
-
 
 class TroubleshootingQuery(MultiQuery):
-
-    """Setup a troubleshooting query.
-
-    Attributes:
-      mode (str): The troubleshooting mode for this TroubleshootingQuery
-        Valid values are:
-
-        * createsession
-        * interactive
-        * generatereport
-
-      format (str): The output format.  Valid values are:
-
-        * xml
-        * json
-        * txt
-        * html
-        * pdf
-
-      include (str): The result include flags.
-        Valid values are:
-
-        * topo
-        * services
-        * stats
-        * faults
-        * events
-
-      session (str): The session name.
-
-      srcep (str): The source endpoint.
-
-      dstep (str): The destination endpoint.
-
-      starttime (str): The start time.
-
-      endtime (str): The end time.
+    """
+    Class to create a troubleshooting query
     """
 
     def __init__(self, target):
-        """Initialize a TroubleshootingQuery instance.
-
-        Args:
-          target (str) : The target for this TroubleshootingQuery
-        """
         super(TroubleshootingQuery, self).__init__('troubleshoot.%s' % target)
+        self.__options = {}
+
+    @property
+    def options(self):
+        """
+        Returns the concatenation of the class and base class options for HTTP
+        request query string
+        """
+        return '&'.join([_f for _f in [AbstractRequest.makeOptions(
+            self.__options), super(TroubleshootingQuery, self).options] if _f])
 
     @property
     def mode(self):
-        """Get the mode.
-
-        Returns:
-          str: The mode for this troubleshooting request.
+        """
+        Returns the troubleshooting mode.
         """
         return self.__options.get('mode', None)
 
     @mode.setter
     def mode(self, value):
-        """Set the mode.
-
-        Args:
-          value (str): The mode for this troubleshooting request.  Valid values
-            are:
-
-            * createsession
-            * interactive
-            * generatereport
-
-        Raises:
-          ValueError: If the value is not a valid value.
         """
-        allowedValues = {'createsession', 'interactive', 'generatereport'}
+        Sets the troubleshooting mode.
+        """
+        allowedValues = {'createsession', 'modifysession', 'deletesession',
+                         'getsessionslist', 'interactive', 'generatereport',
+                         'span', 'getreportslist', 'getreportstatus',
+                         'getsessiondetail', 'clearreports', 'atomiccounter',
+                         'traceroute', 'createl2session', 'latency'}
         if value not in allowedValues:
             raise ValueError('"%s" is invalid, valid values are "%s"' %
                              (value, str(allowedValues)))
         self.__options['mode'] = value
 
+    def setCustomArgument(self, arg, val):
+        self.__options[arg] = val
+
     @property
     def format(self):
-        """Get the format.
-
-        Returns:
-          str: The format for this troubleshooting request.
+        """
+        Returns the output format.
         """
         return self.__options.get('format', None)
 
     @format.setter
     def format(self, value):
-        """Set the format.
-
-        Args:
-          value (str): The format for this troubleshooting request.  Valid
-            values are:
-
-            * xml
-            * json
-            * txt
-            * html
-            * pdf
-
-        Raises:
-          ValueError: If the value is not a valid value.
+        """
+        Sets the output format.
         """
         allowedValues = {'xml', 'json', 'txt', 'html', 'pdf'}
         if value not in allowedValues:
@@ -1874,206 +1111,235 @@ class TroubleshootingQuery(MultiQuery):
 
     @property
     def include(self):
-        """Get the include value.
-
-        Returns:
-          str: The include value for this troubleshooting request.
+        """
+        Returns the result include flags.
         """
         return self.__options.get('include', None)
 
     @include.setter
     def include(self, value):
-        """Set the include property.
-
-        Args:
-          value (str): The include value.  Valid values are:
-
-            * topo
-            * services
-            * stats
-            * faults
-            * events
-
-        Raises:
-          ValueError: If the value is not a valid value.
         """
-        allowedValues = {'topo', 'services', 'stats', 'faults', 'events'}
+        Sets the result include flags.
+        """
+
+        allowedValues = {'topo', 'services', 'stats', 'faults', 'events', 'audits', 'fault-records', 'contracts', 'deployment-records'}
         allValues = value.split(',')
-        for val in allValues:
-            if val not in allowedValues:
+        for v in allValues:
+            if v not in allowedValues:
                 raise ValueError('"%s" is invalid, valid values are "%s"' %
                                  (value, str(allowedValues)))
         self.__options['include'] = value
 
     @property
-    def session(self):
-        """Get the session.
+    def action(self):
+        """
+        Returns the action flag.
+        """
+        return self.__options.get('action', None)
 
-        Returns:
-          str: The session for this troubleshooting request.
+    @include.setter
+    def action(self, value):
+        """
+        Sets the action flag.
+        """
+
+        allowedValues = {'start', 'stop', 'status'}
+        if value not in allowedValues:
+            raise ValueError('"%s" is invalid, valid values are "%s"' %
+                             (value, str(allowedValues)))
+        self.__options['action'] = value
+
+    @property
+    def session(self):
+        """
+        Returns the session name.
         """
         return self.__options.get('session', None)
 
     @session.setter
     def session(self, value):
-        """Set the session.
-
-        Args:
-          value (str): The session for this troubleshooting request.
         """
+        Sets the session name.
+        """
+
         self.__options['session'] = value
 
     @property
     def srcep(self):
-        """Get the source EP.
-
-        Returns:
-          str: The source EP for this troubleshooting request.
+        """
+        Returns the source endpoint.
         """
         return self.__options.get('srcep', None)
 
     @srcep.setter
     def srcep(self, value):
-        """Set the source EP.
-
-        Args:
-          value (str): The source EP for this troubleshooting request.
         """
+        Sets the source endpoint.
+        """
+
         self.__options['srcep'] = value
 
     @property
     def dstep(self):
-        """Get the destination EP.
-
-        Returns:
-          str: The destination EP for this troubleshooting request.
+        """
+        Returns the destination endpoint.
         """
         return self.__options.get('dstep', None)
 
     @dstep.setter
     def dstep(self, value):
-        """Set the destination EP.
-
-        Args:
-          value (str): The destination EP for this troubleshooting request.
         """
+        Sets the destination endpoint.
+        """
+
         self.__options['dstep'] = value
 
     @property
-    def starttime(self):
-        """Get the start time.
+    def srcextip(self):
+        """
+        Returns the source external ip address.
+        """
+        return self.__options.get('srcextip', None)
 
-        Returns:
-          str: The start time for the troubleshooting request.
+    @srcextip.setter
+    def srcextip(self, value):
+        """
+        Sets the source external ip address.
+        """
+
+        self.__options['srcextip'] = value
+
+    @property
+    def dstextip(self):
+        """
+        Returns the destination external ip address.
+        """
+        return self.__options.get('dstextip', None)
+
+    @dstextip.setter
+    def dstextip(self, value):
+        """
+        Sets the destination external ip address.
+        """
+
+        self.__options['dstextip'] = value
+
+    @property
+    def starttime(self):
+        """
+        Returns the start time.
         """
         return self.__options.get('starttime', None)
 
     @starttime.setter
     def starttime(self, value):
-        """Set the start time.
-
-        Args:
-          value (str): The start time for the troubleshooting request.
         """
+        Sets the start time.
+        """
+
         self.__options['starttime'] = value
 
     @property
     def endtime(self):
-        """Get the end time.
-
-        Returns:
-          None: If the end time is not set.
-          str: The end time for the troubleshooting request if it is set.
+        """
+        Returns the end time.
         """
         return self.__options.get('endtime', None)
 
     @endtime.setter
     def endtime(self, value):
-        """Set the endtime.
-
-        Args:
-          value (str): The end time for a troubleshooting request.
         """
+        Sets the end time.
+        """
+
         self.__options['endtime'] = value
+
+    @property
+    def sessionurl(self):
+        """
+        Returns the sessionurl.
+        """
+        return self.__options.get('sessionurl', None)
+
+    @sessionurl.setter
+    def sessionurl(self, value):
+        """
+        Sets the sessionurl.
+        """
+        self.__options['sessionurl'] = value
+
+    @property
+    def scheduler(self):
+        """
+        Returns the scheduler name.
+        """
+        return self.__options.get('scheduler', None)
+
+    @scheduler.setter
+    def scheduler(self, value):
+        """
+        Sets the scheduler name.
+        """
+        self.__options['scheduler'] = value
+
+
+class Deployment(MultiQuery):
+    """
+    Class to create a deployment query
+    """
+
+    def __init__(self, target):
+        super(Deployment, self).__init__('deployment.%s' % target)
+        self.__options = {}
+
+    @property
+    def options(self):
+        """
+        Returns the concatenation of the class and base class options for HTTP
+        request query string
+        """
+        return '&'.join([_f for _f in [AbstractRequest.makeOptions(
+            self.__options), super(Deployment, self).options] if _f])
+
+    @property
+    def mode(self):
+        """
+        Returns the deployment query mode.
+        """
+        return self.__options.get('mode', None)
+
+    @mode.setter
+    def mode(self, value):
+        """
+        Sets the deployment query mode.
+        """
+        """
+        allowedValues = {}
+        if value not in allowedValues:
+            raise ValueError('"%s" is invalid, valid values are "%s"' %
+                             (value, str(allowedValues)))
+        """
+        self.__options['mode'] = value
+
+    def setCustomArgument(self, arg, val):
+        self.__options[arg] = val
 
 
 class RestError(Exception):
-
-    """Exceptions that occur due to REST API errors.
-
-    Attributes:
-      reason (str): The reason string for the exception
-
-      error (int): The REST error code for the exception
-
-      httpCode (int): The HTTP response code
-    """
-
     def __init__(self, errorCode, reasonStr, httpCode):
-        """Initialize a RestError instance.
-
-        Args:
-          errorCode (int): The REST error code for the exception
-
-          reasonStr (str): The reason for the exception
-
-          httpCode (int): The HTTP response code
-        """
-        super(RestError, self).__init__(reasonStr)
         self.reason = reasonStr
         self.error = errorCode
         self.httpCode = httpCode
 
     def __str__(self):
-        """Implement str()."""
         return self.reason
 
 
 class CommitError(RestError):
-
-    """Exceptions that occur when trying to commit changes.
-
-    Attributes:
-      reason (str): The reason string for the exception
-
-      error (int): The REST error code for the exception
-
-      httpCode (int): The HTTP response code
-    """
-
     def __init__(self, errorCode, reasonStr, httpCode=None):
-        """Initialize a CommitError instance.
-
-        Args:
-          errorCode (int): The REST error code for the exception
-
-          reasonStr (str): The reason for the exception
-
-          httpCode (int): The HTTP response code
-        """
         super(CommitError, self).__init__(errorCode, reasonStr, httpCode)
 
 
 class QueryError(RestError):
-
-    """Exceptions that occur during queries.
-
-    Attributes:
-      reason (str): The reason string for the exception
-
-      error (int): The REST error code for the exception
-
-      httpCode (int): The HTTP response code
-    """
-
     def __init__(self, errorCode, reasonStr, httpCode=None):
-        """Initialize a QueryError instance.
-
-        Args:
-          errorCode (int): The REST error code for the exception
-
-          reasonStr (str): The reason for the exception
-
-          httpCode (int): The HTTP response code
-        """
         super(QueryError, self).__init__(errorCode, reasonStr, httpCode)

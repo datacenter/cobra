@@ -1,4 +1,4 @@
-# Copyright 2015 Cisco Systems, Inc.
+# Copyright 2019 Cisco Systems, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,69 +14,47 @@
 
 """The naming module for the ACI Python SDK (cobra)."""
 
-from builtins import next    # pylint:disable=redefined-builtin
-from builtins import str     # pylint:disable=redefined-builtin
-from builtins import object  # pylint:disable=redefined-builtin
+import sys
+if sys.version_info[0] == 3:
+    from builtins import str
+from builtins import object
 
+from builtins import next
+#from past.builtins import cmp
 from cobra.mit.meta import ClassLoader
 from collections import deque
 
 
 class Rn(object):
-
-    """The relative name (Rn) of the managed object (MO).
-
-    You can use Rn to convert between Rn of an MO its constituent naming
-    values. The string form of Rn is {prefix}{val1}{prefix2}{Val2} (...)
-
-    Note:
-      The naming value is enclosed in brackets ([]) if the meta object
-      specifies that properties be delimited.
-
-    Attributes:
-      namingVals (tupleiterator): An interator for the naming values - readonly
-
-      meta (cobra.mit.meta.ClassMeta): The class meta for this Rn - readonly
-
-      moClass (cobra.mit.mo.Mo): The class of the Mo for this Rn - readonly
+    """
+    The Rn class is the relative name (Rn) of the managed object (MO).
+    You can use Rn to convert between Rn of an MO its constituent naming values.
+    The string form of Rn is {prefix}{val1}{prefix2}{Val2} (...)
+    Note: The naming value is enclosed in brackets ([]) if the meta object
+    specifies that properties be delimited.
     """
 
     @classmethod
     def fromString(cls, classMeta, rnStr):
-        """Create a relative name instance from a string and classMeta.
+        """
+        Create a relative name object from the string form given the class meta
 
-        Args:
-          classMeta (cobra.mit.meta.ClassMeta): class meta of the mo class
-          rnStr (str): string form of the Rn
+        :param classMeta: class meta of the mo class
+        :type classMeta: cobra.mit.meta.ClassMeta
 
-        Raises:
-          ValueError: If the Rn prefix is not valid or the Rn does not follow
-            the proper rnFormat
+        :param rnStr: string form of rn
+        :type rnStr: str
 
-        Returns:
-          cobra.mit.naming.Rn: The Rn object
+        :returns: Rn object
+        :rtype: cobra.mit.naming.Rn
         """
         def findBalancedPropDelims(rn, start):
-            """Find the matching closing naming value property delimitor.
-
-            Args:
-              rn (str): The Rn as a string.
-              start (int): The character location in the Rn to start parsing
-                at.
-
-            Raises:
-              ValueError: If a closing naming property delimiter is found
-                before a matching opening naming property delimiter.
-
-            Returns:
-              int: The character location in rn where the naming property ends.
-            """
             stk = deque()
             first = True
             end = start
             # loop through the rnStr looking for [ and append them to the deque
             # and ] and pop them off the deque, once things are balanced return
-            # that character location as the end of the Rn.
+            # that character as the end of the Rn.
             while end < len(rn):
                 if not first and len(stk) == 0:
                     return end
@@ -95,18 +73,7 @@ class Rn(object):
                 end += 1
             return -1
 
-        # pylint:disable=too-many-branches
         def parseNamingProps(meta, rn):
-            """Parse the naming properties into a list.
-
-            Args:
-              meta (cobra.mit.meta.PropMeta): The property meta object.
-              rn (cobra.mit.naming.Rn): The relative name to parse for naming
-                properties.
-
-            Returns:
-              list: A list of naming properties.
-            """
             rnFormat = meta.rnFormat
             if not len(meta.namingProps):
                 if rn == rnFormat:
@@ -160,11 +127,14 @@ class Rn(object):
         return Rn(classMeta, *namingVals)
 
     def __init__(self, classMeta, *namingVals):
-        """Initalize a Rn object.
+        """
+        Relative Name (Rn) of the Mo from class meta and list of naming values
 
-        Args:
-          classMeta (cobra.mit.meta.ClassMeta): class meta of the mo class
-          **namingVals: The naming values for the Rn
+        :param classMeta: class meta of the mo class
+        :type classMeta: cobra.mit.meta.ClassMeta
+
+        :param namingVals: list of naming values
+        :type namingVals: list
         """
         self.__namingVals = namingVals
         self.__meta = classMeta
@@ -172,30 +142,52 @@ class Rn(object):
 
     @property
     def namingVals(self):
-        """Get the naming vals for this Rn as an iterator.
+        """
+        Iterator of naming values for this rn
 
-        Returns:
-          iterator: The naming vals for this Rn.
+        :returns: iterator of the naming values for this rn
+        :rtype: iterator
         """
         return iter(self.__namingVals)
 
     @property
-    def meta(self):
-        """Get the meta object for this Rn.
+    def namingValueList(self):
+        return list(self.__namingVals)
 
-        Returns:
-          cobra.mit.meta.ClassMeta: The meta object for this Rn.
+    @property
+    def meta(self):
+        """
+        class meta of the mo class for this Rn
+
+        :returns: class meta of the mo for this Rn
+        :rtype: cobra.mit.meta.ClassMeta
         """
         return self.__meta
 
     @property
     def moClass(self):
-        """Get the Mo class from the meta for this Rn.
+        """
+        Mo class for this Rn
 
-        Returns:
-          cobra.mit.mo.Mo: The Mo class from the meta for this Rn.
+        :returns: Mo class for this Rn
+        :rtype: cobra.mit.mo.Mo
         """
         return self.__meta.getClass()
+
+    # def __cmp__(self, other):
+    #     """
+    #     compares two rn objects using the natural ordering of their naming
+    #     values
+
+    #     :param other: other rn being compared
+    #     :type other: cobra.mit.naming.Rn
+
+    #     :returns: 0 if equal, > 0 if self is greater and < 0 if self is smaller
+    #     :rtype: int
+    #     """
+    #     selfRnStr = str(self)
+    #     otherRnStr = str(other)
+    #     return cmp(selfRnStr, otherRnStr)
 
     def __lt__(self, other):
         """Implement <."""
@@ -222,21 +214,26 @@ class Rn(object):
         return str(self) >= str(other)
 
     def __str__(self):
-        """Implement str()."""
+        """
+        Returns the string form of the Rn
+
+        :returns: string form of the Rn
+        :rtype: str
+        """
         if not self.__rnStr:
             self.__rnStr = self.__makeRnStr()
         return self.__rnStr
 
     def __hash__(self):
-        """Implement has()."""
+        """
+        Returns the hash code for the Rn
+
+        :returns: hash code for the Rn
+        :rtype: int
+        """
         return hash(str(self))
 
     def __makeRnStr(self):
-        """Build a Rn string based on the naming props from the meta if any.
-
-        Returns:
-          str: The string that represents this rn.
-        """
         if self.__meta.namingProps:
             namingProps = {}
             namingValsIter = iter(self.__namingVals)
@@ -248,9 +245,7 @@ class Rn(object):
 
 
 class Dn(object):
-
-    """A Distinguised name class.
-
+    """
     The distinguished name (Dn) uniquely identifies a managed object (MO).
     A Dn is an ordered list of relative names, such as:
 
@@ -260,88 +255,19 @@ class Dn(object):
     from the top of the Mit to the Mo.
 
     dn = "uni/userext/user-john"
-
-    Attributes:
-      rns (listiterator): Iterator for all the rns from topRoot to the target
-        Mo
-
-      meta (cobra.mit.meta.ClassMeta): class meta of the mo class for this Dn
-
-      moClass (cobra.mit.mo.Mo): Mo class for this Dn
-
-      contextRoot (cobra.mit.mo.Mo): The context root for this Dn
     """
-
-    def __init__(self, rns=None):
-        """Initialize a Dn instance from list of Rn objects.
-
-        Args:
-          rns (list): list of Rns
-        """
-        self.__dnStr = None
-        self.__rns = []
-        self.__class = ClassLoader.loadClass('cobra.model.top.Root')
-        self.__meta = self.__class.meta
-        if rns is None:
-            rns = []
-        for rn in rns:
-            self.appendRn(rn)
-
-    @property
-    def rns(self):
-        """Get the Rn's that make up this Dn as an iterator.
-
-        Returns:
-          iterator: An iterator object reprsenting the Rn's for this Dn.
-        """
-        return iter(self.__rns)
-
-    @property
-    def meta(self):
-        """Get the meta object for this Dn.
-
-        Returns:
-          cobra.mit.meta.ClassMeta: The class meta for this Dn.
-        """
-        return self.__meta
-
-    @property
-    def moClass(self):
-        """Get the Mo class for this Dn.
-
-        Returns:
-          cobra.mit.mo.Mo: The Mo class for this Dn.
-        """
-        return self.__class
-
-    @property
-    def contextRoot(self):
-        """Get the Dn's context root.
-
-        Returns:
-          None: If the Dn has no context root.
-          cobra.mit.meta.ClassMeta: The class meta for this Dn's Rn.
-        """
-        for rn in reversed(self.__rns):
-            if rn.meta.isContextRoot:
-                return rn.meta
-        return None
 
     @classmethod
     def fromString(cls, dnStr):
-        """Create a distingushed name instance from a dn string.
+        """
+        Create a Dn from the string form of Dn. This method parses the dn
+        string into its constituent Rn strings and creates the Rn objects.
 
-        Parses the dn string into its constituent Rn strings and creates the Rn
-        objects.
+        :param dnStr: string form of Dn
+        :type dnStr: str
 
-        Args:
-          dnStr (str): string form of Dn
-
-        Raises:
-          ValueError: If an Rn in the Dn is found to not be consistent with the
-            ACI model
-
-        Returns (cobra.mit.naming.Dn): The Dn instance
+        :returns: Dn object
+        :rtype: cobra.mit.naming.Dn
         """
         rnStrs = cls.__splitDnStr(dnStr)
         newDn = Dn()
@@ -358,34 +284,25 @@ class Dn(object):
 
     @classmethod
     def findCommonParent(cls, dns):
-        """Find the common parent for the given set of dn objects.
-
-        Args:
-          dns (list): The Dn objects to find the common parent of
-
-        Returns:
-          cobra.mit.naming.Dn: Dn object of the common parent if any, else Dn
-            for topRoot
         """
-        def allRnsEqual(allDns, idx):
-            """Check if all Rn's a specific level are equal.
+        Find the common parent for the given set of dn objects.
 
-            Args:
-              allDns (list): The Dn objects that will be used in the comparison
-              idx (int): The index of the Rn in the Dn's to compare
-            Returns:
-              bool: True if the Rn's are equal up to the idx for every Dn in
-                allDns
-            """
+        :param dns: list of Dn objects
+        :type dns: list
+
+        :returns: Dn object of the common parent if any, else Dn for topRoot
+        :rtype: cobra.mit.naming.Dn
+        """
+        def allRnsEqual(allDns, i):
             firstRn = None
             for eachDn in allDns:
-                # pylint:disable=protected-access
-                currentRn = eachDn.__rns[idx]
+                currentRn = eachDn.__rns[i]
                 if firstRn is None:
                     firstRn = currentRn
                 else:
                     if firstRn != currentRn:
                         return False
+
             # All Rns at this level are equal
             return True
 
@@ -395,7 +312,6 @@ class Dn(object):
             return dns[0]
 
         index = 0
-        # pylint:disable=protected-access
         maxLen = min([len(dn.__rns) for dn in dns])
         while index < maxLen:
             if allRnsEqual(dns, index):
@@ -404,55 +320,112 @@ class Dn(object):
                 break
         if index == 0:
             return Dn()
-        rns = dns[0].__rns  # pylint:disable=protected-access
+        rns = dns[0].__rns
         return Dn(rns[:index])
 
+    def __init__(self, rns=None):
+        """
+        Create a Dn from list of Rn objects.
+
+        :param rns: list of Rns
+        :type rns: list
+        """
+        self.__dnStr = None
+        self.__hash = None
+        self.__rns = []
+        self.__class = ClassLoader.loadClass('cobra.model.top.Root')
+        self.__meta = self.__class.meta
+        if rns is None:
+            rns = []
+        for rn in rns:
+            self.appendRn(rn)
+
     def rn(self, index=None):
-        """Get a Rn at a specified index.
+        """
+        Returns the Rn object at the specified index. If index is None, then
+        the Rn of the target Mo is returned
 
-        If index is None, then the Rn of the target Mo is returned
+        :param index: index of the Rn object, this must be betwee 0 and the
+                      length of the Dn
+        :type index: int
 
-        Args:
-          index (None or int): index of the Rn object, this must be between
-            0 and the length of the Dn (i.e. number of Rns) or None. The
-            default is None
-
-        Returns (cobra.mit.naming.Rn): Rn object at the specified index
+        :returns: Rn object at the specified index
+        :rtype: cobra.mit.naming.Rn
         """
         if index is None:
             return self.__rns[-1]
         return self.__rns[index]
 
     def getAncestor(self, level):
-        """Get the ancestor Dn based on the number of levels.
+        """
+        Returns the ancestor Dn based on the number of levels
 
-        Args:
-          level (int): number of levels
+        :param level: number of levels
+        :type level: int
 
-        Returns:
-          cobra.mit.naming.Dn: The Dn object of the ancestor as specified by
-          the level argument
+        :returns: Dn object of the ancestor as specified by the level param
+        :rtype: cobra.mit.naming.Dn
         """
         rns = self.__rns[:-level]
         return Dn(rns)
 
     def getParent(self):
-        """Get the parent Dn of the current Dn.
-
-        Same as:
-
+        """
+        Returns the parent Dn, same as::
             self.getAncetor(1)
 
-        Returns:
-          cobra.mit.naming.Dn: Dn object of the immediate parent
+        :returns: Dn object of the immediate parent
+        :rtype: cobra.mit.naming.Dn
         """
         return self.getAncestor(1)
 
-    def clone(self):
-        """Get a new copy of this Dn.
+    @property
+    def isRoot(self):
+        return len(self.__rns) == 0
 
-        Returns:
-          cobra.mit.naming.Dn: Copy of this Dn
+    @property
+    def rns(self):
+        """
+        Iterator for all the rns from topRoot to the target Mo
+
+        :returns: iterator of Rns in this Dn
+        :rtype: iterator
+        """
+        return iter(self.__rns)
+
+    @property
+    def meta(self):
+        """
+        class meta of the mo class for this Dn
+
+        :returns: class meta of the mo for this Dn
+        :rtype: cobra.mit.meta.ClassMeta
+        """
+        return self.__meta
+
+    @property
+    def moClass(self):
+        """
+        Mo class for this Dn
+
+        :returns: Mo class for this Dn
+        :rtype: cobra.mit.mo.Mo
+        """
+        return self.__class
+
+    @property
+    def contextRoot(self):
+        for rn in reversed(self.__rns):
+            if rn.meta.isContextRoot:
+                return rn.meta
+        return None
+
+    def clone(self):
+        """
+        Return a new copy of this Dn
+
+        :returns: copy of this Dn
+        :rtype: cobra.mit.naming.Dn
         """
         newDn = Dn()
         for rn in self.__rns:
@@ -460,21 +433,14 @@ class Dn(object):
         return newDn
 
     def appendRn(self, rn):
-        """Append an Rn to this Dn.
-
-        Note:
-          This changes the target MO
-
-        Args:
-          rn (cobra.mit.naming.Rn): The Rn to append to this Dn
-
-        Raises:
-          ValueError: If the Dn can not contain the Rn
         """
-        rnClassName = rn.meta.className
-        if rnClassName == 'cobra.model.top.Root':
+        Appends an Rn to this Dn, changes the target Mo
+        """
+        if len(self.__rns) == 0 and str(rn) == '':
+            # ignore addition of topRoot to topRoot its just a clone side-effect
             return
-        if rnClassName not in self.__meta.childClasses:
+        rnClassName = rn.meta.className
+        if rnClassName not in self.__meta.childClasses and not rn.meta.isWireOnly:
             className = str(self.meta.className)
             raise ValueError("'%s' cannot contain '%s'" % (className,
                                                            str(rnClassName)))
@@ -482,15 +448,17 @@ class Dn(object):
         self.__meta = rn.meta
         self.__class = rn.moClass
         self.__dnStr = None
+        self.__hash = None
 
     def isDescendantOf(self, ancestorDn):
-        """Check if a Dn is a descendant of this Dn.
+        """
+        Return True if this Dn is a descendant of the other Dn
 
-        Args:
-          ancestorDn (cobra.mit.naming.Dn): Dn being compared for descendants
+        :param ancestorDn: Dn being compared for ancestory
+        :type ancestorDn: cobra.mit.naming.Dn
 
-        Returns:
-          boo: True if this Dn is a descendant of the other Dn else False
+        :returns: True if this Dn is a descendant of the other Dn else False
+        :rtype: boolean
         """
         ansDnStr = str(ancestorDn)
         dnStr = str(self)
@@ -498,25 +466,48 @@ class Dn(object):
                 dnStr.startswith(ansDnStr))
 
     def isAncestorOf(self, descendantDn):
-        """ Check if a Dn is an ancestor of this Dn.
+        """
+        Return True if this Dn is an ancestor of the other Dn
 
-        Args:
-          descendantDn (cobra.mit.naming.Dn): Dn being compared for ancestary
+        :param descendantDn: Dn being compared for descendants
+        :type descendantDn: cobra.mit.naming.Dn
 
-        Returns:
-          bool: True if this Dn is an ancestor of the other Dn else False
+        :returns: True if this Dn is an ancestor of the other Dn else False
+        :rtype: boolean
         """
         return descendantDn.isDescendantOf(self)
 
     def __len__(self):
-        """Implement len()."""
+        """
+        Returns the number of Rns in this Dn
+
+        :returns: number of rns in the dn
+        :rtype: int
+        """
         return len(self.__rns)
 
     def __str__(self):
-        """Implement str()."""
+        """
+        Returns the string form of the Dn
+
+        :returns: string form of the Dn
+        :rtype: str
+        """
         if not self.__dnStr:
             self.__dnStr = self.__makeDn()
         return self.__dnStr
+
+    # def __cmp__(self, other):
+    #     """
+    #     compares two Dn objects using the natural ordering of their Rns
+
+    #     :param other: other Dn being compared
+    #     :type other: cobra.mit.naming.Dn
+
+    #     :returns: 0 if equal, > 0 if self is greater and < 0 if self is smaller
+    #     :rtype: int
+    #     """
+    #     return cmp(str(self), str(other))
 
     def __lt__(self, other):
         """Implement <."""
@@ -543,15 +534,17 @@ class Dn(object):
         return str(self) >= str(other)
 
     def __hash__(self):
-        """Implement hash()."""
-        return hash(str(self))
+        """
+        Returns the hash code for the Dn
+
+        :returns: hash code for the Dn
+        :rtype: int
+        """
+        if self.__hash is None:
+            self.__hash = hash(str(self))
+        return self.__hash
 
     def __makeDn(self):
-        """Make a Dn string from the rns in this Dn.
-
-        Returns:
-          str: The Dn string for this Dn object.
-        """
         rnStrs = []
         for rn in self.__rns:
             rnStrs.append(str(rn))
@@ -559,17 +552,6 @@ class Dn(object):
 
     @classmethod
     def __splitDnStr(cls, dnStr):
-        """Split Dn strings into Rn strings.
-
-        Args:
-          dnStr (str): The Dn string to split
-
-        Raises:
-          ValueError: If the Dn has unbalanced delimiters
-
-        Returns:
-          list: A list of Rn strings.
-        """
         rnStrs = []
         rnStr = ""
         delimCount = 0
@@ -596,16 +578,6 @@ class Dn(object):
 
     @classmethod
     def __findChild(cls, pMeta, rnStr):
-        """Find the child given the parent  meta and Rn string.
-
-        Args:
-          pMeta (cobra.mit.meta.ClassMeta): The parent classes meta object.
-          rnStr (str): A string for the Rn of the child that should be found.
-
-        Returns:
-          None: If no child is found.
-          cobra.mit.meta.ClassMeta: The child's meta object.
-        """
         # This method assumes that the childNamesAndRnPrefix in the meta
         # is sorted with longest prefix first. This will allow us to match
         # child prefixes that are sub strings. For example 'ac' and 'action'
