@@ -6,7 +6,7 @@ It provides a pythonic library that allows developers to quickly develop and tes
 
 [apihome]: http://www.cisco.com/c/en/us/td/docs/switches/datacenter/aci/apic/sw/1-x/api/rest/b_APIC_RESTful_API_User_Guide.html
 [modelhome]: https://developer.cisco.com/site/apic-dc/documents/mim-ref/
-[acimodel]: https://github.com/datacenter/acimodel
+[acimodel]: https://developer.cisco.com/site/apic-mim-ref-api/
 [issues]: https://github.com/datacenter/cobra/issues
 
 > Life is really simple, but we insist on making it complicated.
@@ -20,7 +20,7 @@ It provides a pythonic library that allows developers to quickly develop and tes
 
 **Complete.** Covers the entire APIC REST API.
 
-**Robust.** Integrate with [ACI Model][acimodel] for client side validation and testing.
+**Robust.** Integrate with https://developer.cisco.com/site/apic-mim-ref-api/ for client side validation and testing.
 
 **Light.** Keep the code lean, making it easier to test, optimize and use.
 
