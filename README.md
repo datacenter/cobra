@@ -20,7 +20,7 @@ It provides a pythonic library that allows developers to quickly develop and tes
 
 **Complete.** Covers the entire APIC REST API.
 
-**Robust.** Integrate with https://developer.cisco.com/site/apic-mim-ref-api/ for client side validation and testing.
+**Robust.** Integrate with the [ACI object model][acimodel] for client side validation and testing.
 
 **Light.** Keep the code lean, making it easier to test, optimize and use.
 
